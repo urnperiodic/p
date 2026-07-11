@@ -245,14 +245,9 @@
   .player-loading.hide { opacity: 0; pointer-events: none; }
   .spinner { width: 46px; height: 46px; border: 4px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.9s linear infinite; }
 
-  /* Player controls — moved to BOTTOM-RIGHT so the top-right settings button never overlaps them */
-  .player-controls {
-    position: absolute; bottom: 14px; right: 14px; z-index: 6;
-    display: flex; gap: 8px; opacity: 0; transition: opacity 0.25s;
-  }
-  .player-stage:hover .player-controls,
-  .player-stage.theater .player-controls,
-  .player-stage:focus-within .player-controls { opacity: 1; }
+  /* NOTE: Window/Fullscreen controls now live BELOW the player (in the actions
+     bar) so they never cover the embedded player's own options/controls.
+     Only a small "Exit Window" button is overlaid — and ONLY in Window mode. */
   .pc-btn {
     background: rgba(0,0,0,0.72); border: 1px solid rgba(255,255,255,0.2); color: #fff;
     height: 40px; padding: 0 14px; border-radius: 8px; display: inline-flex; align-items: center;
@@ -260,8 +255,9 @@
   }
   .pc-btn:hover { background: rgba(0,0,0,0.9); border-color: var(--accent); }
   .pc-btn i { font-size: 0.95rem; }
-  .pc-btn .pc-label { white-space: nowrap; }
-  @media (max-width: 560px) { .pc-btn .pc-label { display: none; } .pc-btn { padding: 0; width: 40px; justify-content: center; } }
+  .player-exit { position: absolute; bottom: 14px; right: 14px; z-index: 6; display: none; opacity: 0.55; }
+  .player-exit:hover { opacity: 1; }
+  .player-stage.theater .player-exit { display: inline-flex; }
 
   /* Theater / Window mode */
   .player-stage.theater { position: fixed; inset: 0; width: 100vw; height: 100vh; aspect-ratio: auto; z-index: 999; background: #000; }
@@ -279,6 +275,7 @@
   .tip { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text-dim); font-size: 0.85rem; margin: 14px 0; display: flex; gap: 10px; align-items: flex-start; }
   .tip i { color: var(--accent); margin-top: 2px; }
   .watch-actions { display:flex; gap:10px; flex-wrap:wrap; margin: 8px 0 4px; }
+  .watch-actions .btn { padding: 10px 18px; font-size: 0.92rem; }
 
   /* episode quick switcher on watch page */
   .ep-switcher { margin: 24px 0; }
@@ -379,8 +376,17 @@
 
   /* ============================================================
      Streaming + Download source providers
+     (VidKing is #1 and the DEFAULT server — press 1 to select it)
      ============================================================ */
   const PROVIDERS = [
+    { id:'vidking', name:'VidKing', badge:'Fast · Default', build({type,tmdb,season,episode,opt}) {
+        let base = type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}`;
+        const p = new URLSearchParams();
+        if (opt && opt.color) p.set('color', opt.color);
+        p.set('autoPlay', opt && opt.autoplay === false ? 'false' : 'true');
+        if (type==='tv') { p.set('nextEpisode','true'); p.set('episodeSelector','true'); }
+        const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+    }},
     { id:'vidsrc', name:'VidSrc', badge:'Subs', build({type,tmdb,season,episode}) {
         return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
     }},
@@ -395,20 +401,14 @@
     { id:'vidsrccc', name:'VidSrc.cc', badge:'HD', build({type,tmdb,season,episode,opt}) {
         let base = type==='movie' ? `https://vidsrc.cc/v2/embed/movie/${tmdb}` : `https://vidsrc.cc/v2/embed/tv/${tmdb}/${season}/${episode}`;
         return base + (opt && opt.autoplay === false ? '?autoPlay=false' : '?autoPlay=true');
-    }},
-    { id:'vidking', name:'VidKing', badge:'Fast', build({type,tmdb,season,episode,opt}) {
-        let base = type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}`;
-        const p = new URLSearchParams();
-        if (opt && opt.color) p.set('color', opt.color);
-        p.set('autoPlay', opt && opt.autoplay === false ? 'false' : 'true');
-        if (type==='tv') { p.set('nextEpisode','true'); p.set('episodeSelector','true'); }
-        const qs = p.toString(); return qs ? `${base}?${qs}` : base;
     }}
   ];
   function getProvider(id) { return PROVIDERS.find(p => p.id === id) || PROVIDERS[0]; }
 
   /* Download providers — these open external "download/source" pages.
-     They are third-party indexers that resolve direct links per title/episode. */
+     They are third-party indexers that resolve direct links per title/episode.
+     (A true in-site scraper is impossible on a static site: browsers block
+     cross-origin scraping via CORS and there is no backend here.) */
   const DOWNLOAD_PROVIDERS = [
     { id:'dl_vidsrc', name:'VidSrc Sources', build({type,tmdb,season,episode}) {
         return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
@@ -429,7 +429,7 @@
      ============================================================ */
   const Settings = (() => {
     const KEY = 'ttm_settings';
-    const DEFAULTS = { color:'e50914', autoplay:true, muted:false, defaultProvider:'vidsrc' };
+    const DEFAULTS = { color:'e50914', autoplay:true, muted:false, defaultProvider:'vidking' };
     function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
     function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
     function applyTheme() {
@@ -1025,7 +1025,8 @@
   }
 
   /* ============================================================
-     WATCH PAGE  (player + servers in settings + fullscreen fixed)
+     WATCH PAGE  (player + servers in settings; Window/Fullscreen
+     buttons moved BELOW the player so they never cover the video)
      ============================================================ */
   let watchState = null;
   async function renderWatch(params) {
@@ -1039,14 +1040,10 @@
     app.innerHTML = `
       <div class="player-stage" id="player-stage" tabindex="0">
         <div class="player-loading" id="player-loading"><div class="spinner"></div></div>
-        <div class="player-controls" id="player-controls">
-          <button class="pc-btn" id="btn-theater" title="Fill window (theater mode)">
-            <i class="fa-solid fa-up-right-and-down-left-from-center"></i><span class="pc-label">Window</span>
-          </button>
-          <button class="pc-btn" id="btn-fullscreen" title="True fullscreen (whole screen)">
-            <i class="fa-solid fa-expand"></i><span class="pc-label">Fullscreen</span>
-          </button>
-        </div>
+        <!-- Only visible in Window (theater) mode, so it never covers the player normally -->
+        <button class="pc-btn player-exit" id="btn-exit-theater" title="Exit window mode (Esc)">
+          <i class="fa-solid fa-down-left-and-up-right-to-center"></i> Exit Window
+        </button>
       </div>
       <div class="watch-wrap">
         <div class="watch-bar">
@@ -1056,7 +1053,7 @@
         <div class="watch-actions" id="watch-actions"></div>
         <div class="tip"><i class="fa-solid fa-circle-info"></i>
           <span>Server is controlled from <strong>Settings</strong> (top-right <i class="fa-solid fa-sliders"></i>) — or press <kbd>1</kbd>–<kbd>4</kbd> to switch. If a video won't play, switch the server.
-          <br><strong>Window</strong> mode fills the browser window (press <kbd>W</kbd>). <strong>Fullscreen</strong> fills your whole screen (press <kbd>F</kbd>). Press <kbd>Esc</kbd> to exit either.</span>
+          <br><strong>Window</strong> and <strong>Fullscreen</strong> buttons are below the player so they never cover the video controls. <strong>Window</strong> fills the browser window (press <kbd>W</kbd>). <strong>Fullscreen</strong> fills your whole screen (press <kbd>F</kbd>). Press <kbd>Esc</kbd> to exit either.</span>
         </div>
         <section class="ep-switcher" id="ep-switcher"></section>
       </div>`;
@@ -1088,15 +1085,26 @@
       if (tag) tag.textContent = type==='tv' ? `Season ${season} · Episode ${episode}` : ((details.release_date||'').slice(0,4) || '');
     }
 
+    /* ---- actions bar BELOW the player: details, window, fullscreen, download ---- */
     function renderWatchActions() {
       const wrap = document.getElementById('watch-actions');
       const dls = downloadLinks({type,tmdb:id,season,episode});
       const dlLabel = type==='tv' ? `Download S${season} E${episode}` : 'Download';
+      const theaterOn = !!document.getElementById('player-stage')?.classList.contains('theater');
       wrap.innerHTML = `
+        <button class="btn btn-outline" id="btn-theater" title="Fill browser window (W)">
+          <i class="fa-solid ${theaterOn?'fa-down-left-and-up-right-to-center':'fa-up-right-and-down-left-from-center'}"></i> ${theaterOn?'Exit Window':'Window'}
+        </button>
+        <button class="btn btn-outline" id="btn-fullscreen" title="True fullscreen (F)">
+          <i class="fa-solid fa-expand"></i> Fullscreen
+        </button>
         <button class="btn btn-outline" id="wa-details"><i class="fa-solid fa-circle-info"></i> View details</button>
         <button class="btn btn-primary" id="wa-download" style="background:var(--bg-elev);border:1px solid var(--border)"><i class="fa-solid fa-download"></i> ${dlLabel}</button>`;
+      document.getElementById('btn-theater').onclick = toggleTheater;
+      document.getElementById('btn-fullscreen').onclick = toggleFullscreen;
       document.getElementById('wa-details').onclick = () => location.hash = `#/details?type=${type}&id=${id}${type==='tv'?'&s='+season:''}`;
       document.getElementById('wa-download').onclick = () => openDownloadPicker(type==='tv' ? `${title} — S${season} E${episode}` : title, dls);
+      syncFullscreenBtn();
     }
 
     function loadPlayer() {
@@ -1140,8 +1148,9 @@
       document.body.classList.toggle('theater-open', on);
       const btn = document.getElementById('btn-theater');
       if (btn) {
-        btn.querySelector('i').className = on ? 'fa-solid fa-down-left-and-up-right-to-center' : 'fa-solid fa-up-right-and-down-left-from-center';
-        btn.querySelector('.pc-label').textContent = on ? 'Exit Window' : 'Window';
+        btn.innerHTML = on
+          ? '<i class="fa-solid fa-down-left-and-up-right-to-center"></i> Exit Window'
+          : '<i class="fa-solid fa-up-right-and-down-left-from-center"></i> Window';
       }
       if (on) window.scrollTo({ top: 0 });
     }
@@ -1164,12 +1173,12 @@
       const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
       const btn = document.getElementById('btn-fullscreen'); if (!btn) return;
       const on = !!fsEl;
-      btn.querySelector('i').className = on ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
-      btn.querySelector('.pc-label').textContent = on ? 'Exit' : 'Fullscreen';
+      btn.innerHTML = on
+        ? '<i class="fa-solid fa-compress"></i> Exit Fullscreen'
+        : '<i class="fa-solid fa-expand"></i> Fullscreen';
     }
 
-    document.getElementById('btn-theater').onclick = toggleTheater;
-    document.getElementById('btn-fullscreen').onclick = toggleFullscreen;
+    document.getElementById('btn-exit-theater').onclick = () => exitTheater();
 
     /* ---- Episode quick switcher (TV) ---- */
     async function renderEpSwitcher() {

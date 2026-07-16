@@ -387,16 +387,37 @@
         if (type==='tv') { p.set('nextEpisode','true'); p.set('episodeSelector','true'); }
         const qs = p.toString(); return qs ? `${base}?${qs}` : base;
     }},
-    { id:'vidsrc', name:'VidSrc', badge:'Subs', build({type,tmdb,season,episode}) {
-        return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
-    }},
-    { id:'vidlink', name:'VidLink', badge:'Multi', build({type,tmdb,season,episode,opt}) {
+    { id:'vidlinkpro', name:'VidLink Pro', badge:'Ad-Free', build({type,tmdb,season,episode,opt}) {
         let base = type==='movie' ? `https://vidlink.pro/movie/${tmdb}` : `https://vidlink.pro/tv/${tmdb}/${season}/${episode}`;
         const p = new URLSearchParams();
         if (opt && opt.color) p.set('primaryColor', opt.color);
         p.set('autoplay', opt && opt.autoplay === false ? 'false' : 'true');
         if (type==='tv') p.set('nextbutton','true');
         const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+    }},
+    { id:'111movies', name:'111Movies', badge:'Ad-Free & Fast', build({type,tmdb,season,episode}) {
+        return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
+    }},
+    { id:'vidfast', name:'Vidfast', badge:'Fast & HD', build({type,tmdb,season,episode,opt}) {
+        let base = type==='movie' ? `https://vidfast.pro/movie/${tmdb}` : `https://vidfast.pro/tv/${tmdb}/${season}/${episode}`;
+        const p = new URLSearchParams();
+        if (opt && opt.color) p.set('theme', opt.color);
+        p.set('autoPlay', opt && opt.autoplay === false ? 'false' : 'true');
+        if (type==='tv') p.set('nextButton','true');
+        const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+    }},
+    { id:'videasy', name:'Videasy', badge:'Ad-Free & Great UI', build({type,tmdb,season,episode,opt}) {
+        let base = type==='movie' ? `https://player.videasy.net/movie/${tmdb}` : `https://player.videasy.net/tv/${tmdb}/${season}/${episode}`;
+        const p = new URLSearchParams();
+        if (opt && opt.color) p.set('color', opt.color);
+        if (type==='tv') p.set('nextEpisode','true');
+        const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+    }},
+    { id:'twoembed', name:'2Embed', badge:'Backup', build({type,tmdb,season,episode}) {
+        return type==='movie' ? `https://www.2embed.cc/embed/${tmdb}` : `https://www.2embed.cc/embedtv/${tmdb}&s=${season}&e=${episode}`;
+    }},
+    { id:'vidsrc', name:'VidSrc', badge:'Subs', build({type,tmdb,season,episode}) {
+        return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
     }},
     { id:'vidsrccc', name:'VidSrc.cc', badge:'HD', build({type,tmdb,season,episode,opt}) {
         let base = type==='movie' ? `https://vidsrc.cc/v2/embed/movie/${tmdb}` : `https://vidsrc.cc/v2/embed/tv/${tmdb}/${season}/${episode}`;
@@ -491,7 +512,7 @@
                 <span class="sbadge">${p.badge}</span>
               </button>`).join('')}
           </div>
-          <p class="muted" style="margin-top:10px">If a video won't play, switch the server here (or press 1–4 while watching).</p>
+          <p class="muted" style="margin-top:10px">If a video won't play, switch the server here (or press 1–${PROVIDERS.length} while watching).</p>
         </div>
 
         <div class="field">
@@ -1052,7 +1073,7 @@
         </div>
         <div class="watch-actions" id="watch-actions"></div>
         <div class="tip"><i class="fa-solid fa-circle-info"></i>
-          <span>Server is controlled from <strong>Settings</strong> (top-right <i class="fa-solid fa-sliders"></i>) — or press <kbd>1</kbd>–<kbd>4</kbd> to switch. If a video won't play, switch the server.
+          <span>Server is controlled from <strong>Settings</strong> (top-right <i class="fa-solid fa-sliders"></i>) — or press <kbd>1</kbd>–<kbd>${PROVIDERS.length}</kbd> to switch. If a video won't play, switch the server.
           <br><strong>Window</strong> and <strong>Fullscreen</strong> buttons are below the player so they never cover the video controls. <strong>Window</strong> fills the browser window (press <kbd>W</kbd>). <strong>Fullscreen</strong> fills your whole screen (press <kbd>F</kbd>). Press <kbd>Esc</kbd> to exit either.</span>
         </div>
         <section class="ep-switcher" id="ep-switcher"></section>

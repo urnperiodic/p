@@ -195,14 +195,6 @@
   .section-title { font-size: 1.3rem; font-weight: 700; margin: 34px 0 16px; display: flex; align-items: center; gap: 10px; }
   .section-title .accent-bar { width: 4px; height: 22px; background: var(--accent); border-radius: 4px; }
 
-  /* download box on details page */
-  .download-box { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; max-width: 760px; }
-  .download-box p { color: var(--text-dim); font-size: 0.86rem; margin-bottom: 14px; }
-  .dl-links { display: flex; flex-wrap: wrap; gap: 10px; }
-  .dl-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text); padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; transition: all 0.2s; }
-  .dl-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
-  .dl-btn i { color: var(--accent); }
-
   /* cast */
   .cast-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
   .cast-row::-webkit-scrollbar { display: none; }
@@ -228,8 +220,6 @@
   .ep-act { display:flex; gap:8px; margin-top:8px; }
   .ep-act button { display:inline-flex; align-items:center; gap:6px; font-size:0.76rem; font-weight:600; padding:5px 10px; border-radius:6px; border:1px solid var(--border); background:var(--bg-card); color:var(--text); }
   .ep-act .ep-play-btn:hover { border-color:var(--accent); background:var(--accent-soft); }
-  .ep-act .ep-dl-btn:hover { border-color:var(--accent); }
-  .ep-act .ep-dl-btn i { color: var(--accent); }
 
   [hidden] { display: none !important; }
 
@@ -242,11 +232,8 @@
   .watch-title { font-size: 1rem; font-weight: 600; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .player-stage { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; }
   .player-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-  .player-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-dim); z-index: 1; transition: opacity 0.3s; }
-  .player-loading.hide { opacity: 0; pointer-events: none; }
-  .spinner { width: 46px; height: 46px; border: 4px solid rgba(255,255,255,0.15); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.9s linear infinite; }
 
-  /* NOTE: Window/Fullscreen controls now live BELOW the player (in the actions
+  /* NOTE: Window/Fullscreen controls live BELOW the player (in the actions
      bar) so they never cover the embedded player's own options/controls.
      Only a small "Exit Window" button is overlaid — and ONLY in Window mode. */
   .pc-btn {
@@ -327,8 +314,8 @@
     <p><span class="brand-Urnperiodic" style="color:var(--accent);font-weight:700">Urnperiodic</span> Streaming &middot; Metadata by <a href="https://www.themoviedb.org" target="_blank" rel="noopener">TMDB</a></p>
     <p class="disclaimer">
       Urnperiodic Streaming does not host any files on its server. All content is provided by non-affiliated third-party
-      embed and download providers. Urnperiodic Streaming only links to externally hosted players/files and is intended as a
-      demonstration interface. Please ensure you have the rights to view or download any content.
+      embed providers. Urnperiodic Streaming only links to externally hosted players and is intended as a
+      demonstration interface. Please ensure you have the rights to view any content.
     </p>
   </footer>
 
@@ -376,7 +363,7 @@
   })();
 
   /* ============================================================
-     Streaming + Download source providers
+     Streaming source providers
      (VidKing is #1 and the DEFAULT server — press 1 to select it)
      ============================================================ */
   const PROVIDERS = [
@@ -414,11 +401,20 @@
         if (type==='tv') p.set('nextEpisode','true');
         const qs = p.toString(); return qs ? `${base}?${qs}` : base;
     }},
+    { id:'vidsrcto', name:'VidSrc.to', badge:'Alt Endpoint · Subs', build({type,tmdb,season,episode}) {
+        return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
+    }},
+    { id:'vidsrcme', name:'VidSrc.me', badge:'Classic · Wide DB', build({type,tmdb,season,episode}) {
+        return type==='movie' ? `https://vidsrc.me/embed/movie?tmdb=${tmdb}` : `https://vidsrc.me/embed/tv?tmdb=${tmdb}&season=${season}&episode=${episode}`;
+    }},
+    { id:'embedsu', name:'Embed.su', badge:'Great Uptime', build({type,tmdb,season,episode}) {
+        return type==='movie' ? `https://embed.su/embed/movie/${tmdb}` : `https://embed.su/embed/tv/${tmdb}/${season}/${episode}`;
+    }},
+    { id:'superembed', name:'SuperEmbed', badge:'Multi-Server Balancing', build({type,tmdb,season,episode}) {
+        return type==='movie' ? `https://multiembed.mov/?video_id=${tmdb}&tmdb=1` : `https://multiembed.mov/?video_id=${tmdb}&tmdb=1&s=${season}&e=${episode}`;
+    }},
     { id:'twoembed', name:'2Embed', badge:'Backup', build({type,tmdb,season,episode}) {
         return type==='movie' ? `https://www.2embed.cc/embed/${tmdb}` : `https://www.2embed.cc/embedtv/${tmdb}&s=${season}&e=${episode}`;
-    }},
-    { id:'vidsrc', name:'VidSrc', badge:'Subs', build({type,tmdb,season,episode}) {
-        return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
     }},
     { id:'vidsrccc', name:'VidSrc.cc', badge:'HD', build({type,tmdb,season,episode,opt}) {
         let base = type==='movie' ? `https://vidsrc.cc/v2/embed/movie/${tmdb}` : `https://vidsrc.cc/v2/embed/tv/${tmdb}/${season}/${episode}`;
@@ -426,25 +422,6 @@
     }}
   ];
   function getProvider(id) { return PROVIDERS.find(p => p.id === id) || PROVIDERS[0]; }
-
-  /* Download providers — these open external "download/source" pages.
-     They are third-party indexers that resolve direct links per title/episode.
-     (A true in-site scraper is impossible on a static site: browsers block
-     cross-origin scraping via CORS and there is no backend here.) */
-  const DOWNLOAD_PROVIDERS = [
-    { id:'dl_vidsrc', name:'VidSrc Sources', build({type,tmdb,season,episode}) {
-        return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
-    }},
-    { id:'dl_dwnld', name:'Download Server 1', build({type,tmdb,season,episode}) {
-        return type==='movie' ? `https://dl.vidsrc.vip/movie/${tmdb}` : `https://dl.vidsrc.vip/tv/${tmdb}/${season}/${episode}`;
-    }},
-    { id:'dl_vidking', name:'Download Server 2', build({type,tmdb,season,episode}) {
-        return type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}?download=true` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}?download=true`;
-    }}
-  ];
-  function downloadLinks(args) {
-    return DOWNLOAD_PROVIDERS.map(p => ({ name: p.name, url: p.build(args) }));
-  }
 
   /* ============================================================
      Settings + History
@@ -490,7 +467,7 @@
   }
 
   /* ============================================================
-     Settings drawer  (now also contains SERVER selection)
+     Settings drawer  (also contains SERVER selection)
      ============================================================ */
   function buildSettingsDrawer() {
     if (document.getElementById('settings-drawer')) return;
@@ -776,7 +753,7 @@
         <p class="sub" id="page-sub"></p>
         <nav class="filter-bar" id="filter-bar"></nav>
         <section class="poster-grid" id="grid"></section>
-        <div id="loader" style="text-align:center;padding:40px"><div class="spinner" style="margin:0 auto;width:36px;height:36px"></div></div>
+        <div id="loader" style="text-align:center;padding:40px;color:var(--text-dim)">Loading more…</div>
       </main>`;
     initHeaderScroll();
 
@@ -849,7 +826,7 @@
   }
 
   /* ============================================================
-     DETAILS PAGE  (info + download + episodes; no scrolling under player)
+     DETAILS PAGE  (info + episodes)
      ============================================================ */
   async function renderDetails(params) {
     setChrome('home');
@@ -858,7 +835,7 @@
     const id = params.id;
     let season = parseInt(params.s) || 1;
 
-    app.innerHTML = `<div class="details-page"><div class="player-loading" style="position:static;padding:140px 20px"><div class="spinner"></div></div></div>`;
+    app.innerHTML = `<div class="details-page"><div class="empty-state" style="padding:160px 20px">Loading…</div></div>`;
     initHeaderScroll();
 
     let details;
@@ -900,7 +877,6 @@
               <p class="details-overview">${details.overview || 'No description available.'}</p>
               <div class="details-actions">
                 <button class="btn btn-primary" id="det-play"><i class="fa-solid fa-play"></i> ${type==='tv'?'Play S'+season+' E1':'Play'}</button>
-                <a class="btn btn-outline" href="#download-section"><i class="fa-solid fa-download"></i> Download</a>
               </div>
               <div class="info-grid">
                 ${director ? `<div class="info-cell"><div class="k">Director</div><div class="v">${director.name}</div></div>` : ''}
@@ -915,24 +891,15 @@
         </section>
 
         <div class="details-body">
-          ${type==='movie' ? `
-          <section id="download-section">
-            <h2 class="section-title"><span class="accent-bar"></span> Download</h2>
-            <div class="download-box">
-              <p>Download links are provided by third-party indexers. Open a link, then choose your quality/source on the provider page. Use an ad-blocker for the best experience.</p>
-              <div class="dl-links">
-                ${downloadLinks({type,tmdb:id}).map(l => `<a class="dl-btn" href="${l.url}" target="_blank" rel="noopener"><i class="fa-solid fa-download"></i> ${l.name}</a>`).join('')}
-              </div>
-            </div>
-          </section>` : `
+          ${type==='tv' ? `
           <section class="episodes-section" id="episodes-section">
-            <h2 class="section-title" id="download-section"><span class="accent-bar"></span> Episodes &amp; Downloads</h2>
+            <h2 class="section-title"><span class="accent-bar"></span> Episodes</h2>
             <div class="ep-head">
               <select class="season-select" id="season-select"></select>
-              <span class="muted" style="color:var(--text-dim);font-size:0.85rem">Play or download each episode below.</span>
+              <span class="muted" style="color:var(--text-dim);font-size:0.85rem">Select an episode to play.</span>
             </div>
-            <div class="ep-list" id="ep-list"><div class="player-loading" style="position:static;padding:30px"><div class="spinner"></div></div></div>
-          </section>`}
+            <div class="ep-list" id="ep-list"><div class="empty-state" style="padding:30px">Loading…</div></div>
+          </section>` : ''}
 
           <section id="cast-section"></section>
           <section class="row" id="recs-section" style="padding:0"></section>
@@ -963,7 +930,7 @@
       wireCards(sec);
     })();
 
-    // TV episodes + per-episode download
+    // TV episodes
     if (type === 'tv') {
       const seasons = (details.seasons || []).filter(s => s.season_number > 0);
       const sel = document.getElementById('season-select');
@@ -978,13 +945,12 @@
 
     async function loadSeasonEpisodes() {
       const listEl = document.getElementById('ep-list');
-      listEl.innerHTML = `<div class="player-loading" style="position:static;padding:30px"><div class="spinner"></div></div>`;
+      listEl.innerHTML = `<div class="empty-state" style="padding:30px">Loading…</div>`;
       try {
         const data = await TMDB.seasonDetails(id, season);
         const eps = data.episodes || [];
         listEl.innerHTML = eps.map(ep => {
           const thumb = ep.still_path ? TMDB.backdrop(ep.still_path, 'w300') : '';
-          const dls = downloadLinks({type:'tv',tmdb:id,season,episode:ep.episode_number});
           return `<div class="ep-card">
             <div class="ep-thumb" data-ep="${ep.episode_number}">${thumb?`<img loading="lazy" src="${thumb}" alt="">`:''}<span class="ep-num">E${ep.episode_number}</span><div class="ep-play-ov"><i class="fa-solid fa-circle-play"></i></div></div>
             <div class="ep-body">
@@ -992,7 +958,6 @@
               <div class="ep-ov">${ep.overview||''}</div>
               <div class="ep-act">
                 <button class="ep-play-btn" data-ep="${ep.episode_number}"><i class="fa-solid fa-play"></i> Play</button>
-                <button class="ep-dl-btn" data-ep="${ep.episode_number}" data-links='${JSON.stringify(dls).replace(/'/g,"&#39;")}'><i class="fa-solid fa-download"></i> Download</button>
               </div>
             </div>
           </div>`;
@@ -1001,14 +966,6 @@
         // play handlers
         listEl.querySelectorAll('.ep-thumb, .ep-play-btn').forEach(el => {
           el.addEventListener('click', () => navigateToWatch(id, 'tv', season, parseInt(el.dataset.ep)));
-        });
-        // download handlers (open a small picker if multiple, else direct)
-        listEl.querySelectorAll('.ep-dl-btn').forEach(btn => {
-          btn.addEventListener('click', () => {
-            let links = [];
-            try { links = JSON.parse(btn.dataset.links.replace(/&#39;/g,"'")); } catch {}
-            openDownloadPicker(`${title} — S${season} E${btn.dataset.ep}`, links);
-          });
         });
       } catch (e) { listEl.innerHTML = '<p style="color:#888">Failed to load episodes.</p>'; }
     }
@@ -1020,35 +977,9 @@
     window.scrollTo({ top: 0 });
   }
 
-  /* Small modal-ish download picker (reuses drawer-backdrop style via a quick element) */
-  function openDownloadPicker(label, links) {
-    if (!links || !links.length) { toast('No download links available'); return; }
-    let modal = document.getElementById('dl-modal');
-    if (modal) modal.remove();
-    modal = document.createElement('div');
-    modal.id = 'dl-modal';
-    modal.style.cssText = 'position:fixed;inset:0;z-index:9000;display:grid;place-items:center;background:rgba(0,0,0,0.65);padding:20px';
-    modal.innerHTML = `
-      <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;max-width:440px;width:100%;padding:22px;box-shadow:var(--shadow)">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <h3 style="font-size:1.1rem">Download</h3>
-          <button id="dl-modal-close" style="background:none;border:none;color:var(--text-dim);font-size:1.2rem;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:16px">${label}</p>
-        <div class="dl-links">
-          ${links.map(l => `<a class="dl-btn" href="${l.url}" target="_blank" rel="noopener" style="flex:1;justify-content:center"><i class="fa-solid fa-download"></i> ${l.name}</a>`).join('')}
-        </div>
-        <p style="color:var(--text-dim);font-size:0.78rem;margin-top:14px">Links open on a third-party provider. Use an ad-blocker.</p>
-      </div>`;
-    document.body.appendChild(modal);
-    const close = () => modal.remove();
-    modal.addEventListener('click', e => { if (e.target === modal) close(); });
-    modal.querySelector('#dl-modal-close').addEventListener('click', close);
-  }
-
   /* ============================================================
      WATCH PAGE  (player + servers in settings; Window/Fullscreen
-     buttons moved BELOW the player so they never cover the video)
+     buttons below the player so they never cover the video)
      ============================================================ */
   let watchState = null;
   async function renderWatch(params) {
@@ -1061,7 +992,6 @@
 
     app.innerHTML = `
       <div class="player-stage" id="player-stage" tabindex="0">
-        <div class="player-loading" id="player-loading"><div class="spinner"></div></div>
         <!-- Only visible in Window (theater) mode, so it never covers the player normally -->
         <button class="pc-btn player-exit" id="btn-exit-theater" title="Exit window mode (Esc)">
           <i class="fa-solid fa-down-left-and-up-right-to-center"></i> Exit Window
@@ -1089,7 +1019,7 @@
     try {
       details = type === 'movie' ? await TMDB.movieDetails(id) : await TMDB.tvDetails(id);
     } catch (e) {
-      document.getElementById('player-stage').innerHTML = `<div class="player-loading"><div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load metadata. Check your TMDB key in settings.</p></div></div>`;
+      document.getElementById('player-stage').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load metadata. Check your TMDB key in settings.</p></div>`;
       return;
     }
 
@@ -1097,21 +1027,14 @@
     document.getElementById('watch-title').textContent = title;
     document.getElementById('wb-title').textContent = title;
 
-    /* ---- loader control ---- */
-    let loaderTimer = null;
-    function showLoader() { const l = document.getElementById('player-loading'); if (l) { l.innerHTML = '<div class="spinner"></div>'; l.classList.remove('hide'); } }
-    function hideLoader() { const l = document.getElementById('player-loading'); if (l) l.classList.add('hide'); }
-
     function updateEpTag() {
       const tag = document.getElementById('wb-eptag');
       if (tag) tag.textContent = type==='tv' ? `Season ${season} · Episode ${episode}` : ((details.release_date||'').slice(0,4) || '');
     }
 
-    /* ---- actions bar BELOW the player: details, window, fullscreen, download ---- */
+    /* ---- actions bar BELOW the player: details, window, fullscreen ---- */
     function renderWatchActions() {
       const wrap = document.getElementById('watch-actions');
-      const dls = downloadLinks({type,tmdb:id,season,episode});
-      const dlLabel = type==='tv' ? `Download S${season} E${episode}` : 'Download';
       const theaterOn = !!document.getElementById('player-stage')?.classList.contains('theater');
       wrap.innerHTML = `
         <button class="btn btn-outline" id="btn-theater" title="Fill browser window (W)">
@@ -1120,12 +1043,10 @@
         <button class="btn btn-outline" id="btn-fullscreen" title="True fullscreen (F)">
           <i class="fa-solid fa-expand"></i> Fullscreen
         </button>
-        <button class="btn btn-outline" id="wa-details"><i class="fa-solid fa-circle-info"></i> View details</button>
-        <button class="btn btn-primary" id="wa-download" style="background:var(--bg-elev);border:1px solid var(--border)"><i class="fa-solid fa-download"></i> ${dlLabel}</button>`;
+        <button class="btn btn-outline" id="wa-details"><i class="fa-solid fa-circle-info"></i> View details</button>`;
       document.getElementById('btn-theater').onclick = toggleTheater;
       document.getElementById('btn-fullscreen').onclick = toggleFullscreen;
       document.getElementById('wa-details').onclick = () => location.hash = `#/details?type=${type}&id=${id}${type==='tv'?'&s='+season:''}`;
-      document.getElementById('wa-download').onclick = () => openDownloadPicker(type==='tv' ? `${title} — S${season} E${episode}` : title, dls);
       syncFullscreenBtn();
     }
 
@@ -1137,18 +1058,13 @@
 
       const oldFrame = stage.querySelector('iframe');
       if (oldFrame) oldFrame.remove();
-      showLoader();
 
       const iframe = document.createElement('iframe');
       iframe.src = src;
       iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
       iframe.setAttribute('allowfullscreen', '');
       iframe.referrerPolicy = 'origin';
-      iframe.addEventListener('load', hideLoader);
       stage.appendChild(iframe);
-
-      clearTimeout(loaderTimer);
-      loaderTimer = setTimeout(hideLoader, 3500);
 
       History.record({
         id, type, title, poster: details.poster_path, backdrop: details.backdrop_path,
@@ -1215,7 +1131,7 @@
             ${seasons.map(s => `<option value="${s.season_number}" ${s.season_number===season?'selected':''}>${s.name || 'Season '+s.season_number}</option>`).join('')}
           </select>
         </div>
-        <div class="ep-list" id="w-ep-list"><div class="player-loading" style="position:static;padding:30px"><div class="spinner"></div></div></div>`;
+        <div class="ep-list" id="w-ep-list"><div class="empty-state" style="padding:30px">Loading…</div></div>`;
       const sel = document.getElementById('w-season-select');
       sel.onchange = () => { season = parseInt(sel.value); episode = 1; loadWSeason(); loadPlayer(); window.scrollTo({top:0,behavior:'smooth'}); };
       await loadWSeason();
@@ -1227,15 +1143,13 @@
           const eps = data.episodes || [];
           listEl.innerHTML = eps.map(ep => {
             const thumb = ep.still_path ? TMDB.backdrop(ep.still_path, 'w300') : '';
-            const dls = downloadLinks({type:'tv',tmdb:id,season,episode:ep.episode_number});
-            return `<div class="ep-card ${ep.episode_number===episode?'':''}" >
+            return `<div class="ep-card">
               <div class="ep-thumb" data-ep="${ep.episode_number}">${thumb?`<img loading="lazy" src="${thumb}" alt="">`:''}<span class="ep-num">E${ep.episode_number}</span><div class="ep-play-ov"><i class="fa-solid fa-circle-play"></i></div></div>
               <div class="ep-body">
                 <div class="ep-title">E${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div>
                 <div class="ep-ov">${ep.overview||''}</div>
                 <div class="ep-act">
                   <button class="ep-play-btn" data-ep="${ep.episode_number}"><i class="fa-solid fa-play"></i> Play</button>
-                  <button class="ep-dl-btn" data-ep="${ep.episode_number}" data-links='${JSON.stringify(dls).replace(/'/g,"&#39;")}'><i class="fa-solid fa-download"></i> Download</button>
                 </div>
               </div>
             </div>`;
@@ -1246,13 +1160,6 @@
               episode = parseInt(el.dataset.ep);
               location.hash = `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`;
               loadPlayer(); window.scrollTo({top:0,behavior:'smooth'});
-            });
-          });
-          listEl.querySelectorAll('.ep-dl-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-              let links = [];
-              try { links = JSON.parse(btn.dataset.links.replace(/&#39;/g,"'")); } catch {}
-              openDownloadPicker(`${title} — S${season} E${btn.dataset.ep}`, links);
             });
           });
         } catch (e) { listEl.innerHTML = '<p style="color:#888">Failed to load episodes.</p>'; }

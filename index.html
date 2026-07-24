@@ -331,43 +331,6 @@
   }
   .server-opt.active .rec-star-badge { color: #fff; }
 
-  /* ---------- AdShield AdBlocker ---------- */
-  .adshield-bar {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-    background: linear-gradient(135deg, rgba(16, 28, 22, 0.95) 0%, rgba(20, 24, 28, 0.95) 100%);
-    border: 1px solid rgba(70, 211, 105, 0.35); border-radius: 12px; padding: 10px 16px; margin-bottom: 14px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3); backdrop-filter: blur(8px);
-    transition: all 0.3s ease;
-  }
-  .adshield-bar.disabled {
-    border-color: var(--border); background: var(--bg-card); opacity: 0.75;
-  }
-  .adshield-status { display: flex; align-items: center; gap: 12px; font-size: 0.85rem; }
-  .adshield-badge {
-    display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 9999px;
-    font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
-    transition: all 0.25s ease;
-  }
-  .adshield-badge.active {
-    background: rgba(70, 211, 105, 0.18); color: #46d369; border: 1px solid rgba(70, 211, 105, 0.45);
-    box-shadow: 0 0 12px rgba(70, 211, 105, 0.25);
-  }
-  .adshield-badge.inactive {
-    background: rgba(255, 255, 255, 0.08); color: var(--text-dim); border: 1px solid var(--border);
-  }
-  .adshield-count-text { color: var(--text); font-size: 0.82rem; display: flex; align-items: center; gap: 6px; }
-  .adshield-controls { display: flex; align-items: center; gap: 8px; }
-  .adshield-btn {
-    background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); color: var(--text);
-    padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 6px; transition: all 0.25s;
-  }
-  .adshield-btn:hover { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.3); }
-  .adshield-btn.active {
-    background: #46d369; color: #000; border-color: #46d369; font-weight: 800;
-    box-shadow: 0 4px 14px rgba(70, 211, 105, 0.35);
-  }
-
   /* ============================================================
      GLOBAL ANIMATIONS & INTERACTIVE STATES
      ============================================================ */
@@ -811,11 +774,11 @@
   function getProvider(id) { return PROVIDERS.find(p => p.id === id) || PROVIDERS[0]; }
 
   /* ============================================================
-     Settings + History + AdShield Engine
+     Settings + History
      ============================================================ */
   const Settings = (() => {
     const KEY = 'Urnperiodic_settings';
-    const DEFAULTS = { color:'e50914', autoplay:true, muted:false, defaultProvider:'vidking', adblocker:true, strictSandbox:true };
+    const DEFAULTS = { color:'e50914', autoplay:true, muted:false, defaultProvider:'vidking' };
     function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
     function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
     function applyTheme() {
@@ -826,53 +789,6 @@
     }
     return { get, save, applyTheme, DEFAULTS };
   })();
-
-  const AdShield = (() => {
-    const KEY = 'Urnperiodic_adshield_blocked';
-    let blockedCount = parseInt(localStorage.getItem(KEY) || '0', 10);
-
-    function init() {
-      const originalOpen = window.open;
-      window.open = function(url, target, features) {
-        if (Settings.get().adblocker) {
-          recordBlock('Blocked pop-up window');
-          toast('🛡️ AdShield blocked a pop-up window');
-          return null;
-        }
-        return originalOpen.apply(this, arguments);
-      };
-
-      window.addEventListener('blur', () => {
-        if (Settings.get().adblocker && document.activeElement && document.activeElement.tagName === 'IFRAME') {
-          setTimeout(() => window.focus(), 100);
-        }
-      });
-    }
-
-    function recordBlock(reason) {
-      blockedCount++;
-      localStorage.setItem(KEY, blockedCount.toString());
-      updateUI();
-    }
-
-    function getCount() { return blockedCount; }
-
-    function resetCount() {
-      blockedCount = 0;
-      localStorage.setItem(KEY, '0');
-      updateUI();
-      toast('AdShield counter reset');
-    }
-
-    function updateUI() {
-      const counters = document.querySelectorAll('#adshield-counter-num, #settings-adblock-count');
-      counters.forEach(el => { el.textContent = blockedCount; });
-    }
-
-    return { init, recordBlock, getCount, resetCount, updateUI };
-  })();
-
-  AdShield.init();
 
   const SWATCHES = ['e50914','ff6b00','f5a623','46d369','00b4d8','4361ee','9146ff','e91e63','ffffff'];
 
@@ -1022,28 +938,6 @@
         </div>
 
         <div class="field">
-          <label><i class="fa-solid fa-shield-halved" style="color:#46d369"></i> AdShield AdBlocker</label>
-          <div class="toggle-row">
-            <div>
-              <span style="font-weight:600;font-size:0.88rem">Popup & Ad Protection</span>
-              <div style="font-size:0.75rem;color:var(--text-dim)">Blocks pop-ups, redirects & clickjacking</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="opt-adblocker" ${s.adblocker?'checked':''}><span class="slider"></span></label>
-          </div>
-          <div class="toggle-row" style="margin-top:10px">
-            <div>
-              <span style="font-weight:600;font-size:0.88rem">Strict Player Sandboxing</span>
-              <div style="font-size:0.75rem;color:var(--text-dim)">Prevents embeds from opening new windows</div>
-            </div>
-            <label class="switch"><input type="checkbox" id="opt-sandbox" ${s.strictSandbox?'checked':''}><span class="slider"></span></label>
-          </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding:8px 12px;background:var(--bg-card);border-radius:10px;border:1px solid var(--border)">
-            <span style="font-size:0.8rem;color:var(--text-dim)"><i class="fa-solid fa-shield" style="color:#46d369"></i> <strong id="settings-adblock-count">${AdShield.getCount()}</strong> ads/popups blocked</span>
-            <button type="button" class="btn" id="btn-reset-adblock-count" style="font-size:0.72rem;padding:3px 10px;background:rgba(255,255,255,0.1)">Reset</button>
-          </div>
-        </div>
-
-        <div class="field">
           <label>Playback</label>
           <div class="toggle-row"><span>Autoplay</span><label class="switch"><input type="checkbox" id="opt-autoplay" ${s.autoplay?'checked':''}><span class="slider"></span></label></div>
           <div class="toggle-row"><span>Start muted</span><label class="switch"><input type="checkbox" id="opt-muted" ${s.muted?'checked':''}><span class="slider"></span></label></div>
@@ -1087,29 +981,10 @@
     });
     document.getElementById('opt-autoplay').addEventListener('change', e => Settings.save({ autoplay: e.target.checked }));
     document.getElementById('opt-muted').addEventListener('change', e => Settings.save({ muted: e.target.checked }));
-    document.getElementById('opt-adblocker').addEventListener('change', e => {
-      Settings.save({ adblocker: e.target.checked });
-      toast(e.target.checked ? '🛡️ AdShield Enabled' : 'AdShield Paused');
-      if (parseHash().route === 'watch' && window._reloadPlayer) loadPlayer();
-    });
-    document.getElementById('opt-sandbox').addEventListener('change', e => {
-      Settings.save({ strictSandbox: e.target.checked });
-      toast(e.target.checked ? 'Strict Sandbox Enabled' : 'Strict Sandbox Disabled');
-      if (parseHash().route === 'watch' && window._reloadPlayer) loadPlayer();
-    });
-    document.getElementById('btn-reset-adblock-count').addEventListener('click', () => AdShield.resetCount());
     const tmdbKeyEl = document.getElementById('tmdb-key');
     if (tmdbKeyEl) tmdbKeyEl.addEventListener('change', e => { TMDB.setKey(e.target.value); toast('TMDB key saved — reloading'); setTimeout(render, 800); });
     document.getElementById('clear-history').addEventListener('click', () => { if (confirm('Clear all watch history?')) { History.clear(); toast('Watch history cleared'); if (parseHash().route==='home') render(); } });
-    window.openSettings = () => {
-      const curS = Settings.get();
-      const abEl = document.getElementById('opt-adblocker');
-      const sbEl = document.getElementById('opt-sandbox');
-      if (abEl) abEl.checked = curS.adblocker;
-      if (sbEl) sbEl.checked = curS.strictSandbox;
-      AdShield.updateUI();
-      backdrop.classList.add('open'); drawer.classList.add('open');
-    };
+    window.openSettings = () => { backdrop.classList.add('open'); drawer.classList.add('open'); };
   }
 
   /* ============================================================
@@ -1599,22 +1474,6 @@
               </button>
             </div>
             <div class="watch-info-card">
-              <div class="adshield-bar ${Settings.get().adblocker ? '' : 'disabled'}" id="adshield-bar">
-                <div class="adshield-status">
-                  <span class="adshield-badge ${Settings.get().adblocker ? 'active' : 'inactive'}" id="adshield-badge">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    <span id="adshield-status-text">${Settings.get().adblocker ? 'AdShield Active' : 'AdShield Off'}</span>
-                  </span>
-                  <span class="adshield-count-text">
-                    <i class="fa-solid fa-ban" style="color:#46d369"></i> <strong id="adshield-counter-num">${AdShield.getCount()}</strong> ads & popups suppressed
-                  </span>
-                </div>
-                <div class="adshield-controls">
-                  <button class="adshield-btn ${Settings.get().adblocker ? 'active' : ''}" id="btn-toggle-adshield" title="Toggle AdShield AdBlocker">
-                    <i class="fa-solid fa-shield"></i> <span id="btn-adshield-text">${Settings.get().adblocker ? 'AdBlocker: ON' : 'AdBlocker: OFF'}</span>
-                  </button>
-                </div>
-              </div>
               <div class="watch-bar" style="margin-bottom:0">
                 <div class="title-box">
                   <h2 id="wb-title">Loading…</h2>
@@ -1705,16 +1564,9 @@
 
       const iframe = document.createElement('iframe');
       iframe.src = src;
-      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; accelerometer; gyroscope';
-      iframe.setAttribute('allowfullscreen', 'true');
-      iframe.setAttribute('webkitallowfullscreen', 'true');
-      iframe.setAttribute('mozallowfullscreen', 'true');
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      iframe.setAttribute('allowfullscreen', '');
       iframe.referrerPolicy = 'origin';
-
-      if (Settings.get().adblocker && Settings.get().strictSandbox) {
-        iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation allow-fullscreen');
-      }
-
       stage.appendChild(iframe);
 
       History.record({
@@ -1724,25 +1576,6 @@
       });
       updateEpTag();
       syncScreenButtons();
-    }
-
-    const btnToggleAdshield = document.getElementById('btn-toggle-adshield');
-    if (btnToggleAdshield) {
-      btnToggleAdshield.onclick = () => {
-        const cur = Settings.get().adblocker;
-        Settings.save({ adblocker: !cur });
-        toast(!cur ? '🛡️ AdShield AdBlocker Enabled' : 'AdShield AdBlocker Paused');
-        loadPlayer();
-        const bar = document.getElementById('adshield-bar');
-        const badge = document.getElementById('adshield-badge');
-        const txt = document.getElementById('adshield-status-text');
-        const btnTxt = document.getElementById('btn-adshield-text');
-        if (bar) bar.className = `adshield-bar ${!cur ? '' : 'disabled'}`;
-        if (badge) badge.className = `adshield-badge ${!cur ? 'active' : 'inactive'}`;
-        if (txt) txt.textContent = !cur ? 'AdShield Active' : 'AdShield Off';
-        if (btnTxt) btnTxt.textContent = !cur ? 'AdBlocker: ON' : 'AdBlocker: OFF';
-        btnToggleAdshield.className = `adshield-btn ${!cur ? 'active' : ''}`;
-      };
     }
 
     window._reloadPlayer = (provId) => {
@@ -2008,7 +1841,7 @@
       if (n >= 1 && n <= PROVIDERS.length) { currentProvider = PROVIDERS[n-1].id; Settings.save({defaultProvider:currentProvider}); loadPlayer(); toast('Server: '+PROVIDERS[n-1].name); }
     };
     document.addEventListener('keydown', keyHandler);
-    const fsHandler = () => syncScreenButtons();
+    const fsHandler = () => syncFullscreenBtn();
     document.addEventListener('fullscreenchange', fsHandler);
     document.addEventListener('webkitfullscreenchange', fsHandler);
     watchState = { keyHandler, fsHandler };

@@ -654,9 +654,6 @@
       <button class="top-hdr-btn" id="hdr-btn-details" title="View details">
         <i class="fa-solid fa-circle-info"></i> <span>View Details</span>
       </button>
-      <button class="top-hdr-btn" id="hdr-btn-theater" title="Fill browser window (W)">
-        <i class="fa-solid fa-up-right-and-down-left-from-center"></i> <span>Window</span>
-      </button>
       <button class="top-hdr-btn primary" id="hdr-btn-fullscreen" title="True fullscreen (F)">
         <i class="fa-solid fa-expand"></i> <span>Fullscreen</span>
       </button>
@@ -1469,9 +1466,6 @@
         <div class="watch-grid ${type==='tv'?'has-sidebar':''}">
           <div class="watch-main-col">
             <div class="player-stage" id="player-stage" tabindex="0">
-              <button class="pc-btn player-exit" id="btn-exit-theater" title="Exit window mode (Esc)">
-                <i class="fa-solid fa-down-left-and-up-right-to-center"></i> Exit Window
-              </button>
             </div>
             <div class="watch-info-card">
               <div class="watch-bar" style="margin-bottom:0">
@@ -1635,7 +1629,8 @@
     const hdrFsBtn = document.getElementById('hdr-btn-fullscreen');
     if (hdrFsBtn) hdrFsBtn.onclick = toggleFullscreen;
 
-    document.getElementById('btn-exit-theater').onclick = () => exitTheater();
+    const exitBtn = document.getElementById('btn-exit-theater');
+    if (exitBtn) exitBtn.onclick = () => exitTheater();
 
     /* ---- TV/Anime Playlist Sidebar & Episode Swapper ---- */
     if (type === 'tv') {

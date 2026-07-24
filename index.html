@@ -308,11 +308,11 @@
     border-radius: 12px;
   }
   .card-video-wrap iframe {
-    width: 135%;
-    height: 135%;
+    width: 170%;
+    height: 170%;
     position: absolute;
-    top: -17.5%;
-    left: -17.5%;
+    top: -35%;
+    left: -35%;
     pointer-events: none;
     border: none;
   }
@@ -405,6 +405,59 @@
   .site-footer { border-top: 1px solid var(--border); padding: 30px 4vw; color: var(--text-dim); font-size: 0.85rem; text-align: center; }
   .site-footer a { color: var(--accent); }
   .disclaimer { max-width: 720px; margin: 10px auto 0; font-size: 0.78rem; line-height: 1.6; }
+
+  /* ---------- First-Time Notice Modal ---------- */
+  .notice-backdrop {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    z-index: 30000; display: flex; align-items: center; justify-content: center;
+    padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .notice-backdrop.open { opacity: 1; pointer-events: auto; }
+  .notice-modal {
+    background: #13131c; border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px; width: 540px; max-width: 95vw; max-height: 90vh;
+    padding: 26px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.85);
+    display: flex; flex-direction: column; gap: 18px; overflow-y: auto;
+    position: relative; animation: modalPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes modalPop {
+    from { transform: scale(0.92) translateY(12px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  .notice-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .notice-title-box { display: flex; align-items: center; gap: 12px; }
+  .notice-icon-badge {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: rgba(229, 9, 20, 0.18); color: var(--accent);
+    display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0;
+    border: 1px solid rgba(229, 9, 20, 0.3);
+  }
+  .notice-title-box h2 { font-size: 1.25rem; font-weight: 800; color: #fff; line-height: 1.25; margin: 0; }
+  .notice-title-box p { font-size: 0.82rem; color: var(--text-dim); margin-top: 2px; }
+  .notice-close-btn {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    color: var(--text-dim); width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    transition: all 0.2s; font-size: 1rem; flex-shrink: 0;
+  }
+  .notice-close-btn:hover { background: rgba(255,255,255,0.2); color: #fff; transform: scale(1.08); }
+  .notice-body-text {
+    font-size: 0.94rem; line-height: 1.6; color: #e1e1eb; background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 16px 18px;
+  }
+  .ublock-guide-container {
+    display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;
+    background: #0b0b12; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 16px;
+  }
+  .ublock-guide-img {
+    width: 100%; max-height: 320px; object-fit: contain; border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1); background: #08080d;
+  }
+  .ublock-guide-caption {
+    font-size: 0.82rem; color: #a0a0b5; display: flex; align-items: center; gap: 6px; margin-top: 4px;
+  }
+  .ublock-guide-caption i { color: #3b82f6; }
 
   /* ---------- Settings drawer ---------- */
   .drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
@@ -1225,6 +1278,9 @@
         <button class="btn btn-primary" id="clear-history" style="width:100%;justify-content:center;margin-top:12px;background:#2a2a36">
           <i class="fa-solid fa-trash"></i> Clear watch history
         </button>
+        <button class="btn btn-primary" id="reopen-notice-btn" style="width:100%;justify-content:center;margin-top:10px;background:#1e1e2d;border:1px solid rgba(255,255,255,0.15)">
+          <i class="fa-solid fa-shield-halved" style="color:var(--accent)"></i> Adblocker Guide
+        </button>
       </aside>`;
     document.body.appendChild(wrap);
     const backdrop = document.getElementById('drawer-backdrop');
@@ -1268,6 +1324,7 @@
     const tmdbKeyEl = document.getElementById('tmdb-key');
     if (tmdbKeyEl) tmdbKeyEl.addEventListener('change', e => { TMDB.setKey(e.target.value); toast('TMDB key saved — reloading'); setTimeout(render, 800); });
     document.getElementById('clear-history').addEventListener('click', () => { if (confirm('Clear all watch history?')) { History.clear(); toast('Watch history cleared'); if (parseHash().route==='home') render(); } });
+    document.getElementById('reopen-notice-btn').addEventListener('click', () => { close(); if (window.openAdblockerNotice) window.openAdblockerNotice(); });
     window.closeSettings = close;
     window.toggleSettings = window.openSettings = () => {
       if (drawer.classList.contains('open') || (Date.now() - lastCloseTime < 250)) {
@@ -1277,6 +1334,70 @@
         drawer.classList.add('open');
       }
     };
+  }
+
+  /* ============================================================
+     First-Time Adblocker Notice
+     ============================================================ */
+  function initFirstTimeNotice() {
+    if (document.getElementById('notice-backdrop')) return;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `
+      <div class="notice-backdrop" id="notice-backdrop" role="dialog" aria-modal="true" aria-labelledby="notice-title">
+        <div class="notice-modal">
+          <div class="notice-header">
+            <div class="notice-title-box">
+              <div class="notice-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
+              <div>
+                <h2 id="notice-title">Adblocker Notice</h2>
+                <p>Important recommendation for best experience</p>
+              </div>
+            </div>
+            <button class="notice-close-btn" id="notice-close" aria-label="Close Notice"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <div class="notice-body-text">
+            <p style="margin-bottom: 12px; font-weight: 600; color: #fff;">Welcome, fellow peers and strangers! 👋</p>
+            <p style="margin-bottom: 12px;">To ensure you get the absolute best, uninterrupted streaming experience, I (the creator of this site) strongly recommend using a trusted adblocker extension:</p>
+            <ul style="margin: 0 0 12px 18px; padding: 0; line-height: 1.7; color: var(--text-dim);">
+              <li><strong style="color: #fff;">uBlock Origin Lite</strong> (for Chrome, Edge & Chromium browsers)</li>
+              <li><strong style="color: #fff;">uBlock Origin</strong> (for those using Firefox... <em>ew</em>)</li>
+            </ul>
+            <p style="margin-bottom: 12px; font-size: 0.88rem; color: #a0a0b5;"><em>🔒 Rest assured, these are 100% safe, open-source browser extensions trusted by over 10 million users worldwide.</em></p>
+            <p style="margin: 0;"><strong style="color: var(--accent);">Next Step:</strong> After installing, set your filtering mode to <strong style="color: #fff;">"Complete"</strong> as shown in the guide below.</p>
+          </div>
+
+          <div class="ublock-guide-container">
+            <img src="/ublock_guide.jpg" alt="Set filtering mode to complete in uBlock" class="ublock-guide-img">
+            <div class="ublock-guide-caption">
+              <i class="fa-solid fa-circle-info"></i> Set filtering mode to <strong>complete</strong> in uBlock Lite extension
+            </div>
+          </div>
+
+          <button id="notice-dismiss-btn" class="btn btn-primary" style="width:100%; justify-content:center; padding: 12px 20px; font-weight: 700; font-size: 0.98rem; border-radius: 10px;">
+            <i class="fa-solid fa-circle-check"></i> I Understand & Got It
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+
+    const backdrop = document.getElementById('notice-backdrop');
+    const closeNotice = () => {
+      backdrop.classList.remove('open');
+      localStorage.setItem('adblocker_notice_seen', 'true');
+    };
+
+    document.getElementById('notice-close').addEventListener('click', closeNotice);
+    document.getElementById('notice-dismiss-btn').addEventListener('click', closeNotice);
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeNotice();
+    });
+
+    if (!localStorage.getItem('adblocker_notice_seen')) {
+      setTimeout(() => backdrop.classList.add('open'), 450);
+    }
+
+    window.openAdblockerNotice = () => backdrop.classList.add('open');
   }
 
   /* ============================================================
@@ -1421,7 +1542,7 @@
             videoWrap.className = 'card-video-wrap';
             let isMuted = true;
             videoWrap.innerHTML = `
-              <iframe id="vid_${type}_${id}" src="https://www.youtube-nocookie.com/embed/${videoKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoKey}&enablejsapi=1&playsinline=1" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+              <iframe id="vid_${type}_${id}" src="https://www.youtube-nocookie.com/embed/${videoKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoKey}&enablejsapi=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0" allow="autoplay; encrypted-media" frameborder="0"></iframe>
               <button class="card-sound-btn" title="Toggle Sound"><i class="fa-solid fa-volume-xmark"></i></button>
             `;
 
@@ -2384,6 +2505,7 @@
      Global init
      ============================================================ */
   function initGlobal() {
+    initFirstTimeNotice();
     buildSettingsDrawer();
     document.getElementById('settings-btn').addEventListener('click', () => window.openSettings());
     document.getElementById('settings-btn-watch').addEventListener('click', () => window.openSettings());

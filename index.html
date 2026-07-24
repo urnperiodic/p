@@ -7,6 +7,8 @@
   <meta name="description" content="Watch Movies for free">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%236c8cff'/><polygon points='40,32 72,50 40,68' fill='white'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://api.themoviedb.org">
+  <link rel="preconnect" href="https://image.tmdb.org">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
   <style>
@@ -68,20 +70,21 @@
     border: 1px solid rgba(229, 9, 20, 0.4);
     color: var(--accent);
     position: relative;
-    transition: all 0.25s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .logo:hover .logo-icon-wrap {
     background: var(--accent); color: #fff;
     border-color: var(--accent);
-    transform: scale(1.05);
+    transform: scale(1.1);
+    box-shadow: 0 0 18px rgba(229, 9, 20, 0.6);
   }
 
   .logo i {
     font-size: 1.25rem;
-    transition: transform 0.2s ease;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   .logo:hover i {
-    transform: scale(1.1);
+    transform: scale(1.35) rotate(-15deg);
   }
 
   .brand-Urnperiodic {
@@ -100,13 +103,6 @@
     gap: 7px;
     color: #ffffff;
     font-weight: 800;
-  }
-  .brand-streaming-text::after {
-    content: '';
-    display: inline-block;
-    width: 7px; height: 7px;
-    background: #e50914;
-    border-radius: 50%;
   }
 
   @keyframes logoShimmer {
@@ -156,8 +152,8 @@
     width: 4px;
     height: 22px;
     background: var(--accent);
-    border-radius: 3px;
-    box-shadow: 0 0 10px rgba(229, 9, 20, 0.7);
+    border-radius: 0;
+    box-shadow: none;
     flex-shrink: 0;
   }
   .row-head::after {
@@ -610,7 +606,7 @@
   .info-cell .v { font-size: 0.92rem; font-weight: 600; margin-top: 3px; }
   .details-body { max-width: 1200px; margin: 0 auto; padding: 10px 4vw 60px; }
   .section-title { font-size: 1.3rem; font-weight: 700; margin: 34px 0 16px; display: flex; align-items: center; gap: 10px; }
-  .section-title .accent-bar { width: 4px; height: 22px; background: var(--accent); border-radius: 4px; }
+  .section-title .accent-bar { width: 4px; height: 22px; background: var(--accent); border-radius: 0; box-shadow: none; }
 
   /* cast */
   .cast-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
@@ -645,9 +641,13 @@
      ============================================================ */
   .watch-top {
     position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-    display: flex; align-items: center; gap: 16px; padding: 12px 4vw;
-    background: #000000;
+    display: flex; align-items: center; gap: 16px; padding: 18px 4vw 36px;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.25) 75%, transparent 100%);
     transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .watch-top > * {
+    pointer-events: auto;
   }
   .back-link {
     display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; cursor: pointer;
@@ -662,8 +662,8 @@
   /* Top Watch Nav Header Action Buttons */
   .watch-top-actions { display: flex; align-items: center; gap: 8px; }
   .top-hdr-btn {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 18px; border-radius: 9999px; font-size: 0.82rem; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 38px; min-width: 38px; padding: 0 14px; border-radius: 9999px; font-size: 0.9rem; font-weight: 600;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
     color: var(--text); cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
   }
@@ -694,16 +694,20 @@
   .player-stage:-webkit-full-screen { width: 100vw; height: 100vh; border-radius: 0; }
   .player-stage:fullscreen iframe, .player-stage:-webkit-full-screen iframe { width: 100%; height: 100%; }
 
-  .watch-container { max-width: 1480px; margin: 0 auto; padding: 75px 3vw 60px; }
-  .watch-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
-  @media (min-width: 1024px) {
-    .watch-grid.has-sidebar { grid-template-columns: 1fr 380px; align-items: start; }
+  .watch-container {
+    position: fixed; inset: 0; width: 100vw; height: 100vh; padding: 0; margin: 0;
+    max-width: none; background: #000; z-index: 10; overflow: hidden;
+  }
+  .watch-grid { width: 100vw; height: 100vh; grid-template-columns: 1fr; gap: 0; }
+  .watch-main-col { width: 100vw; height: 100vh; gap: 0; position: relative; }
+  .player-stage {
+    position: absolute; inset: 0; width: 100vw; height: 100vh;
+    aspect-ratio: auto; border-radius: 0; box-shadow: none; background: #000;
   }
 
-  .watch-main-col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-  
   .watch-info-card {
-    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+    max-width: 1400px; width: calc(100% - 48px); margin: 24px auto 0;
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 16px; padding: 24px;
     transition: opacity 0.4s ease, transform 0.4s ease;
   }
   .watch-sidebar {
@@ -750,16 +754,50 @@
   .watch-bar .title-box h2 { font-size: 1.4rem; font-weight: 800; line-height: 1.25; }
   .watch-bar .title-box .ep-tag { color: var(--accent); font-weight: 700; font-size: 1rem; margin-top: 4px; display: inline-flex; align-items: center; gap: 8px; }
   
-  .ep-quick-swap-btns { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .ep-swap-btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 0.88rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text); transition: all 0.2s; cursor: pointer; }
-  .ep-swap-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); color: #fff; }
-  .ep-swap-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .ep-quick-swap-btns { display: flex; align-items: center; gap: 8px; }
+  .ep-swap-btn { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; padding: 0; border-radius: 10px; font-size: 0.95rem; background: var(--bg-card); border: 1px solid var(--border); color: var(--text); transition: all 0.2s; cursor: pointer; flex-shrink: 0; }
+  .ep-swap-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); color: #fff; transform: translateY(-1px); }
+  .ep-swap-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
   .watch-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
   .watch-actions .btn { padding: 9px 16px; font-size: 0.88rem; }
 
   .tip { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; color: var(--text-dim); font-size: 0.85rem; margin-top: 10px; display: flex; gap: 10px; align-items: flex-start; }
   .tip i { color: var(--accent); margin-top: 2px; }
+
+  /* Episodes Dropdown in Watch Header */
+  .episodes-dropdown-wrap { position: relative; display: inline-flex; }
+  .episodes-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 2000;
+    width: 380px;
+    max-width: calc(100vw - 24px);
+    background: #11121c;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 1px rgba(255, 255, 255, 0.2);
+    display: none;
+    flex-direction: column;
+    max-height: 520px;
+    backdrop-filter: blur(16px);
+  }
+  .episodes-dropdown-wrap.open .episodes-dropdown-menu {
+    display: flex;
+    animation: epDropdownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes epDropdownFade {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .episodes-dropdown-wrap.open #hdr-btn-episodes i.fa-chevron-down {
+    transform: rotate(180deg);
+  }
+  #hdr-btn-episodes i.fa-chevron-down {
+    transition: transform 0.25s ease;
+  }
 
   /* Sidebar styling (YouTube playlist style) */
   .watch-sidebar { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; max-height: calc(100vh - 100px); position: sticky; top: 80px; }
@@ -811,7 +849,6 @@
       <a href="#/">Home</a>
       <a href="#/browse?type=movie">Movies</a>
       <a href="#/browse?type=tv">TV Shows</a>
-      <a href="#/browse?trending=1">Trending</a>
     </nav>
     <div class="header-spacer"></div>
     <div class="search-box">
@@ -824,14 +861,43 @@
   <!-- ===================== WATCH HEADER ===================== -->
   <header class="watch-top" id="watch-top" hidden>
     <button class="back-link" id="watch-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+    <button class="top-hdr-btn" id="hdr-btn-details" title="View Details" aria-label="View Details">
+      <i class="fa-solid fa-circle-info"></i>
+    </button>
     <span class="watch-title" id="watch-title">Loading…</span>
     <div class="header-spacer"></div>
     <div class="watch-top-actions">
-      <button class="top-hdr-btn" id="hdr-btn-details" title="View details">
-        <i class="fa-solid fa-circle-info"></i> <span>View Details</span>
+      <button class="top-hdr-btn" id="btn-prev-ep" title="Previous Episode" aria-label="Previous Episode" style="display:none">
+        <i class="fa-solid fa-step-backward"></i>
       </button>
-      <button class="top-hdr-btn primary" id="hdr-btn-fullscreen" title="True fullscreen (F)">
-        <i class="fa-solid fa-expand"></i> <span>Fullscreen</span>
+      <button class="top-hdr-btn" id="btn-next-ep" title="Next Episode" aria-label="Next Episode" style="display:none">
+        <i class="fa-solid fa-step-forward"></i>
+      </button>
+      <div class="episodes-dropdown-wrap" id="hdr-episodes-wrap" style="display:none">
+        <button class="top-hdr-btn" id="hdr-btn-episodes" title="Episodes" aria-label="Episodes">
+          <i class="fa-solid fa-list-ul" style="color:var(--accent)"></i> <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;margin-left:2px"></i>
+        </button>
+        <div class="episodes-dropdown-menu" id="hdr-episodes-menu">
+          <div class="sidebar-header">
+            <div class="sidebar-title-row">
+              <span class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Episodes</span>
+              <span class="muted" id="sidebar-ep-count" style="font-size:0.8rem;color:var(--text-dim)">Loading…</span>
+            </div>
+            <div class="sidebar-controls">
+              <div id="w-season-dropdown-container"></div>
+              <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-dim);cursor:pointer;user-select:none">
+                <input type="checkbox" id="chk-autoplay-next">
+                <span>Autoplay Next</span>
+              </label>
+            </div>
+          </div>
+          <div class="sidebar-ep-list" id="sidebar-ep-list">
+            <div class="empty-state" style="padding:30px">Loading episodes…</div>
+          </div>
+        </div>
+      </div>
+      <button class="top-hdr-btn primary" id="hdr-btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">
+        <i class="fa-solid fa-expand"></i>
       </button>
       <button class="icon-btn" id="settings-btn-watch" aria-label="Settings" title="Settings"><i class="fa-solid fa-sliders"></i></button>
     </div>
@@ -852,14 +918,23 @@
     const IMG = 'https://image.tmdb.org/t/p';
     function key() { return localStorage.getItem('tmdb_key') || DEFAULT_KEY; }
     function setKey(k) { if (k && k.trim()) localStorage.setItem('tmdb_key', k.trim()); else localStorage.removeItem('tmdb_key'); }
+    const apiCache = new Map();
     async function api(path, params = {}) {
       const url = new URL(BASE + path);
       url.searchParams.set('api_key', key());
       url.searchParams.set('language', 'en-US');
       Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v); });
+      const cacheKey = url.toString();
+      if (apiCache.has(cacheKey)) return apiCache.get(cacheKey);
       const res = await fetch(url);
       if (!res.ok) throw new Error('TMDB request failed: ' + res.status);
-      return res.json();
+      const data = await res.json();
+      if (apiCache.size > 300) {
+        const firstKey = apiCache.keys().next().value;
+        apiCache.delete(firstKey);
+      }
+      apiCache.set(cacheKey, data);
+      return data;
     }
     const poster = (p, size = 'w500') => p ? `${IMG}/${size}${p}` : null;
     const backdrop = (p, size = 'w1280') => p ? `${IMG}/${size}${p}` : null;
@@ -1192,7 +1267,7 @@
     const backdropUrl = !isPortrait && item.backdrop_path ? TMDB.backdrop(item.backdrop_path, 'w780') : TMDB.poster(item.poster_path, 'w500');
     const year = (item.release_date || item.first_air_date || '').substring(0, 4) || 'N/A';
     const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
-    const poster = backdropUrl ? `<img loading="lazy" src="${backdropUrl}" alt="${title}">`
+    const poster = backdropUrl ? `<img loading="lazy" decoding="async" src="${backdropUrl}" alt="${title}">`
       : `<div class="skeleton" style="width:100%;height:100%;display:grid;place-items:center;color:#555"><i class="fa-solid fa-film fa-2x"></i></div>`;
     return `
       <article class="card ${isPortrait ? 'card-portrait' : ''}" data-id="${item.id}" data-type="${type}" tabindex="0">
@@ -1221,7 +1296,7 @@
   function continueCardHTML(item) {
     const backdropUrl = item.backdrop ? TMDB.backdrop(item.backdrop, 'w780') : TMDB.poster(item.poster, 'w500');
     const sub = item.type==='tv' && item.season ? `S${item.season} E${item.episode}` : '';
-    const poster = backdropUrl ? `<img loading="lazy" src="${backdropUrl}" alt="${item.title}">` : '';
+    const poster = backdropUrl ? `<img loading="lazy" decoding="async" src="${backdropUrl}" alt="${item.title}">` : '';
     return `
       <article class="card" data-id="${item.id}" data-type="${item.type}" data-resume="1" data-season="${item.season||1}" data-episode="${item.episode||1}" tabindex="0">
         <div class="card-poster">${poster}
@@ -1277,8 +1352,7 @@
       }
 
       const defaultGo = () => {
-        if (card.dataset.resume === '1') navigateToWatch(id, type, season, episode);
-        else navigateToDetails(id, type);
+        navigateToWatch(id, type, season, episode);
       };
 
       card.addEventListener('click', (e) => {
@@ -1395,7 +1469,7 @@
     const onScroll = () => siteHeader.classList.toggle('scrolled', window.scrollY > 30);
     window.removeEventListener('scroll', window._sv_scroll || (()=>{}));
     window._sv_scroll = onScroll;
-    window.addEventListener('scroll', onScroll); onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
   }
 
   /* ---------- HOME ---------- */
@@ -1410,19 +1484,22 @@
       </section>
       <main id="rows"></main>`;
     initHeaderScroll();
-    await buildHero();
     const rows = document.getElementById('rows');
     buildContinueWatching(rows);
-    await buildRow('Trending Today', () => TMDB.trending('all','day'), rows, false);
-    await buildProviderRow(rows, true);
-    await buildRow('Popular Movies', () => TMDB.popularMovies(), rows, false);
-    await buildRow('Popular TV Shows', () => TMDB.popularTV(), rows, true);
-    await buildRow('Now Playing in Theaters', () => TMDB.nowPlaying(), rows, false);
-    await buildRow('Top Rated Movies', () => TMDB.topRatedMovies(), rows, true);
-    await buildRow('Top Rated TV', () => TMDB.topRatedTV(), rows, false);
-    await buildRow('Action & Adventure', () => TMDB.byGenre('movie',28), rows, true);
-    await buildRow('Comedy', () => TMDB.byGenre('movie',35), rows, false);
-    await buildRow('Sci-Fi', () => TMDB.byGenre('movie',878), rows, true);
+    
+    // Fetch hero, provider row and category rows in parallel for fast rendering
+    Promise.all([
+      buildHero(),
+      buildProviderRow(rows, true),
+      buildRow('Popular Movies', () => TMDB.popularMovies(), rows, false),
+      buildRow('Popular TV Shows', () => TMDB.popularTV(), rows, true),
+      buildRow('Now Playing in Theaters', () => TMDB.nowPlaying(), rows, false),
+      buildRow('Top Rated Movies', () => TMDB.topRatedMovies(), rows, true),
+      buildRow('Top Rated TV', () => TMDB.topRatedTV(), rows, false),
+      buildRow('Action & Adventure', () => TMDB.byGenre('movie',28), rows, true),
+      buildRow('Comedy', () => TMDB.byGenre('movie',35), rows, false),
+      buildRow('Sci-Fi', () => TMDB.byGenre('movie',878), rows, true)
+    ]);
   }
 
   const STREAMING_PROVIDERS = [
@@ -1539,7 +1616,6 @@
       const title = pick.title || pick.name;
       hero.querySelector('.hero-bg').style.backgroundImage = `url(${TMDB.backdrop(pick.backdrop_path, 'original')})`;
       hero.querySelector('.hero-content').innerHTML = `
-        <div class="hero-badge"><i class="fa-solid fa-fire"></i> Trending Now</div>
         <h1>${title}</h1>
         <div class="hero-meta">
           <span class="rating"><i class="fa-solid fa-star"></i> ${(pick.vote_average||0).toFixed(1)}</span>
@@ -1783,7 +1859,7 @@
       sec.innerHTML = `<h2 class="section-title"><span class="accent-bar"></span> Cast</h2>
         <div class="cast-row">${cast.map(p => {
           const img = TMDB.profile(p.profile_path);
-          return `<div class="cast-card">${img?`<img loading="lazy" src="${img}" alt="${p.name}">`:`<div class="noimg"><i class="fa-solid fa-user fa-lg"></i></div>`}<div class="name">${p.name}</div><div class="role">${p.character||''}</div></div>`;
+          return `<div class="cast-card">${img?`<img loading="lazy" decoding="async" src="${img}" alt="${p.name}">`:`<div class="noimg"><i class="fa-solid fa-user fa-lg"></i></div>`}<div class="name">${p.name}</div><div class="role">${p.character||''}</div></div>`;
         }).join('')}</div>`;
     })();
 
@@ -1827,7 +1903,7 @@
         listEl.innerHTML = eps.map(ep => {
           const thumb = ep.still_path ? TMDB.backdrop(ep.still_path, 'w300') : '';
           return `<div class="ep-card">
-            <div class="ep-thumb" data-ep="${ep.episode_number}">${thumb?`<img loading="lazy" src="${thumb}" alt="">`:''}<span class="ep-num">E${ep.episode_number}</span><div class="ep-play-ov"><i class="fa-solid fa-circle-play"></i></div></div>
+            <div class="ep-thumb" data-ep="${ep.episode_number}">${thumb?`<img loading="lazy" decoding="async" src="${thumb}" alt="">`:''}<span class="ep-num">E${ep.episode_number}</span><div class="ep-play-ov"><i class="fa-solid fa-circle-play"></i></div></div>
             <div class="ep-body">
               <div class="ep-title">E${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div>
               <div class="ep-ov">${ep.overview||''}</div>
@@ -1864,49 +1940,40 @@
     let episode = parseInt(params.e) || 1;
     let currentProvider = Settings.get().defaultProvider;
 
+    const epWrap = document.getElementById('hdr-episodes-wrap');
+    const epBtn = document.getElementById('hdr-btn-episodes');
+    const prevBtnHdr = document.getElementById('btn-prev-ep');
+    const nextBtnHdr = document.getElementById('btn-next-ep');
+
+    if (type === 'tv') {
+      if (epWrap) {
+        epWrap.style.display = 'inline-flex';
+        epWrap.classList.remove('open');
+        if (epBtn) {
+          epBtn.onclick = (e) => {
+            e.stopPropagation();
+            epWrap.classList.toggle('open');
+          };
+        }
+      }
+      if (prevBtnHdr) prevBtnHdr.style.display = 'inline-flex';
+      if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
+    } else {
+      if (epWrap) {
+        epWrap.style.display = 'none';
+        epWrap.classList.remove('open');
+      }
+      if (prevBtnHdr) prevBtnHdr.style.display = 'none';
+      if (nextBtnHdr) nextBtnHdr.style.display = 'none';
+    }
+
     app.innerHTML = `
       <div class="watch-container ${type==='movie'?'movie-mode':''}">
-        <div class="watch-grid ${type==='tv'?'has-sidebar':''}">
+        <div class="watch-grid">
           <div class="watch-main-col">
             <div class="player-stage" id="player-stage" tabindex="0">
             </div>
-            <div class="watch-info-card">
-              <div class="watch-bar" style="margin-bottom:0">
-                <div class="title-box">
-                  <h2 id="wb-title">Loading…</h2>
-                  <div class="ep-tag" id="wb-eptag"></div>
-                </div>
-                ${type==='tv' ? `
-                <div class="ep-quick-swap-btns">
-                  <button class="ep-swap-btn" id="btn-prev-ep" title="Previous Episode">
-                    <i class="fa-solid fa-step-backward"></i> Previous
-                  </button>
-                  <button class="ep-swap-btn" id="btn-next-ep" title="Next Episode">
-                    Next <i class="fa-solid fa-step-forward"></i>
-                  </button>
-                </div>` : ''}
-              </div>
-            </div>
           </div>
-          ${type==='tv' ? `
-          <aside class="watch-sidebar" id="watch-sidebar">
-            <div class="sidebar-header">
-              <div class="sidebar-title-row">
-                <span class="sidebar-title"><i class="fa-solid fa-list-ul"></i> Episodes</span>
-                <span class="muted" id="sidebar-ep-count" style="font-size:0.8rem;color:var(--text-dim)">Loading…</span>
-              </div>
-              <div class="sidebar-controls">
-                <div id="w-season-dropdown-container"></div>
-                <label style="display:flex;align-items:center;gap:6px;font-size:0.8rem;color:var(--text-dim);cursor:pointer">
-                  <input type="checkbox" id="chk-autoplay-next" ${Settings.get().autoplay?'checked':''}>
-                  <span>Autoplay Next</span>
-                </label>
-              </div>
-            </div>
-            <div class="sidebar-ep-list" id="sidebar-ep-list">
-              <div class="empty-state" style="padding:30px">Loading episodes…</div>
-            </div>
-          </aside>` : ''}
         </div>
       </div>`;
 
@@ -2021,8 +2088,8 @@
       const fsBtn = document.getElementById('hdr-btn-fullscreen');
       if (fsBtn) {
         fsBtn.innerHTML = fsOn
-          ? '<i class="fa-solid fa-compress"></i> <span>Exit Fullscreen</span>'
-          : '<i class="fa-solid fa-expand"></i> <span>Fullscreen</span>';
+          ? '<i class="fa-solid fa-compress"></i>'
+          : '<i class="fa-solid fa-expand"></i>';
       }
     }
 
@@ -2106,7 +2173,6 @@
 
         const totalEps = listEl ? listEl.querySelectorAll('.yt-ep-card').length : 99;
         updatePrevNextBtns(totalEps);
-        toast(`Switched to Episode ${episode}`);
       }
 
       async function loadWSeason() {
@@ -2130,7 +2196,7 @@
             return `
               <div class="yt-ep-card ${isPlaying ? 'active' : ''}" data-ep="${ep.episode_number}">
                 <div class="yt-ep-thumb">
-                  ${thumb ? `<img loading="lazy" src="${thumb}" alt="${ep.name || ''}">` : '<div style="width:100%;height:100%;background:#222"></div>'}
+                  ${thumb ? `<img loading="lazy" decoding="async" src="${thumb}" alt="${ep.name || ''}">` : '<div style="width:100%;height:100%;background:#222"></div>'}
                   <span class="ep-badge">E${ep.episode_number}</span>
                   ${isPlaying ? `
                     <div class="yt-ep-playing-ov">
@@ -2184,7 +2250,6 @@
               loadPlayer();
               window.history.replaceState(null, '', `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`);
               await loadWSeason();
-              toast(`Switched to Season ${season} Episode ${episode}`);
             } catch (e) {}
           }
         });
@@ -2203,17 +2268,17 @@
             loadPlayer();
             window.history.replaceState(null, '', `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`);
             await loadWSeason();
-            toast(`Switched to Season ${season} Episode 1`);
           }
         });
       }
 
       const chkAutoplay = document.getElementById('chk-autoplay-next');
       if (chkAutoplay) {
-        chkAutoplay.addEventListener('change', e => {
+        chkAutoplay.checked = Settings.get().autoplay;
+        chkAutoplay.onchange = e => {
           Settings.save({ autoplay: e.target.checked });
           toast(e.target.checked ? 'Autoplay next enabled' : 'Autoplay next disabled');
-        });
+        };
       }
 
       renderSeasonDropdown();
@@ -2239,7 +2304,7 @@
       if (n >= 1 && n <= PROVIDERS.length) { currentProvider = PROVIDERS[n-1].id; Settings.save({defaultProvider:currentProvider}); loadPlayer(); toast('Server: '+PROVIDERS[n-1].name); }
     };
     document.addEventListener('keydown', keyHandler);
-    const fsHandler = () => syncFullscreenBtn();
+    const fsHandler = () => syncScreenButtons();
     document.addEventListener('fullscreenchange', fsHandler);
     document.addEventListener('webkitfullscreenchange', fsHandler);
     watchState = { keyHandler, fsHandler };
@@ -2292,6 +2357,13 @@
     buildSettingsDrawer();
     document.getElementById('settings-btn').addEventListener('click', () => window.openSettings());
     document.getElementById('settings-btn-watch').addEventListener('click', () => window.openSettings());
+
+    document.addEventListener('click', (e) => {
+      const epWrap = document.getElementById('hdr-episodes-wrap');
+      if (epWrap && epWrap.classList.contains('open') && !epWrap.contains(e.target)) {
+        epWrap.classList.remove('open');
+      }
+    });
 
     const input = document.getElementById('search-input');
     let timer;

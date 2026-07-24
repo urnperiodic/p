@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Urnperiodic Streaming</title>
+  <title>Urnperiodic Streaming — Watch Movies & TV Shows Free</title>
   <meta name="description" content="Watch Movies for free">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%236c8cff'/><polygon points='40,32 72,50 40,68' fill='white'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -47,9 +47,11 @@
   .site-header {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; gap: 24px; padding: 16px 4vw;
-    transition: background 0.3s, backdrop-filter 0.3s;
+    transition: background 0.3s, border-color 0.3s;
+    will-change: transform;
+    transform: translateZ(0);
   }
-  .site-header.scrolled { background: rgba(10,10,15,0.92); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+  .site-header.scrolled { background: rgba(10,10,15,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
   
   /* ---------- Clean Header Logo ---------- */
   .logo {
@@ -252,7 +254,7 @@
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: rgba(10, 10, 15, 0.88);
+    background: rgba(12, 12, 18, 0.94);
     border: 1px solid rgba(255, 255, 255, 0.18);
     color: #fff;
     font-size: 1.15rem;
@@ -261,8 +263,7 @@
     justify-content: center;
     cursor: pointer;
     opacity: 0;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    backdrop-filter: blur(8px);
+    transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s;
     box-shadow: 0 6px 20px rgba(0,0,0,0.7);
   }
   .row-wrapper:hover .row-nav { opacity: 0.9; }
@@ -271,7 +272,10 @@
   .row-nav.nav-next { right: 1.2vw; }
 
   /* Cineby Card Structure */
-  .card { flex: 0 0 auto; width: 310px; scroll-snap-align: start; cursor: pointer; transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1); }
+  .card {
+    flex: 0 0 auto; width: 310px; scroll-snap-align: start; cursor: pointer;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
   .card:hover { transform: translateY(-6px); }
 
   .card-poster {
@@ -285,7 +289,7 @@
   }
   .card-poster img {
     width: 100%; height: 100%; object-fit: cover;
-    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s;
   }
   .card:hover .card-poster img {
     transform: scale(1.06);
@@ -320,7 +324,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.88);
     color: #fff;
     border: 1px solid rgba(255, 255, 255, 0.25);
     display: flex;
@@ -328,8 +332,7 @@
     justify-content: center;
     cursor: pointer;
     font-size: 0.85rem;
-    transition: all 0.2s;
-    backdrop-filter: blur(4px);
+    transition: transform 0.2s, background 0.2s;
   }
   .card-sound-btn:hover {
     background: var(--accent);
@@ -341,9 +344,8 @@
     position: absolute; inset: 0;
     display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;
     padding: 10px;
-    background: rgba(10, 10, 15, 0.75);
-    backdrop-filter: blur(4px);
-    opacity: 0; transition: opacity 0.22s ease;
+    background: rgba(10, 10, 15, 0.88);
+    opacity: 0; transition: opacity 0.2s ease;
     z-index: 10;
   }
   .card:hover .play-overlay { opacity: 1; }
@@ -351,18 +353,17 @@
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     padding: 8px 14px;
     border-radius: 8px; font-size: 0.82rem; font-weight: 700;
-    border: none; cursor: pointer; transition: all 0.18s ease;
+    border: none; cursor: pointer; transition: transform 0.18s ease, background 0.18s ease;
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
   }
   .card-action-btn.btn-play { background: var(--accent); color: #fff; }
   .card-action-btn.btn-play:hover { background: #ff2a36; transform: translateY(-2px) scale(1.03); }
   .card-action-btn.btn-info {
-    background: rgba(255, 255, 255, 0.18); color: #fff;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(6px);
+    background: rgba(255, 255, 255, 0.22); color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
   .card-action-btn.btn-info:hover {
-    background: rgba(255, 255, 255, 0.32); border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.35); border-color: rgba(255, 255, 255, 0.5);
     transform: translateY(-2px) scale(1.03);
   }
 
@@ -561,7 +562,7 @@
     filter: brightness(1.1);
   }
   .card .play-overlay {
-    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.3s !important;
+    transition: opacity 0.25s ease !important;
   }
   .card-action-btn {
     transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
@@ -926,15 +927,25 @@
       Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v); });
       const cacheKey = url.toString();
       if (apiCache.has(cacheKey)) return apiCache.get(cacheKey);
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('TMDB request failed: ' + res.status);
-      const data = await res.json();
-      if (apiCache.size > 300) {
-        const firstKey = apiCache.keys().next().value;
-        apiCache.delete(firstKey);
+
+      let lastErr;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error('TMDB request failed: ' + res.status);
+          const data = await res.json();
+          if (apiCache.size > 300) {
+            const firstKey = apiCache.keys().next().value;
+            apiCache.delete(firstKey);
+          }
+          apiCache.set(cacheKey, data);
+          return data;
+        } catch (e) {
+          lastErr = e;
+          if (attempt < 2) await new Promise(r => setTimeout(r, 300 * (attempt + 1)));
+        }
       }
-      apiCache.set(cacheKey, data);
-      return data;
+      throw lastErr;
     }
     const poster = (p, size = 'w500') => p ? `${IMG}/${size}${p}` : null;
     const backdrop = (p, size = 'w1280') => p ? `${IMG}/${size}${p}` : null;
@@ -1277,10 +1288,10 @@
     const type = item.media_type || (item.first_air_date ? 'tv' : 'movie');
     if (type !== 'movie' && type !== 'tv') return '';
     const title = item.title || item.name || 'Untitled';
-    const backdropUrl = !isPortrait && item.backdrop_path ? TMDB.backdrop(item.backdrop_path, 'w780') : TMDB.poster(item.poster_path, 'w500');
+    const backdropUrl = !isPortrait && item.backdrop_path ? TMDB.backdrop(item.backdrop_path, 'w300') : TMDB.poster(item.poster_path, 'w342');
     const year = (item.release_date || item.first_air_date || '').substring(0, 4) || 'N/A';
     const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
-    const poster = backdropUrl ? `<img loading="lazy" decoding="async" src="${backdropUrl}" alt="${title}">`
+    const poster = backdropUrl ? `<img decoding="async" src="${backdropUrl}" alt="${title}">`
       : `<div class="skeleton" style="width:100%;height:100%;display:grid;place-items:center;color:#555"><i class="fa-solid fa-film fa-2x"></i></div>`;
     return `
       <article class="card ${isPortrait ? 'card-portrait' : ''}" data-id="${item.id}" data-type="${type}" tabindex="0">
@@ -1307,9 +1318,9 @@
   }
 
   function continueCardHTML(item) {
-    const backdropUrl = item.backdrop ? TMDB.backdrop(item.backdrop, 'w780') : TMDB.poster(item.poster, 'w500');
+    const backdropUrl = item.backdrop ? TMDB.backdrop(item.backdrop, 'w300') : TMDB.poster(item.poster, 'w342');
     const sub = item.type==='tv' && item.season ? `S${item.season} E${item.episode}` : '';
-    const poster = backdropUrl ? `<img loading="lazy" decoding="async" src="${backdropUrl}" alt="${item.title}">` : '';
+    const poster = backdropUrl ? `<img decoding="async" src="${backdropUrl}" alt="${item.title}">` : '';
     return `
       <article class="card" data-id="${item.id}" data-type="${item.type}" data-resume="1" data-season="${item.season||1}" data-episode="${item.episode||1}" tabindex="0">
         <div class="card-poster">${poster}
@@ -1878,7 +1889,7 @@
       sec.innerHTML = `<h2 class="section-title"><span class="accent-bar"></span> Cast</h2>
         <div class="cast-row">${cast.map(p => {
           const img = TMDB.profile(p.profile_path);
-          return `<div class="cast-card">${img?`<img loading="lazy" decoding="async" src="${img}" alt="${p.name}">`:`<div class="noimg"><i class="fa-solid fa-user fa-lg"></i></div>`}<div class="name">${p.name}</div><div class="role">${p.character||''}</div></div>`;
+          return `<div class="cast-card">${img?`<img decoding="async" src="${img}" alt="${p.name}">`:`<div class="noimg"><i class="fa-solid fa-user fa-lg"></i></div>`}<div class="name">${p.name}</div><div class="role">${p.character||''}</div></div>`;
         }).join('')}</div>`;
     })();
 
@@ -1922,7 +1933,7 @@
         listEl.innerHTML = eps.map(ep => {
           const thumb = ep.still_path ? TMDB.backdrop(ep.still_path, 'w300') : '';
           return `<div class="ep-card">
-            <div class="ep-thumb" data-ep="${ep.episode_number}">${thumb?`<img loading="lazy" decoding="async" src="${thumb}" alt="">`:''}<span class="ep-num">E${ep.episode_number}</span><div class="ep-play-ov"><i class="fa-solid fa-circle-play"></i></div></div>
+            <div class="ep-thumb" data-ep="${ep.episode_number}">${thumb?`<img decoding="async" src="${thumb}" alt="">`:''}<span class="ep-num">E${ep.episode_number}</span><div class="ep-play-ov"><i class="fa-solid fa-circle-play"></i></div></div>
             <div class="ep-body">
               <div class="ep-title">E${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div>
               <div class="ep-ov">${ep.overview||''}</div>
@@ -2215,7 +2226,7 @@
             return `
               <div class="yt-ep-card ${isPlaying ? 'active' : ''}" data-ep="${ep.episode_number}">
                 <div class="yt-ep-thumb">
-                  ${thumb ? `<img loading="lazy" decoding="async" src="${thumb}" alt="${ep.name || ''}">` : '<div style="width:100%;height:100%;background:#222"></div>'}
+                  ${thumb ? `<img decoding="async" src="${thumb}" alt="${ep.name || ''}">` : '<div style="width:100%;height:100%;background:#222"></div>'}
                   <span class="ep-badge">E${ep.episode_number}</span>
                   ${isPlaying ? `
                     <div class="yt-ep-playing-ov">

@@ -667,8 +667,8 @@ function wireCards(scope) {
 
     card.addEventListener('mouseenter', () => {
       if (!id || !type) return;
-      // Do not play trailer video on big cards (landscape cards)
-      if (!card.classList.contains('card-portrait')) return;
+      // Do not play trailer video on tall/portrait cards (only on landscape cards)
+      if (card.classList.contains('card-portrait')) return;
 
       hoverTimer = setTimeout(async () => {
         if (!card.matches(':hover')) return;

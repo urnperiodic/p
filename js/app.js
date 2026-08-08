@@ -248,6 +248,41 @@ const Anime = (() => {
   return { recent, series };
 })();
 
+async function resolveAnimeIds(title, seasonNum, isMovie = false) {
+  let searchQuery = title;
+  if (!isMovie && seasonNum > 1) {
+    searchQuery = `${title} Season ${seasonNum}`;
+  }
+  try {
+    const q = `query ($search: String) { Media (search: $search, type: ANIME, sort: POPULARITY_DESC) { id idMal title { romaji english } } }`;
+    const res = await fetch('https://graphql.anilist.co', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        query: q,
+        variables: { search: searchQuery }
+      })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.data && data.data.Media) {
+        const m = data.data.Media;
+        return {
+          anilistId: m.id,
+          malId: m.idMal,
+          title: m.title.english || m.title.romaji || title
+        };
+      }
+    }
+  } catch (e) {
+    console.error('Failed to resolve IDs from AniList:', e);
+  }
+  return null;
+}
+
 /* ============================================================
    Settings + History
    ============================================================ */
@@ -282,6 +317,56 @@ const History = (() => {
   function clear() { localStorage.removeItem(KEY); }
   return { all, record, get, clear };
 })();
+
+/* ---------- Watchlist & Search History ---------- */
+const Watchlist = (() => {
+  const KEY = 'Urnperiodic_watchlist';
+  function all() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } }
+  function save(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
+  function toggle(item) {
+    const list = all();
+    const idx = list.findIndex(x => x.id == item.id && x.media_type === item.media_type);
+    if (idx >= 0) {
+      list.splice(idx, 1);
+      save(list);
+      return false; // Removed
+    } else {
+      list.unshift({ ...item, added: Date.now() });
+      save(list);
+      return true; // Added
+    }
+  }
+  function has(id, type) {
+    return all().some(x => x.id == id && x.media_type === type);
+  }
+  return { all, toggle, has };
+})();
+
+const SearchHistory = (() => {
+  const KEY = 'Urnperiodic_search_history';
+  function all() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch { return []; } }
+  function save(list) { localStorage.setItem(KEY, JSON.stringify(list.slice(0, 10))); }
+  function add(query) {
+    const q = query.trim();
+    if (!q || q.length < 2) return;
+    const list = all().filter(x => x.toLowerCase() !== q.toLowerCase());
+    list.unshift(q);
+    save(list);
+  }
+  function remove(query) {
+    const q = query.trim();
+    const list = all().filter(x => x.toLowerCase() !== q.toLowerCase());
+    save(list);
+  }
+  function clear() { localStorage.removeItem(KEY); }
+  return { all, add, remove, clear };
+})();
+
+function escapeHTML(str) {
+  if (!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
 Settings.applyTheme();
 
 function toast(msg) {
@@ -419,7 +504,10 @@ function buildSettingsDrawer() {
         <div class="toggle-row"><span>Start muted</span><label class="switch"><input type="checkbox" id="opt-muted" ${s.muted?'checked':''}><span class="slider"></span></label></div>
       </div>
 
-      <button class="btn btn-primary" id="clear-history" style="width:100%;justify-content:center;margin-top:12px;background:#2a2a36">
+      <button class="btn btn-primary" id="drawer-shortcuts-btn" style="width:100%;justify-content:center;margin-top:12px;background:#1e1e2d;border:1px solid rgba(255,255,255,0.15)">
+        <i class="fa-solid fa-keyboard" style="color:var(--accent)"></i> Keyboard Shortcuts
+      </button>
+      <button class="btn btn-primary" id="clear-history" style="width:100%;justify-content:center;margin-top:10px;background:#2a2a36">
         <i class="fa-solid fa-trash"></i> Clear watch history
       </button>
       <button class="btn btn-primary" id="reopen-notice-btn" style="width:100%;justify-content:center;margin-top:10px;background:#1e1e2d;border:1px solid rgba(255,255,255,0.15)">
@@ -476,6 +564,7 @@ function buildSettingsDrawer() {
   document.getElementById('opt-autoplay').addEventListener('change', e => Settings.save({ autoplay: e.target.checked }));
   document.getElementById('opt-muted').addEventListener('change', e => Settings.save({ muted: e.target.checked }));
   document.getElementById('clear-history').addEventListener('click', () => { if (confirm('Clear all watch history?')) { History.clear(); toast('Watch history cleared'); if (parseHash().route==='home') render(); } });
+  document.getElementById('drawer-shortcuts-btn').addEventListener('click', () => { close(); if (window.openShortcuts) window.openShortcuts(); });
   document.getElementById('reopen-notice-btn').addEventListener('click', () => { close(); if (window.openAdblockerNotice) window.openAdblockerNotice(); });
   window.closeSettings = close;
   window.toggleSettings = window.openSettings = () => {
@@ -553,6 +642,79 @@ function initFirstTimeNotice() {
 }
 
 /* ============================================================
+   Keyboard Shortcuts Modal
+   ============================================================ */
+function initKeyboardShortcutsModal() {
+  if (document.getElementById('shortcuts-backdrop')) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="notice-backdrop" id="shortcuts-backdrop" role="dialog" aria-modal="true" aria-labelledby="shortcuts-title">
+      <div class="notice-modal" style="width: 440px">
+        <div class="notice-header">
+          <div class="notice-title-box">
+            <div class="notice-icon-badge" style="background: rgba(245, 166, 35, 0.18); border-color: rgba(245, 166, 35, 0.3); color: #f5a623;"><i class="fa-solid fa-keyboard"></i></div>
+            <div>
+              <h2 id="shortcuts-title">Keyboard Shortcuts</h2>
+              <p>Control playback cleanly from your keyboard</p>
+            </div>
+          </div>
+          <button class="notice-close-btn" id="shortcuts-close-btn" aria-label="Close Shortcuts"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="notice-body-text" style="display:flex; flex-direction:column; gap:12px; margin-top:10px; margin-bottom:10px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+            <span style="font-weight:500;">Toggle Fullscreen</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700; color:var(--accent);">F</kbd>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+            <span style="font-weight:500;">Toggle Theater Mode</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700; color:var(--accent);">W</kbd>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+            <span style="font-weight:500;">Exit Theater / Menus</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700; color:var(--accent);">Esc</kbd>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+            <span style="font-weight:500;">Quick Select Server</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700; color:var(--accent);">1 - 9</kbd>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+            <span style="font-weight:500;">Play / Pause (Native)</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700;">Space / K</kbd>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+            <span style="font-weight:500;">Seek Backward / Forward (Native)</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700;">← / →</kbd>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:4px;">
+            <span style="font-weight:500;">Mute Audio (Native)</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700;">M</kbd>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="shortcuts-ok-btn" style="width:100%; justify-content:center;">Got it!</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+
+  const backdrop = document.getElementById('shortcuts-backdrop');
+  const close = () => backdrop.classList.remove('open');
+  document.getElementById('shortcuts-close-btn').addEventListener('click', close);
+  document.getElementById('shortcuts-ok-btn').addEventListener('click', close);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
+
+  window.openShortcuts = () => backdrop.classList.add('open');
+
+  // Listen for global '?' key to open shortcuts modal
+  document.addEventListener('keydown', (e) => {
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return;
+    if (e.key === '?') {
+      e.preventDefault();
+      window.openShortcuts();
+    }
+  });
+}
+
+/* ============================================================
    Shared card helpers & Cineby Hover Trailer Player
    ============================================================ */
 const cardVideoCache = {};
@@ -569,8 +731,10 @@ function cardHTML(item, isPortrait = false, rank = null) {
   const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
   const poster = imageUrl ? `<img decoding="async" src="${imageUrl}" alt="${title}">`
     : `<div class="skeleton" style="width:100%;height:100%;display:grid;place-items:center;color:#555"><i class="fa-solid fa-film fa-2x"></i></div>`;
+  const genresList = item.genre_ids || [];
+  const isAnime = genresList.includes(16) && ((item.origin_country || []).includes('JP') || item.original_language === 'ja');
   return `
-    <article class="card ${usePortrait ? 'card-portrait' : ''}" data-id="${item.id}" data-type="${type}" tabindex="0">
+    <article class="card ${usePortrait ? 'card-portrait' : ''}" data-id="${item.id}" data-type="${type}" ${isAnime ? 'data-anime="1"' : ''} tabindex="0">
       <div class="card-poster">
         ${rank ? `<div class="card-rank-badge">#${rank}</div>` : ''}
         ${poster}
@@ -600,7 +764,7 @@ function continueCardHTML(item) {
   const sub = item.type==='tv' && item.season ? `S${item.season} E${item.episode}` : '';
   const poster = backdropUrl ? `<img decoding="async" src="${backdropUrl}" alt="${item.title}">` : '';
   return `
-    <article class="card" data-id="${item.id}" data-type="${item.type}" data-resume="1" data-season="${item.season||1}" data-episode="${item.episode||1}" tabindex="0">
+    <article class="card" data-id="${item.id}" data-type="${item.type}" data-resume="1" data-season="${item.season||1}" data-episode="${item.episode||1}" ${item.isAnime ? 'data-anime="1"' : ''} tabindex="0">
       <div class="card-poster">${poster}
         <div class="play-overlay">
           <button class="card-action-btn btn-play" data-action="play" title="Resume ${item.title}">
@@ -634,6 +798,7 @@ function wireCards(scope) {
     const type = card.dataset.type;
     const season = card.dataset.season || 1;
     const episode = card.dataset.episode || 1;
+    const isAnime = card.dataset.anime === '1';
 
     const playBtn = card.querySelector('[data-action="play"]');
     const infoBtn = card.querySelector('[data-action="info"]');
@@ -641,7 +806,11 @@ function wireCards(scope) {
     if (playBtn) {
       playBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        navigateToWatch(id, type, season, episode);
+        if (isAnime) {
+          location.hash = `#/anime-watch?type=${type}&id=${id}&s=${season}&e=${episode}`;
+        } else {
+          navigateToWatch(id, type, season, episode);
+        }
       });
     }
 
@@ -652,7 +821,13 @@ function wireCards(scope) {
       });
     }
 
-    const defaultGo = () => { navigateToWatch(id, type, season, episode); };
+    const defaultGo = () => {
+      if (isAnime) {
+        location.hash = `#/anime-watch?type=${type}&id=${id}&s=${season}&e=${episode}`;
+      } else {
+        navigateToWatch(id, type, season, episode);
+      }
+    };
 
     card.addEventListener('click', (e) => {
       if (!e.target.closest('.card-action-btn') && !e.target.closest('.card-sound-btn')) {
@@ -749,6 +924,7 @@ function parseHash() {
   if (path === '/watch') return { route: 'watch', params };
   if (path === '/anime') return { route: 'anime', params };
   if (path === '/anime-watch') return { route: 'anime-watch', params };
+  if (path === '/watchlist') return { route: 'watchlist', params };
   return { route: 'home', params: {} };
 }
 
@@ -846,6 +1022,7 @@ async function renderHome() {
   initHeaderScroll();
   const rows = document.getElementById('rows');
   buildContinueWatching(rows);
+  buildWatchlistRow(rows);
   buildTop10AnimeRow(rows);
 
   Promise.all([
@@ -1053,6 +1230,39 @@ function buildContinueWatching(container) {
   wireCards(section);
 }
 
+function buildWatchlistRow(container) {
+  const items = Watchlist.all();
+  if (!items.length) return;
+  const section = document.createElement('section');
+  section.className = 'row watchlist-row';
+  section.innerHTML = `
+    <div class="row-head" style="display:flex; justify-content:space-between; align-items:center;">
+      <h2><i class="fa-solid fa-bookmark" style="color:var(--accent)"></i> My Watchlist</h2>
+      <a href="#/watchlist" class="row-view-all" style="font-size:0.85rem;color:var(--accent);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px">View All <i class="fa-solid fa-chevron-right" style="font-size:0.75rem"></i></a>
+    </div>
+    <div class="row-wrapper">
+      <button class="row-nav nav-prev" aria-label="Scroll left"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="row-scroller">${items.map(item => cardHTML(item, true)).join('')}</div>
+      <button class="row-nav nav-next" aria-label="Scroll right"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>`;
+  
+  const contSection = container.querySelector('.row');
+  if (contSection) {
+    contSection.after(section);
+  } else {
+    container.prepend(section);
+  }
+
+  const scroller = section.querySelector('.row-scroller');
+  scroller.scrollLeft = 0;
+  const prevBtn = section.querySelector('.nav-prev');
+  const nextBtn = section.querySelector('.nav-next');
+  if (prevBtn) prevBtn.onclick = () => scroller.scrollBy({ left: -600, behavior: 'smooth' });
+  if (nextBtn) nextBtn.onclick = () => scroller.scrollBy({ left: 600, behavior: 'smooth' });
+
+  wireCards(section);
+}
+
 /* ---------- BROWSE / SEARCH ---------- */
 let browseState = null;
 async function renderBrowse(params) {
@@ -1142,7 +1352,7 @@ async function renderBrowse(params) {
   browseState = { io };
 
   const input = document.getElementById('search-input');
-  if (input && MODE.q) input.value = MODE.q;
+  if (input && MODE.q && document.activeElement !== input) input.value = MODE.q;
 }
 
 /* ============================================================
@@ -1221,6 +1431,8 @@ async function renderDetails(params) {
   }
 
   const title = details.title || details.name || 'Untitled';
+  const isAnime = (details.genres || []).some(g => g.id === 16) && 
+                  ((details.origin_country || []).includes('JP') || details.original_language === 'ja');
   const year = (details.release_date || details.first_air_date || '').slice(0,4);
   const runtime = details.runtime ? `${details.runtime} min` : (details.episode_run_time && details.episode_run_time[0] ? `${details.episode_run_time[0]} min/ep` : '—');
   const genres = (details.genres || []).map(g => `<span>${g.name}</span>`).join('');
@@ -1249,8 +1461,11 @@ async function renderDetails(params) {
             </div>
             <div class="genre-tags">${genres}</div>
             <p class="details-overview">${details.overview || 'No description available.'}</p>
-            <div class="details-actions">
-              <button class="btn btn-primary" id="det-play"><i class="fa-solid fa-play"></i> ${type==='tv'?'Play S'+season+' E1':'Play'}</button>
+            <div class="details-actions" style="display:flex;gap:12px;margin-bottom:24px;">
+              <button class="btn btn-primary" id="det-play" style="flex-shrink:0;"><i class="fa-solid fa-play"></i> ${type==='tv'?'Play S'+season+' E1':'Play'}</button>
+              <button class="btn btn-outline" id="det-watchlist" style="display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:10px;">
+                ${Watchlist.has(id, type) ? '<i class="fa-solid fa-check" style="color:var(--accent)"></i> Saved' : '<i class="fa-solid fa-plus"></i> Add to Watchlist'}
+              </button>
             </div>
             <div class="info-grid">
               ${director ? `<div class="info-cell"><div class="k">Director</div><div class="v">${director.name}</div></div>` : ''}
@@ -1280,7 +1495,41 @@ async function renderDetails(params) {
       </div>
     </div>`;
 
-  document.getElementById('det-play').onclick = () => navigateToWatch(id, type, season, 1);
+  document.getElementById('det-play').onclick = () => {
+    if (isAnime) {
+      location.hash = `#/anime-watch?type=${type}&id=${id}&s=${season}&e=1`;
+    } else {
+      navigateToWatch(id, type, season, 1);
+    }
+  };
+
+  const watchlistBtn = document.getElementById('det-watchlist');
+  if (watchlistBtn) {
+    watchlistBtn.onclick = () => {
+      const itemToSave = {
+        id: id,
+        media_type: type,
+        title: details.title,
+        name: details.name,
+        poster_path: details.poster_path,
+        backdrop_path: details.backdrop_path,
+        vote_average: details.vote_average,
+        release_date: details.release_date,
+        first_air_date: details.first_air_date,
+        genre_ids: (details.genres || []).map(g => g.id),
+        origin_country: details.origin_country,
+        original_language: details.original_language
+      };
+      const added = Watchlist.toggle(itemToSave);
+      if (added) {
+        watchlistBtn.innerHTML = '<i class="fa-solid fa-check" style="color:var(--accent)"></i> Saved';
+        toast('Added to Watchlist');
+      } else {
+        watchlistBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Add to Watchlist';
+        toast('Removed from Watchlist');
+      }
+    };
+  }
 
   (function renderCast(){
     const sec = document.getElementById('cast-section');
@@ -1347,14 +1596,21 @@ async function renderDetails(params) {
       }).join('') || '<p style="color:#888">No episodes found.</p>';
 
       listEl.querySelectorAll('.ep-thumb, .ep-play-btn').forEach(el => {
-        el.addEventListener('click', () => navigateToWatch(id, 'tv', season, parseInt(el.dataset.ep)));
+        el.addEventListener('click', () => {
+          const epNum = parseInt(el.dataset.ep);
+          if (isAnime) {
+            location.hash = `#/anime-watch?type=${type}&id=${id}&s=${season}&e=${epNum}`;
+          } else {
+            navigateToWatch(id, 'tv', season, epNum);
+          }
+        });
       });
     } catch (e) { listEl.innerHTML = '<p style="color:#888">Failed to load episodes.</p>'; }
   }
 
   History.record({
     id, type, title, poster: details.poster_path, backdrop: details.backdrop_path,
-    year, viewedDetails: true
+    year, viewedDetails: true, isAnime: isAnime
   });
   window.scrollTo({ top: 0 });
 }
@@ -1666,6 +1922,7 @@ let animeWatchState = null;
 async function renderAnimeWatch(params) {
   setChrome('anime-watch');
   const tmdbId = params.id;
+  const isMovie = params.type === 'movie';
   let season = parseInt(params.s) || 1;
   let episode = parseInt(params.e) || 1;
   let lang = Settings.get().animeLang || 'sub';
@@ -1676,13 +1933,19 @@ async function renderAnimeWatch(params) {
   const prevBtnHdr = document.getElementById('btn-prev-ep');
   const nextBtnHdr = document.getElementById('btn-next-ep');
 
-  if (epWrap) {
-    epWrap.style.display = 'inline-flex';
-    epWrap.classList.remove('open');
-    if (epBtn) epBtn.onclick = (e) => { e.stopPropagation(); epWrap.classList.toggle('open'); };
+  if (isMovie) {
+    if (epWrap) epWrap.style.display = 'none';
+    if (prevBtnHdr) prevBtnHdr.style.display = 'none';
+    if (nextBtnHdr) nextBtnHdr.style.display = 'none';
+  } else {
+    if (epWrap) {
+      epWrap.style.display = 'inline-flex';
+      epWrap.classList.remove('open');
+      if (epBtn) epBtn.onclick = (e) => { e.stopPropagation(); epWrap.classList.toggle('open'); };
+    }
+    if (prevBtnHdr) prevBtnHdr.style.display = 'inline-flex';
+    if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
   }
-  if (prevBtnHdr) prevBtnHdr.style.display = 'inline-flex';
-  if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
 
   app.innerHTML = `
     <div class="watch-container">
@@ -1695,11 +1958,15 @@ async function renderAnimeWatch(params) {
 
   document.getElementById('watch-back').onclick = () => { location.hash = '#/anime'; };
   const hdrDetailsBtn = document.getElementById('hdr-btn-details');
-  if (hdrDetailsBtn) hdrDetailsBtn.onclick = () => { location.hash = `#/details?type=tv&id=${tmdbId}&s=${season}`; };
+  if (hdrDetailsBtn) {
+    hdrDetailsBtn.onclick = () => {
+      location.hash = `#/details?type=${isMovie ? 'movie' : 'tv'}&id=${tmdbId}${isMovie ? '' : `&s=${season}`}`;
+    };
+  }
 
   let details = null, extIds = {};
   try {
-    details = await TMDB.tvDetails(tmdbId);
+    details = isMovie ? await TMDB.movieDetails(tmdbId) : await TMDB.tvDetails(tmdbId);
     extIds = details.external_ids || {};
   } catch (e) {
     document.getElementById('player-stage').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load anime metadata.</p></div>`;
@@ -1708,33 +1975,59 @@ async function renderAnimeWatch(params) {
 
   // TMDB does not expose MAL/AniList directly; try to derive from external ids where possible.
   // MegaPlay MAL/AniList require those ids; if unavailable we fall back to TMDB-based anime players.
-  const malId = extIds.mal_id || null;        // rarely present
-  const anilistId = extIds.anilist_id || null; // rarely present
-  const title = details.name || 'Anime';
+  let malId = extIds.mal_id || null;
+  let anilistId = extIds.anilist_id || null;
+  const title = details.name || details.title || 'Anime';
+
+  async function resolveForCurrentSeason() {
+    if (!extIds.mal_id || !extIds.anilist_id) {
+      const resolved = await resolveAnimeIds(details.name || details.title || details.original_name || details.original_title, isMovie ? 1 : season, isMovie);
+      if (resolved) {
+        malId = resolved.malId || null;
+        anilistId = resolved.anilistId || null;
+      } else {
+        malId = null;
+        anilistId = null;
+      }
+    } else {
+      malId = extIds.mal_id;
+      anilistId = extIds.anilist_id;
+    }
+  }
 
   const watchTitleEl = document.getElementById('watch-title');
   function updateTag() {
-    if (watchTitleEl) watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">EP ${episode} · ${lang.toUpperCase()}</span>`;
+    if (watchTitleEl) {
+      if (isMovie) {
+        watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">${lang.toUpperCase()}</span>`;
+      } else {
+        watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">EP ${episode} · ${lang.toUpperCase()}</span>`;
+      }
+    }
   }
 
   function buildAnimeSrc() {
     const prov = getAnimeProvider(currentAnimeProvider);
+    const epNum = isMovie ? 1 : episode;
     // Choose args based on which provider is active + what ids we have.
-    if (prov.id === 'megaplay-mal' && malId) return prov.build({ malId, epNum: episode, lang });
-    if (prov.id === 'megaplay-ani' && anilistId) return prov.build({ anilistId, epNum: episode, lang });
+    if (prov.id === 'megaplay-mal' && malId) return prov.build({ malId, epNum, lang });
+    if (prov.id === 'megaplay-ani' && anilistId) return prov.build({ anilistId, epNum, lang });
     if (prov.id === 'megaplay-s2') {
       // Without a resolved catalog embed id we can't use s-2; fall back.
     }
     // Fallbacks that only need the TMDB id:
-    if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum: episode, lang });
-    if (anilistId) return getAnimeProvider('megaplay-ani').build({ anilistId, epNum: episode, lang });
-    return getProvider(Settings.get().defaultProvider || 'vidking').build({ type: 'tv', tmdb: tmdbId, season, episode });
+    if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
+    if (anilistId) return getAnimeProvider('megaplay-ani').build({ anilistId, epNum, lang });
+    return getProvider(Settings.get().defaultProvider || 'vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum });
   }
 
-  function loadPlayer() {
+  async function loadPlayer() {
     const stage = document.getElementById('player-stage');
+    if (!stage) return;
+    stage.innerHTML = `<div class="empty-state" style="padding:100px 20px"><p>Connecting to anime server…</p></div>`;
+    await resolveForCurrentSeason();
     const src = buildAnimeSrc();
-    const old = stage.querySelector('iframe'); if (old) old.remove();
+    stage.innerHTML = '';
     const iframe = document.createElement('iframe');
     iframe.src = src;
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
@@ -1742,12 +2035,22 @@ async function renderAnimeWatch(params) {
     iframe.referrerPolicy = 'origin';
     stage.appendChild(iframe);
     updateTag();
-    History.record({ id: tmdbId, type: 'tv', title, poster: details.poster_path, backdrop: details.backdrop_path, season, episode, year: (details.first_air_date||'').slice(0,4) });
+    History.record({
+      id: tmdbId,
+      type: isMovie ? 'movie' : 'tv',
+      title,
+      poster: details.poster_path,
+      backdrop: details.backdrop_path,
+      season: isMovie ? null : season,
+      episode: isMovie ? null : episode,
+      year: (details.release_date || details.first_air_date || '').slice(0,4),
+      isAnime: true
+    });
   }
 
-  window._reloadAnimePlayer = (pid) => {
+  window._reloadAnimePlayer = async (pid) => {
     if (parseHash().route !== 'anime-watch') return;
-    currentAnimeProvider = pid; loadPlayer();
+    currentAnimeProvider = pid; await loadPlayer();
   };
 
   // Language (sub/dub) toggle inside the episodes dropdown
@@ -1758,11 +2061,11 @@ async function renderAnimeWatch(params) {
       <button data-lang="dub" class="${lang==='dub'?'active':''}">DUB</button>
     </div>`;
     langCont.querySelectorAll('button').forEach(b => {
-      b.addEventListener('click', () => {
+      b.addEventListener('click', async () => {
         lang = b.dataset.lang;
         Settings.save({ animeLang: lang });
         langCont.querySelectorAll('button').forEach(x => x.classList.toggle('active', x.dataset.lang === lang));
-        loadPlayer();
+        await loadPlayer();
         toast('Language: ' + lang.toUpperCase());
       });
     });
@@ -1779,15 +2082,15 @@ async function renderAnimeWatch(params) {
       onChange: async (newVal) => {
         season = parseInt(newVal); episode = 1;
         window.history.replaceState(null, '', `#/anime-watch?type=tv&id=${tmdbId}&s=${season}&e=${episode}`);
-        loadPlayer(); await loadEps();
+        await loadPlayer(); await loadEps();
       }
     });
   }
 
-  function switchEpisode(epNum) {
+  async function switchEpisode(epNum) {
     episode = epNum;
     window.history.replaceState(null, '', `#/anime-watch?type=tv&id=${tmdbId}&s=${season}&e=${episode}`);
-    loadPlayer();
+    await loadPlayer();
     const listEl = document.getElementById('sidebar-ep-list');
     if (listEl) {
       listEl.querySelectorAll('.yt-ep-card').forEach(c => c.classList.toggle('active', parseInt(c.dataset.ep) === episode));
@@ -1833,9 +2136,13 @@ async function renderAnimeWatch(params) {
   const hdrFsBtn = document.getElementById('hdr-btn-fullscreen');
   if (hdrFsBtn) hdrFsBtn.onclick = toggleFullscreen;
 
-  renderSeasonDropdown();
-  await loadEps();
-  loadPlayer();
+  if (isMovie) {
+    await loadPlayer();
+  } else {
+    renderSeasonDropdown();
+    await loadEps();
+    await loadPlayer();
+  }
   window.scrollTo({ top: 0 });
 
   if (animeWatchState && animeWatchState.keyHandler) document.removeEventListener('keydown', animeWatchState.keyHandler);
@@ -1872,19 +2179,160 @@ function resetWatchIdleTimer() {
   window.addEventListener(evt, resetWatchIdleTimer, { passive: true });
 });
 
+function updateMobileNav(route, params = {}) {
+  const items = document.querySelectorAll('.mobile-nav-item');
+  items.forEach(el => {
+    const r = el.getAttribute('data-route');
+    let isActive = false;
+    if (r === 'home' && route === 'home') isActive = true;
+    else if (r === 'movies' && route === 'browse' && params.type === 'movie') isActive = true;
+    else if (r === 'tv' && route === 'browse' && params.type === 'tv') isActive = true;
+    else if (r === 'anime' && route === 'anime') isActive = true;
+    else if (r === 'watchlist' && route === 'watchlist') isActive = true;
+    el.classList.toggle('active', isActive);
+  });
+}
+
 async function render() {
   document.body.classList.remove('theater-open', 'watch-active', 'user-idle');
   if (watchIdleTimer) clearTimeout(watchIdleTimer);
   window._reloadPlayer = null;
   window._reloadAnimePlayer = null;
   const { route, params } = parseHash();
+  updateMobileNav(route, params);
   window.scrollTo({ top: 0 });
   if (route === 'watch') { resetWatchIdleTimer(); return renderWatch(params); }
   if (route === 'anime-watch') { resetWatchIdleTimer(); return renderAnimeWatch(params); }
   if (route === 'details') return renderDetails(params);
   if (route === 'browse') return renderBrowse(params);
   if (route === 'anime') return renderAnime(params);
+  if (route === 'watchlist') return renderWatchlist();
   return renderHome();
+}
+
+/* ============================================================
+   Watchlist Page
+   ============================================================ */
+async function renderWatchlist() {
+  setChrome('home');
+  siteHeader.classList.add('scrolled');
+  document.querySelectorAll('#main-nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#/watchlist'));
+
+  const items = Watchlist.all();
+  if (!items.length) {
+    app.innerHTML = `
+      <main class="grid-page" style="min-height:70vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+        <div style="font-size:3.5rem; color:var(--text-dim); margin-bottom:16px;"><i class="fa-solid fa-bookmark" style="color:var(--accent)"></i></div>
+        <h1>Your Watchlist is Empty</h1>
+        <p class="sub" style="margin-bottom:24px; max-width: 400px; line-height: 1.5;">Explore our library of movies, series, and anime, and add them to your personal Watchlist to watch later!</p>
+        <a href="#/" class="btn btn-primary" style="padding:12px 28px; border-radius:10px;"><i class="fa-solid fa-compass"></i> Discover Content</a>
+      </main>
+    `;
+    return;
+  }
+
+  app.innerHTML = `
+    <main class="grid-page">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:28px; flex-wrap:wrap; gap:16px;">
+        <div>
+          <h1>My Watchlist</h1>
+          <p class="sub" style="margin-top:4px;">You have ${items.length} ${items.length === 1 ? 'item' : 'items'} saved</p>
+        </div>
+        <button class="btn btn-outline" id="clear-watchlist-btn" style="padding: 10px 20px; font-size: 0.9rem; border-radius:10px;">
+          <i class="fa-solid fa-trash" style="color:var(--accent)"></i> Clear All Watchlist
+        </button>
+      </div>
+      <div class="grid-layout" id="watchlist-grid">
+        ${items.map(item => cardHTML(item, true)).join('')}
+      </div>
+    </main>
+  `;
+
+  const clearBtn = document.getElementById('clear-watchlist-btn');
+  if (clearBtn) {
+    clearBtn.onclick = () => {
+      if (confirm('Are you sure you want to clear your entire watchlist?')) {
+        localStorage.removeItem('Urnperiodic_watchlist');
+        renderWatchlist();
+        toast('Watchlist cleared');
+      }
+    };
+  }
+
+  wireCards(document.getElementById('watchlist-grid'));
+}
+
+/* ============================================================
+   Search History Autocomplete Dropdown
+   ============================================================ */
+function renderSearchHistory() {
+  let dropdown = document.getElementById('search-history-dropdown');
+  if (!dropdown) {
+    const box = document.querySelector('.search-box');
+    if (!box) return;
+    box.style.position = 'relative'; // Ensure relative positioning
+    dropdown = document.createElement('div');
+    dropdown.id = 'search-history-dropdown';
+    dropdown.className = 'search-history-dropdown';
+    box.appendChild(dropdown);
+  }
+
+  const items = SearchHistory.all();
+  if (!items.length) {
+    dropdown.classList.remove('open');
+    return;
+  }
+
+  dropdown.innerHTML = `
+    <div class="search-history-header">
+      <span>RECENT SEARCHES</span>
+      <span class="search-history-clear" id="search-history-clear-all">Clear All</span>
+    </div>
+    ${items.map(item => `
+      <div class="search-history-item" data-query="${encodeURIComponent(item)}">
+        <div class="search-history-item-left">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>${escapeHTML(item)}</span>
+        </div>
+        <span class="search-history-remove" data-remove="${encodeURIComponent(item)}"><i class="fa-solid fa-xmark"></i></span>
+      </div>
+    `).join('')}
+  `;
+
+  // Handle clicking on history item to search
+  dropdown.querySelectorAll('.search-history-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      // If close button was clicked, don't execute search
+      if (e.target.closest('.search-history-remove')) return;
+      const q = decodeURIComponent(el.getAttribute('data-query'));
+      const input = document.getElementById('search-input');
+      if (input) input.value = q;
+      dropdown.classList.remove('open');
+      location.hash = `#/browse?q=${encodeURIComponent(q)}`;
+    });
+  });
+
+  // Handle individual remove
+  dropdown.querySelectorAll('.search-history-remove').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const q = decodeURIComponent(el.getAttribute('data-remove'));
+      SearchHistory.remove(q);
+      renderSearchHistory();
+    });
+  });
+
+  // Handle clear all
+  const clearAllBtn = document.getElementById('search-history-clear-all');
+  if (clearAllBtn) {
+    clearAllBtn.onclick = (e) => {
+      e.stopPropagation();
+      SearchHistory.clear();
+      renderSearchHistory();
+    };
+  }
+
+  dropdown.classList.add('open');
 }
 
 /* ============================================================
@@ -1892,9 +2340,14 @@ async function render() {
    ============================================================ */
 function initGlobal() {
   initFirstTimeNotice();
+  initKeyboardShortcutsModal();
   buildSettingsDrawer();
   document.getElementById('settings-btn').addEventListener('click', () => window.openSettings());
   document.getElementById('settings-btn-watch').addEventListener('click', () => window.openSettings());
+  const mobileSettingsBtn = document.getElementById('mobile-nav-settings');
+  if (mobileSettingsBtn) {
+    mobileSettingsBtn.addEventListener('click', () => window.openSettings());
+  }
 
   document.addEventListener('click', (e) => {
     const epWrap = document.getElementById('hdr-episodes-wrap');
@@ -1908,10 +2361,35 @@ function initGlobal() {
   input.addEventListener('input', () => {
     clearTimeout(timer);
     const q = input.value.trim();
-    timer = setTimeout(() => { if (q.length >= 2) location.hash = `#/browse?q=${encodeURIComponent(q)}`; }, 600);
+    if (q.length >= 2) {
+      timer = setTimeout(() => {
+        SearchHistory.add(q);
+        location.hash = `#/browse?q=${encodeURIComponent(q)}`;
+        const dropdown = document.getElementById('search-history-dropdown');
+        if (dropdown) dropdown.classList.remove('open');
+      }, 600);
+    }
   });
   input.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && input.value.trim()) location.hash = `#/browse?q=${encodeURIComponent(input.value.trim())}`;
+    if (e.key === 'Enter' && input.value.trim()) {
+      const q = input.value.trim();
+      SearchHistory.add(q);
+      location.hash = `#/browse?q=${encodeURIComponent(q)}`;
+      const dropdown = document.getElementById('search-history-dropdown');
+      if (dropdown) dropdown.classList.remove('open');
+    }
+  });
+
+  // Search History dropdown triggers
+  input.addEventListener('focus', () => {
+    renderSearchHistory();
+  });
+  document.addEventListener('click', (e) => {
+    const box = document.querySelector('.search-box');
+    if (box && !box.contains(e.target)) {
+      const dropdown = document.getElementById('search-history-dropdown');
+      if (dropdown) dropdown.classList.remove('open');
+    }
   });
 }
 

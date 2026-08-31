@@ -718,11 +718,11 @@
      WATCH PAGE (YouTube & Full-Bleed Netflix Layout)
      ============================================================ */
   .watch-top {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
-    display: flex; align-items: center; gap: 16px; padding: 18px 4vw 36px;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.7) 40%, rgba(0, 0, 0, 0.25) 75%, transparent 100%);
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 60px;
+    display: flex; align-items: center; gap: 16px; padding: 0 4vw;
+    background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: opacity 0.4s ease, transform 0.4s ease;
-    pointer-events: none;
   }
   .watch-top > * {
     pointer-events: auto;
@@ -778,8 +778,8 @@
   }
   .watch-grid { width: 100vw; height: 100vh; grid-template-columns: 1fr; gap: 0; }
   .watch-main-col { width: 100vw; height: 100vh; gap: 0; position: relative; }
-  .player-stage {
-    position: absolute; inset: 0; width: 100vw; height: 100vh;
+  .watch-container .player-stage {
+    position: absolute; top: 60px; left: 0; right: 0; bottom: 0; width: 100vw; height: calc(100vh - 60px);
     aspect-ratio: auto; border-radius: 0; box-shadow: none; background: #000;
   }
 
@@ -804,7 +804,7 @@
     width: 100vw; height: 100vh; gap: 0; position: relative;
   }
   .watch-container.movie-mode .player-stage {
-    position: absolute; inset: 0; width: 100vw; height: 100vh;
+    position: absolute; top: 60px; left: 0; right: 0; bottom: 0; width: 100vw; height: calc(100vh - 60px);
     aspect-ratio: auto; border-radius: 0; box-shadow: none;
   }
   .watch-container.movie-mode .watch-info-card {
@@ -1875,6 +1875,75 @@ function initKeyboardShortcutsModal() {
    ============================================================ */
 const cardVideoCache = {};
 
+
+function anikotoCardHTML(item) {
+  const title = item.title || item.native || 'Untitled';
+  const poster = item.poster ? `<img decoding="async" src="${item.poster}" alt="${title}">`
+    : `<div class="skeleton" style="width:100%;height:100%;display:grid;place-items:center;color:#555"><i class="fa-solid fa-dragon fa-2x"></i></div>`;
+  const rating = item.score ? item.score : 'N/A';
+  return `
+    <article class="card card-portrait" data-anikoto-id="${item.id}" tabindex="0">
+      <div class="card-poster">
+        ${poster}
+        <div class="play-overlay">
+          <button class="card-action-btn btn-play" data-action="play" title="Play ${title}">
+            <i class="fa-solid fa-play"></i>
+          </button>
+        </div>
+        <div class="card-badges">
+          ${item.is_sub ? `<span class="badge" style="background:rgba(255,255,255,0.1);color:#fff"><i class="fa-regular fa-closed-captioning"></i> SUB</span>` : ''}
+        </div>
+      </div>
+      <div class="card-info">
+        <h3 class="card-title">${title}</h3>
+        <div class="card-meta">
+          <span class="meta-year">${item.year || 'N/A'}</span>
+          <span class="meta-rating"><i class="fa-solid fa-star"></i> ${rating}</span>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+async function buildAnikotoRow(title, fetcher, container) {
+  const section = document.createElement('section');
+  section.className = 'row';
+  section.innerHTML = `
+    <div class="row-head"><h2>${title}</h2></div>
+    <div class="row-wrapper">
+      <button class="row-nav nav-prev" aria-label="Scroll left"><i class="fa-solid fa-chevron-left"></i></button>
+      <div class="row-scroller">${Array(8).fill(`<div class="card card-portrait"><div class="card-poster skeleton"></div><div class="skeleton" style="height:18px;width:70%;margin-top:10px;border-radius:4px"></div><div class="skeleton" style="height:14px;width:40%;margin-top:6px;border-radius:4px"></div></div>`).join('')}</div>
+      <button class="row-nav nav-next" aria-label="Scroll right"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>`;
+  container.appendChild(section);
+  
+  const scroller = section.querySelector('.row-scroller');
+  const prevBtn = section.querySelector('.nav-prev');
+  const nextBtn = section.querySelector('.nav-next');
+  if (prevBtn) prevBtn.onclick = () => scroller.scrollBy({ left: -500, behavior: 'smooth' });
+  if (nextBtn) nextBtn.onclick = () => scroller.scrollBy({ left: 500, behavior: 'smooth' });
+
+  try {
+    const data = await fetcher();
+    const items = (data.data || []);
+    scroller.innerHTML = items.map(item => anikotoCardHTML(item)).join('') || '<p style="color:#888">Nothing here.</p>';
+    scroller.scrollLeft = 0;
+    
+    // Wire Anikoto Cards
+    section.querySelectorAll('.card[data-anikoto-id]').forEach(card => {
+      const playBtn = card.querySelector('[data-action="play"]');
+      const clickHandler = (e) => {
+        e.stopPropagation();
+        location.hash = `#/anime-watch?source=anikoto&id=${card.dataset.anikotoId}`;
+      };
+      if (playBtn) playBtn.addEventListener('click', clickHandler);
+      card.addEventListener('click', clickHandler);
+    });
+  } catch (e) {
+    scroller.innerHTML = '<p style="color:#888;padding:20px">Failed to load.</p>';
+  }
+}
+
 function cardHTML(item, isPortrait = false, rank = null) {
   const type = item.media_type || (item.first_air_date ? 'tv' : 'movie');
   if (type !== 'movie' && type !== 'tv') return '';
@@ -2028,7 +2097,7 @@ function wireCards(scope) {
           videoWrap.className = 'card-video-wrap';
           let isMuted = true;
           videoWrap.innerHTML = `
-            <iframe id="vid_${type}_${id}" src="https://www.youtube-nocookie.com/embed/${videoKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoKey}&enablejsapi=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+            <iframe id="vid_${type}_${id}" src="https://www.youtube-nocookie.com/embed/${videoKey}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoKey}&enablejsapi=1&playsinline=1&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&fs=0" allow="autoplay; encrypted-media" frameborder="0" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
             <button class="card-sound-btn" title="Toggle Sound"><i class="fa-solid fa-volume-xmark"></i></button>
           `;
 
@@ -2090,11 +2159,14 @@ const watchTop = document.getElementById('watch-top');
 const siteFooter = document.getElementById('site-footer');
 
 function setChrome(route) {
+  const mobileNav = document.getElementById('mobile-bottom-nav');
   if (route === 'watch' || route === 'anime-watch') {
     siteHeader.hidden = true; watchTop.hidden = false; siteFooter.style.display = 'none';
+    if (mobileNav) mobileNav.style.display = 'none';
     document.body.style.background = '#000';
   } else {
     siteHeader.hidden = false; watchTop.hidden = true; siteFooter.style.display = '';
+    if (mobileNav) mobileNav.style.display = '';
     document.body.style.background = 'var(--bg)';
   }
 }
@@ -2526,21 +2598,19 @@ async function renderAnime() {
   app.innerHTML = `
     <main class="grid-page">
       <h1><i class="fa-solid fa-dragon" style="color:var(--accent)"></i> Anime</h1>
-      <p class="sub">Powered by MegaPlay + Anikoto (HiAnime library). Pick a title to stream sub or dub.</p>
+      <p class="sub">Powered by MegaPlay + Anikoto (HiAnime library). Recent additions from the HiAnime catalog.</p>
       <div id="anime-rows"></div>
     </main>`;
   initHeaderScroll();
   const rows = document.getElementById('anime-rows');
-  buildTop10AnimeRow(rows);
 
   Promise.all([
-    buildRow('Popular Anime', () => TMDB.popularAnime(), rows, true),
-    buildRow('Top Rated Anime', () => TMDB.topRatedAnime(), rows, true),
-    buildRow('Recently Airing', () => TMDB.airingAnime(), rows, true),
-    buildRow('Action & Adventure Anime', () => TMDB.byGenre('tv', 16, 1), rows, true)
+    buildAnikotoRow('Recently Added (Page 1)', () => Anime.recent(1, 24), rows),
+    buildAnikotoRow('Recently Added (Page 2)', () => Anime.recent(2, 24), rows),
+    buildAnikotoRow('Recently Added (Page 3)', () => Anime.recent(3, 24), rows),
+    buildAnikotoRow('Recently Added (Page 4)', () => Anime.recent(4, 24), rows)
   ]);
 }
-
 /* ============================================================
    DETAILS PAGE  (info + episodes)
    ============================================================ */
@@ -2799,7 +2869,7 @@ async function renderWatch(params) {
     if (epWrap) {
       epWrap.style.display = 'inline-flex';
       epWrap.classList.remove('open');
-      if (epBtn) { epBtn.onclick = (e) => { e.stopPropagation(); epWrap.classList.toggle('open'); }; }
+      if (epBtn) epBtn.onclick = (e) => { e.stopPropagation(); epWrap.classList.toggle('open'); };
     }
     if (prevBtnHdr) prevBtnHdr.style.display = 'inline-flex';
     if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
@@ -2809,8 +2879,7 @@ async function renderWatch(params) {
     if (nextBtnHdr) nextBtnHdr.style.display = 'none';
   }
 
-  app.innerHTML = `
-    <div class="watch-container ${type==='movie'?'movie-mode':''}">
+  app.innerHTML = `<div class="watch-container ${type==='movie'?'movie-mode':''}">
       <div class="watch-grid">
         <div class="watch-main-col">
           <div class="player-stage" id="player-stage" tabindex="0"></div>
@@ -2819,7 +2888,6 @@ async function renderWatch(params) {
     </div>`;
 
   document.getElementById('watch-back').onclick = () => { location.hash = '#/'; };
-
   const hdrDetailsBtn = document.getElementById('hdr-btn-details');
   if (hdrDetailsBtn) hdrDetailsBtn.onclick = () => { location.hash = `#/details?type=${type}&id=${id}${type==='tv'?'&s='+season:''}`; };
 
@@ -2827,15 +2895,12 @@ async function renderWatch(params) {
   try {
     details = type === 'movie' ? await TMDB.movieDetails(id) : await TMDB.tvDetails(id);
   } catch (e) {
-    document.getElementById('player-stage').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load metadata. Check your TMDB key in settings.</p></div>`;
+    document.getElementById('player-stage').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load metadata.</p></div>`;
     return;
   }
 
   const title = details.title || details.name || 'Untitled';
-  const yearOrTag = type==='tv' ? `Season ${season} · Episode ${episode}` : '';
-
   const watchTitleEl = document.getElementById('watch-title');
-  if (watchTitleEl) watchTitleEl.innerHTML = `<span class="wt-main">${title}</span>${yearOrTag ? `<span class="wt-tag">${yearOrTag}</span>` : ''}`;
 
   function updateEpTag() {
     const curTag = type==='tv' ? `Season ${season} · Episode ${episode}` : '';
@@ -2844,20 +2909,20 @@ async function renderWatch(params) {
 
   function loadPlayer() {
     const stage = document.getElementById('player-stage');
+    if (!stage) return;
     const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay, muted: Settings.get().muted };
     const prov = getProvider(currentProvider);
     const src = prov.build({ type, tmdb: id, season, episode, opt });
-
-    const oldFrame = stage.querySelector('iframe');
-    if (oldFrame) oldFrame.remove();
-
+    
+    stage.innerHTML = '';
     const iframe = document.createElement('iframe');
     iframe.src = src;
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
     stage.appendChild(iframe);
-
+    
     History.record({
       id, type, title, poster: details.poster_path, backdrop: details.backdrop_path,
       season: type==='tv'?season:undefined, episode: type==='tv'?episode:undefined,
@@ -2874,22 +2939,12 @@ async function renderWatch(params) {
   };
 
   const stageEl = () => document.getElementById('player-stage');
-  function toggleTheater() {
-    const stage = stageEl(); if (!stage) return;
-    const on = stage.classList.toggle('theater');
-    document.body.classList.toggle('theater-open', on);
-    if (on) window.scrollTo({ top: 0 });
-    syncScreenButtons();
-  }
-  function exitTheater() { const stage = stageEl(); if (stage && stage.classList.contains('theater')) toggleTheater(); }
-
   function toggleFullscreen() {
     const stage = stageEl(); if (!stage) return;
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
     if (!fsEl) {
       const req = stage.requestFullscreen || stage.webkitRequestFullscreen || stage.msRequestFullscreen;
       if (req) { try { req.call(stage); } catch (e) { toast('Fullscreen not supported here'); } }
-      else { toast('Fullscreen not supported by this browser'); }
     } else {
       const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
       if (exit) exit.call(document);
@@ -2897,11 +2952,9 @@ async function renderWatch(params) {
   }
 
   function syncScreenButtons() {
-    const stage = stageEl();
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
-    const fsOn = !!fsEl;
     const fsBtn = document.getElementById('hdr-btn-fullscreen');
-    if (fsBtn) fsBtn.innerHTML = fsOn ? '<i class="fa-solid fa-compress"></i>' : '<i class="fa-solid fa-expand"></i>';
+    if (fsBtn) fsBtn.innerHTML = fsEl ? '<i class="fa-solid fa-compress"></i>' : '<i class="fa-solid fa-expand"></i>';
   }
 
   const hdrFsBtn = document.getElementById('hdr-btn-fullscreen');
@@ -2909,7 +2962,7 @@ async function renderWatch(params) {
 
   if (type === 'tv') {
     const seasons = (details.seasons || []).filter(s => s.season_number > 0);
-
+    
     function renderSeasonDropdown() {
       const container = document.getElementById('w-season-dropdown-container');
       if (!container || !seasons.length) return;
@@ -2919,45 +2972,24 @@ async function renderWatch(params) {
         onChange: async (newVal) => {
           season = parseInt(newVal); episode = 1;
           window.history.replaceState(null, '', `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`);
-          loadPlayer(); await loadWSeason();
+          await loadPlayer(); await loadEps();
         }
       });
     }
 
-    function updatePrevNextBtns(totalEps) {
-      const prevBtn = document.getElementById('btn-prev-ep');
-      const nextBtn = document.getElementById('btn-next-ep');
-      const totalSeasons = seasons.length;
-      if (prevBtn) prevBtn.disabled = !(episode > 1 || season > 1);
-      if (nextBtn) nextBtn.disabled = !(episode < totalEps || season < totalSeasons);
-    }
-
-    function switchEpisode(epNum) {
+    async function switchEpisode(epNum) {
       episode = epNum;
       window.history.replaceState(null, '', `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`);
-      loadPlayer();
+      await loadPlayer();
       const listEl = document.getElementById('sidebar-ep-list');
       if (listEl) {
-        listEl.querySelectorAll('.yt-ep-card').forEach(card => {
-          const isAct = parseInt(card.dataset.ep) === episode;
-          card.classList.toggle('active', isAct);
-          const thumb = card.querySelector('.yt-ep-thumb');
-          const meta = card.querySelector('.yt-ep-meta');
-          const oldOv = thumb ? thumb.querySelector('.yt-ep-playing-ov') : null;
-          if (oldOv) oldOv.remove();
-          if (isAct && thumb) {
-            thumb.insertAdjacentHTML('beforeend', `<div class="yt-ep-playing-ov"><div class="equalizer"><span></span><span></span><span></span></div><span>PLAYING</span></div>`);
-          }
-          if (meta) meta.innerHTML = isAct ? '<span><i class="fa-solid fa-play"></i> Playing now</span>' : `<span>Episode ${card.dataset.ep}</span>`;
-        });
-        const activeCard = listEl.querySelector('.yt-ep-card.active');
-        if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        listEl.querySelectorAll('.yt-ep-card').forEach(c => c.classList.toggle('active', parseInt(c.dataset.ep) === episode));
+        const active = listEl.querySelector('.yt-ep-card.active');
+        if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
-      const totalEps = listEl ? listEl.querySelectorAll('.yt-ep-card').length : 99;
-      updatePrevNextBtns(totalEps);
     }
 
-    async function loadWSeason() {
+    async function loadEps() {
       const listEl = document.getElementById('sidebar-ep-list');
       const countEl = document.getElementById('sidebar-ep-count');
       if (!listEl) return;
@@ -2965,123 +2997,51 @@ async function renderWatch(params) {
       try {
         const data = await TMDB.seasonDetails(id, season);
         const eps = data.episodes || [];
-        if (countEl) countEl.textContent = `${eps.length} episode${eps.length === 1 ? '' : 's'}`;
-        if (!eps.length) { listEl.innerHTML = '<p style="color:#888;padding:20px;text-align:center">No episodes found.</p>'; return; }
-
+        if (countEl) countEl.textContent = `${eps.length} episode${eps.length===1?'':'s'}`;
         listEl.innerHTML = eps.map(ep => {
-          const isPlaying = ep.episode_number === episode;
+          const isP = ep.episode_number === episode;
           const thumb = ep.still_path ? TMDB.backdrop(ep.still_path, 'w300') : (details.poster_path ? TMDB.poster(details.poster_path, 'w300') : '');
-          return `
-            <div class="yt-ep-card ${isPlaying ? 'active' : ''}" data-ep="${ep.episode_number}">
-              <div class="yt-ep-thumb">
-                ${thumb ? `<img decoding="async" src="${thumb}" alt="${ep.name || ''}">` : '<div style="width:100%;height:100%;background:#222"></div>'}
-                <span class="ep-badge">E${ep.episode_number}</span>
-                ${isPlaying ? `<div class="yt-ep-playing-ov"><div class="equalizer"><span></span><span></span><span></span></div><span>PLAYING</span></div>` : ''}
-              </div>
-              <div class="yt-ep-info">
-                <div class="yt-ep-title">${ep.episode_number}. ${ep.name || ('Episode ' + ep.episode_number)}</div>
-                <div class="yt-ep-meta">
-                  ${isPlaying ? '<span><i class="fa-solid fa-play"></i> Playing now</span>' : `<span>Episode ${ep.episode_number}</span>`}
-                  ${ep.air_date ? `<span>&middot; ${ep.air_date.slice(0,4)}</span>` : ''}
-                </div>
-              </div>
-            </div>`;
-        }).join('');
-
-        listEl.querySelectorAll('.yt-ep-card').forEach(card => {
-          card.addEventListener('click', () => {
-            const epNum = parseInt(card.dataset.ep);
-            if (epNum === episode) return;
-            switchEpisode(epNum);
-          });
-        });
-
-        const activeCard = listEl.querySelector('.yt-ep-card.active');
-        if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        updatePrevNextBtns(eps.length);
+          return `<div class="yt-ep-card ${isP?'active':''}" data-ep="${ep.episode_number}">
+            <div class="yt-ep-thumb">${thumb?`<img decoding="async" src="${thumb}" alt="">`:'<div style="width:100%;height:100%;background:#222"></div>'}<span class="ep-badge">E${ep.episode_number}</span></div>
+            <div class="yt-ep-info"><div class="yt-ep-title">${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div><div class="yt-ep-meta"><span>Episode ${ep.episode_number}</span></div></div>
+          </div>`;
+        }).join('') || '<p style="color:#888;padding:20px;text-align:center">No episodes found.</p>';
+        listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); }));
       } catch (e) {
         listEl.innerHTML = '<p style="color:#888;padding:20px;text-align:center">Failed to load episodes.</p>';
       }
     }
 
-    const prevBtn = document.getElementById('btn-prev-ep');
-    const nextBtn = document.getElementById('btn-next-ep');
-
-    if (prevBtn) {
-      prevBtn.addEventListener('click', async () => {
-        if (episode > 1) { switchEpisode(episode - 1); }
-        else if (season > 1) {
-          season--;
-          try {
-            const data = await TMDB.seasonDetails(id, season);
-            const eps = data.episodes || [];
-            episode = eps.length > 0 ? eps.length : 1;
-            renderSeasonDropdown(); loadPlayer();
-            window.history.replaceState(null, '', `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`);
-            await loadWSeason();
-          } catch (e) {}
-        }
-      });
-    }
-
-    if (nextBtn) {
-      nextBtn.addEventListener('click', async () => {
-        const listEl = document.getElementById('sidebar-ep-list');
-        const totalEps = listEl ? listEl.querySelectorAll('.yt-ep-card').length : 99;
-        if (episode < totalEps) { switchEpisode(episode + 1); }
-        else if (season < seasons.length) {
-          season++; episode = 1;
-          renderSeasonDropdown(); loadPlayer();
-          window.history.replaceState(null, '', `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`);
-          await loadWSeason();
-        }
-      });
-    }
-
-    const chkAutoplay = document.getElementById('chk-autoplay-next');
-    if (chkAutoplay) {
-      chkAutoplay.checked = Settings.get().autoplay;
-      chkAutoplay.onchange = e => {
-        Settings.save({ autoplay: e.target.checked });
-        toast(e.target.checked ? 'Autoplay next enabled' : 'Autoplay next disabled');
-      };
-    }
+    if (prevBtnHdr) prevBtnHdr.onclick = () => { if (episode > 1) switchEpisode(episode - 1); };
+    if (nextBtnHdr) nextBtnHdr.onclick = () => { switchEpisode(episode + 1); };
 
     renderSeasonDropdown();
-    await loadWSeason();
+    await loadEps();
+    await loadPlayer();
+  } else {
+    loadPlayer();
   }
 
-  loadPlayer();
   window.scrollTo({ top: 0 });
-
   if (watchState && watchState.keyHandler) document.removeEventListener('keydown', watchState.keyHandler);
-  if (watchState && watchState.fsHandler) {
-    document.removeEventListener('fullscreenchange', watchState.fsHandler);
-    document.removeEventListener('webkitfullscreenchange', watchState.fsHandler);
-  }
   const keyHandler = (e) => {
     if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
-    const k = e.key.toLowerCase();
-    if (k === 'w') { e.preventDefault(); toggleTheater(); return; }
-    if (k === 'f') { e.preventDefault(); toggleFullscreen(); return; }
-    if (k === 'escape') { exitTheater(); return; }
-    const n = parseInt(e.key);
-    if (n >= 1 && n <= PROVIDERS.length) { currentProvider = PROVIDERS[n-1].id; Settings.save({defaultProvider:currentProvider}); loadPlayer(); toast('Server: '+PROVIDERS[n-1].name); }
+    if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
   };
+  const fsHandler = syncScreenButtons;
   document.addEventListener('keydown', keyHandler);
-  const fsHandler = () => syncScreenButtons();
   document.addEventListener('fullscreenchange', fsHandler);
   document.addEventListener('webkitfullscreenchange', fsHandler);
   watchState = { keyHandler, fsHandler };
 }
 
 /* ============================================================
-   ANIME WATCH PAGE (MegaPlay via MAL/AniList/Catalog + Sub/Dub)
-   URL: #/anime-watch?type=tv&id={tmdbId}&s=1&e=1
+   ANIME WATCH PAGE
    ============================================================ */
 let animeWatchState = null;
 async function renderAnimeWatch(params) {
   setChrome('anime-watch');
+  const source = params.source || 'tmdb';
   const tmdbId = params.id;
   const isMovie = params.type === 'movie';
   let season = parseInt(params.s) || 1;
@@ -3094,8 +3054,8 @@ async function renderAnimeWatch(params) {
   const prevBtnHdr = document.getElementById('btn-prev-ep');
   const nextBtnHdr = document.getElementById('btn-next-ep');
 
-  if (isMovie) {
-    if (epWrap) epWrap.style.display = 'none';
+  if (isMovie && source !== 'anikoto') {
+    if (epWrap) { epWrap.style.display = 'none'; epWrap.classList.remove('open'); }
     if (prevBtnHdr) prevBtnHdr.style.display = 'none';
     if (nextBtnHdr) nextBtnHdr.style.display = 'none';
   } else {
@@ -3108,8 +3068,7 @@ async function renderAnimeWatch(params) {
     if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
   }
 
-  app.innerHTML = `
-    <div class="watch-container">
+  app.innerHTML = `<div class="watch-container">
       <div class="watch-grid">
         <div class="watch-main-col">
           <div class="player-stage" id="player-stage" tabindex="0"></div>
@@ -3120,46 +3079,48 @@ async function renderAnimeWatch(params) {
   document.getElementById('watch-back').onclick = () => { location.hash = '#/anime'; };
   const hdrDetailsBtn = document.getElementById('hdr-btn-details');
   if (hdrDetailsBtn) {
-    hdrDetailsBtn.onclick = () => {
-      location.hash = `#/details?type=${isMovie ? 'movie' : 'tv'}&id=${tmdbId}${isMovie ? '' : `&s=${season}`}`;
-    };
+    if (source === 'anikoto') hdrDetailsBtn.style.display = 'none';
+    else hdrDetailsBtn.onclick = () => { location.hash = `#/details?type=${isMovie ? 'movie' : 'tv'}&id=${tmdbId}${isMovie ? '' : '&s='+season}`; };
   }
 
-  let details = null, extIds = {};
+  let details = null, extIds = {}, anikotoData = null, anikotoEpisodes = [];
   try {
-    details = isMovie ? await TMDB.movieDetails(tmdbId) : await TMDB.tvDetails(tmdbId);
-    extIds = details.external_ids || {};
+    if (source === 'anikoto') {
+      const res = await Anime.series(tmdbId);
+      if (!res || !res.ok) throw new Error('Anikoto series fail');
+      anikotoData = res.data.anime;
+      anikotoEpisodes = res.data.episodes || res.data.chapters || [];
+      details = { name: anikotoData.title };
+    } else {
+      details = isMovie ? await TMDB.movieDetails(tmdbId) : await TMDB.tvDetails(tmdbId);
+      extIds = details.external_ids || {};
+    }
   } catch (e) {
     document.getElementById('player-stage').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load anime metadata.</p></div>`;
     return;
   }
 
-  // TMDB does not expose MAL/AniList directly; try to derive from external ids where possible.
-  // MegaPlay MAL/AniList require those ids; if unavailable we fall back to TMDB-based anime players.
   let malId = extIds.mal_id || null;
   let anilistId = extIds.anilist_id || null;
   const title = details.name || details.title || 'Anime';
+  const watchTitleEl = document.getElementById('watch-title');
 
   async function resolveForCurrentSeason() {
+    if (source === 'anikoto') return;
     if (!extIds.mal_id || !extIds.anilist_id) {
       const resolved = await resolveAnimeIds(details.name || details.title || details.original_name || details.original_title, isMovie ? 1 : season, isMovie);
-      if (resolved) {
-        malId = resolved.malId || null;
-        anilistId = resolved.anilistId || null;
-      } else {
-        malId = null;
-        anilistId = null;
-      }
+      if (resolved) { malId = resolved.malId || null; anilistId = resolved.anilistId || null; }
     } else {
-      malId = extIds.mal_id;
-      anilistId = extIds.anilist_id;
+      malId = extIds.mal_id; anilistId = extIds.anilist_id;
     }
   }
 
-  const watchTitleEl = document.getElementById('watch-title');
   function updateTag() {
     if (watchTitleEl) {
-      if (isMovie) {
+      if (source === 'anikoto') {
+        const epData = anikotoEpisodes[episode - 1] || {};
+        watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">EP ${epData.number || episode} · ${lang.toUpperCase()}</span>`;
+      } else if (isMovie) {
         watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">${lang.toUpperCase()}</span>`;
       } else {
         watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">EP ${episode} · ${lang.toUpperCase()}</span>`;
@@ -3168,18 +3129,32 @@ async function renderAnimeWatch(params) {
   }
 
   function buildAnimeSrc() {
+    if (source === 'anikoto') {
+      const epData = anikotoEpisodes[episode - 1];
+      if (epData && epData.episode_embed_id) {
+        return getAnimeProvider('megaplay-s2').build({ embedId: epData.episode_embed_id, lang });
+      }
+    }
     const prov = getAnimeProvider(currentAnimeProvider);
     const epNum = isMovie ? 1 : episode;
-    // Choose args based on which provider is active + what ids we have.
     if (prov.id === 'megaplay-mal' && malId) return prov.build({ malId, epNum, lang });
     if (prov.id === 'megaplay-ani' && anilistId) return prov.build({ anilistId, epNum, lang });
-    if (prov.id === 'megaplay-s2') {
-      // Without a resolved catalog embed id we can't use s-2; fall back.
-    }
-    // Fallbacks that only need the TMDB id:
     if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
     if (anilistId) return getAnimeProvider('megaplay-ani').build({ anilistId, epNum, lang });
     return getProvider(Settings.get().defaultProvider || 'vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum });
+  }
+
+  async function switchEpisode(epNum) {
+    episode = epNum;
+    const u = source === 'anikoto' ? `#/anime-watch?source=anikoto&id=${tmdbId}&e=${episode}` : `#/anime-watch?type=tv&id=${tmdbId}&s=${season}&e=${episode}`;
+    window.history.replaceState(null, '', u);
+    await loadPlayer();
+    const listEl = document.getElementById('sidebar-ep-list');
+    if (listEl) {
+      listEl.querySelectorAll('.yt-ep-card').forEach(c => c.classList.toggle('active', parseInt(c.dataset.ep) === episode));
+      const active = listEl.querySelector('.yt-ep-card.active');
+      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
   }
 
   async function loadPlayer() {
@@ -3194,18 +3169,28 @@ async function renderAnimeWatch(params) {
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
+    iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
     stage.appendChild(iframe);
+    
     updateTag();
+
+    const handleMessage = (event) => {
+      let data = event.data;
+      if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
+      if (data.event === "complete") {
+        const nextEp = episode + 1;
+        if (source === 'anikoto' && anikotoEpisodes[nextEp - 1]) switchEpisode(nextEp);
+        else if (source !== 'anikoto') switchEpisode(nextEp);
+      }
+    };
+    window.removeEventListener('message', window._megaplayMessage);
+    window._megaplayMessage = handleMessage;
+    window.addEventListener('message', handleMessage);
+
     History.record({
-      id: tmdbId,
-      type: isMovie ? 'movie' : 'tv',
-      title,
-      poster: details.poster_path,
-      backdrop: details.backdrop_path,
-      season: isMovie ? null : season,
-      episode: isMovie ? null : episode,
-      year: (details.release_date || details.first_air_date || '').slice(0,4),
-      isAnime: true
+      id: tmdbId, type: isMovie ? 'movie' : 'tv', title,
+      poster: source === 'anikoto' ? anikotoData?.poster : details?.poster_path,
+      season: isMovie ? null : season, episode: isMovie ? null : episode, isAnime: true
     });
   }
 
@@ -3214,29 +3199,24 @@ async function renderAnimeWatch(params) {
     currentAnimeProvider = pid; await loadPlayer();
   };
 
-  // Language (sub/dub) toggle inside the episodes dropdown
   const langCont = document.getElementById('w-lang-toggle-container');
   if (langCont) {
-    langCont.innerHTML = `<div class="lang-toggle">
-      <button data-lang="sub" class="${lang==='sub'?'active':''}">SUB</button>
-      <button data-lang="dub" class="${lang==='dub'?'active':''}">DUB</button>
-    </div>`;
+    langCont.innerHTML = `<div class="lang-toggle"><button data-lang="sub" class="${lang==='sub'?'active':''}">SUB</button><button data-lang="dub" class="${lang==='dub'?'active':''}">DUB</button></div>`;
     langCont.querySelectorAll('button').forEach(b => {
       b.addEventListener('click', async () => {
-        lang = b.dataset.lang;
-        Settings.save({ animeLang: lang });
+        lang = b.dataset.lang; Settings.save({ animeLang: lang });
         langCont.querySelectorAll('button').forEach(x => x.classList.toggle('active', x.dataset.lang === lang));
-        await loadPlayer();
-        toast('Language: ' + lang.toUpperCase());
+        await loadPlayer(); toast('Language: ' + lang.toUpperCase());
       });
     });
   }
 
-  // Episodes list from TMDB season
   const seasons = (details.seasons || []).filter(s => s.season_number > 0);
   function renderSeasonDropdown() {
     const container = document.getElementById('w-season-dropdown-container');
-    if (!container || !seasons.length) return;
+    if (!container) return;
+    if (source === 'anikoto') { container.innerHTML = ''; return; }
+    if (!seasons.length) return;
     const options = seasons.map(s => ({ value: s.season_number, label: s.name || `Season ${s.season_number}` }));
     createCustomDropdown({
       container, options, value: season,
@@ -3248,22 +3228,23 @@ async function renderAnimeWatch(params) {
     });
   }
 
-  async function switchEpisode(epNum) {
-    episode = epNum;
-    window.history.replaceState(null, '', `#/anime-watch?type=tv&id=${tmdbId}&s=${season}&e=${episode}`);
-    await loadPlayer();
-    const listEl = document.getElementById('sidebar-ep-list');
-    if (listEl) {
-      listEl.querySelectorAll('.yt-ep-card').forEach(c => c.classList.toggle('active', parseInt(c.dataset.ep) === episode));
-      const active = listEl.querySelector('.yt-ep-card.active');
-      if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }
-
   async function loadEps() {
     const listEl = document.getElementById('sidebar-ep-list');
     const countEl = document.getElementById('sidebar-ep-count');
     if (!listEl) return;
+    if (source === 'anikoto') {
+      const eps = anikotoEpisodes;
+      if (countEl) countEl.textContent = `${eps.length} episode${eps.length===1?'':'s'}`;
+      listEl.innerHTML = eps.map((ep, idx) => {
+        const epNum = ep.number || (idx + 1);
+        const isP = epNum === episode;
+        const thumb = anikotoData.poster ? `<img decoding="async" src="${anikotoData.poster}" alt="">` : '<div style="width:100%;height:100%;background:#222"></div>';
+        return `<div class="yt-ep-card ${isP?'active':''}" data-ep="${epNum}"><div class="yt-ep-thumb">${thumb}<span class="ep-badge">E${epNum}</span></div><div class="yt-ep-info"><div class="yt-ep-title">${epNum}. ${ep.title || ep.jp_title || ('Episode '+epNum)}</div></div></div>`;
+      }).join('') || '<p style="color:#888;padding:20px;text-align:center">No episodes found.</p>';
+      listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); }));
+      return;
+    }
+
     listEl.innerHTML = `<div class="empty-state" style="padding:30px"><p>Loading episodes…</p></div>`;
     try {
       const data = await TMDB.seasonDetails(tmdbId, season);
@@ -3272,10 +3253,7 @@ async function renderAnimeWatch(params) {
       listEl.innerHTML = eps.map(ep => {
         const isP = ep.episode_number === episode;
         const thumb = ep.still_path ? TMDB.backdrop(ep.still_path, 'w300') : (details.poster_path ? TMDB.poster(details.poster_path, 'w300') : '');
-        return `<div class="yt-ep-card ${isP?'active':''}" data-ep="${ep.episode_number}">
-          <div class="yt-ep-thumb">${thumb?`<img decoding="async" src="${thumb}" alt="">`:'<div style="width:100%;height:100%;background:#222"></div>'}<span class="ep-badge">E${ep.episode_number}</span></div>
-          <div class="yt-ep-info"><div class="yt-ep-title">${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div><div class="yt-ep-meta"><span>Episode ${ep.episode_number}</span></div></div>
-        </div>`;
+        return `<div class="yt-ep-card ${isP?'active':''}" data-ep="${ep.episode_number}"><div class="yt-ep-thumb">${thumb?`<img decoding="async" src="${thumb}" alt="">`:'<div style="width:100%;height:100%;background:#222"></div>'}<span class="ep-badge">E${ep.episode_number}</span></div><div class="yt-ep-info"><div class="yt-ep-title">${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div></div></div>`;
       }).join('') || '<p style="color:#888;padding:20px;text-align:center">No episodes found.</p>';
       listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); }));
     } catch (e) {
@@ -3283,10 +3261,8 @@ async function renderAnimeWatch(params) {
     }
   }
 
-  const prevBtn = document.getElementById('btn-prev-ep');
-  const nextBtn = document.getElementById('btn-next-ep');
-  if (prevBtn) prevBtn.onclick = () => { if (episode > 1) switchEpisode(episode - 1); };
-  if (nextBtn) nextBtn.onclick = () => { switchEpisode(episode + 1); };
+  if (prevBtnHdr) prevBtnHdr.onclick = () => { if (episode > 1) switchEpisode(episode - 1); };
+  if (nextBtnHdr) nextBtnHdr.onclick = () => { switchEpisode(episode + 1); };
 
   function toggleFullscreen() {
     const stage = document.getElementById('player-stage'); if (!stage) return;
@@ -3297,7 +3273,7 @@ async function renderAnimeWatch(params) {
   const hdrFsBtn = document.getElementById('hdr-btn-fullscreen');
   if (hdrFsBtn) hdrFsBtn.onclick = toggleFullscreen;
 
-  if (isMovie) {
+  if (isMovie && source !== 'anikoto') {
     await loadPlayer();
   } else {
     renderSeasonDropdown();

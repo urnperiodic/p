@@ -1,0 +1,6 @@
+{
+  "name": "Urnperiodic Streaming",
+  "description": "Watch Movies & TV Shows Free",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

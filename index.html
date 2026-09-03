@@ -749,92 +749,8 @@
   .top-hdr-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   .top-hdr-btn.primary:hover { background: #ff2a36; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(229,9,20,0.3); }
 
-  .player-stage {
-    width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.6);
-    user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important;
-    outline: none !important;
-  }
-  .player-stage iframe {
-    position: absolute; inset: 0; width: 100%; height: 100%; border: 0;
-    user-select: none !important; -webkit-user-select: none !important; -moz-user-select: none !important; -ms-user-select: none !important;
-    outline: none !important;
-  }
-  .player-stage *::selection { background: transparent !important; color: inherit !important; }
-
-  /* Touch Gesture Layer & Indicators */
-  .player-gesture-layer {
-    position: absolute;
-    inset: 0;
-    z-index: 10;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    pointer-events: auto;
-    overflow: hidden;
-  }
-  .player-gesture-layer.pass-through {
-    pointer-events: none;
-  }
-
-  .gesture-feedback-badge {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%) scale(0.7);
-    background: rgba(10, 10, 14, 0.88);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    padding: 16px 26px;
-    border-radius: 9999px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    opacity: 0;
-    pointer-events: none;
-    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.25s ease;
-    z-index: 20;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
-  }
-  .gesture-feedback-badge.active {
-    opacity: 1;
-    transform: translateY(-50%) scale(1);
-  }
-  .gesture-feedback-badge.left { left: 10%; }
-  .gesture-feedback-badge.right { right: 10%; }
-  .gesture-feedback-badge i { font-size: 1.8rem; color: var(--accent); }
-  .gesture-feedback-badge span { font-weight: 800; font-size: 1rem; letter-spacing: 0.5px; }
-
-  .gesture-vol-badge {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.85);
-    background: rgba(10, 10, 14, 0.92);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
-    padding: 16px 24px;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    z-index: 25;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.6);
-  }
-  .gesture-vol-badge.active {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-  .gesture-vol-badge i { font-size: 1.4rem; color: var(--accent); width: 22px; text-align: center; }
-  .gesture-vol-bar-bg { width: 110px; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; overflow: hidden; }
-  .gesture-vol-bar-fill { height: 100%; background: var(--accent); width: 80%; transition: width 0.1s linear; }
-  .gesture-vol-text { font-weight: 700; font-size: 0.95rem; min-width: 42px; text-align: right; }
+  .player-stage { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
+  .player-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 
   .pc-btn {
     background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.25); color: #fff;
@@ -896,6 +812,9 @@
   }
 
   /* Auto-hide controls after 3 seconds of mouse inactivity */
+  body.watch-active.user-idle .watch-top {
+    opacity: 0 !important; pointer-events: none !important; transform: translateY(-12px);
+  }
   body.watch-active.user-idle .watch-info-card {
     opacity: 0 !important; pointer-events: none !important; transform: translateY(12px);
   }
@@ -1076,6 +995,13 @@
 
     .watch-layout { grid-template-columns: 1fr !important; gap: 16px !important; }
     .watch-sidebar { max-height: none !important; position: static !important; }
+
+    /* Keep the watch top bar always visible on mobile devices */
+    body.watch-active.user-idle .watch-top {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+      transform: none !important;
+    }
 
     .watch-container .player-stage,
     .watch-container.movie-mode .player-stage {
@@ -1349,7 +1275,19 @@ const TMDB = (() => {
    ============================================================ */
 const PROVIDERS = [
   /* ---------------- RECOMMENDED SERVERS (Top 5) ---------------- */
-  { id:'vidking', name:'VidKing', recommended: true, badge:'Fast · Default', build({type,tmdb,season,episode,opt}) {
+  { id:'vidy', name:'Vidy', recommended: true, badge:'Official · Vidy.st', build({type,tmdb,season,episode,opt,progress}) {
+      let base = type==='movie' ? `https://vidy.st/movie/${tmdb}` : `https://vidy.st/tv/${tmdb}/${season||1}/${episode||1}`;
+      const p = new URLSearchParams();
+      if (opt && opt.color) p.set('color', opt.color.replace('#',''));
+      if (progress && progress > 0) p.set('progress', Math.floor(progress));
+      if (type==='tv') {
+        p.set('nextEpisode','true');
+        p.set('episodeSelector','true');
+        p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
+      }
+      const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+  }},
+  { id:'vidking', name:'VidKing', recommended: true, badge:'Fast', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}`;
       const p = new URLSearchParams();
       if (opt && opt.color) p.set('color', opt.color);
@@ -1385,12 +1323,6 @@ const PROVIDERS = [
   }},
 
   /* ---------------- BACKUP SERVERS (Ordered) ---------------- */
-  { id:'megabuzz', name:'Megabuzz (HiAnime)', recommended: false, badge:'HiAnime Server · Multi-Audio', build({type,tmdb,season,episode,opt}) {
-      let ep = type==='movie' ? 1 : (episode || 1);
-      let s = season || 1;
-      let lang = (opt && opt.lang) || Settings.get().animeLang || 'sub';
-      return `https://megaplay.buzz/stream/tmdb/${tmdb}/${s}/${ep}/${lang}`;
-  }},
   { id:'vidsrcto', name:'VidSrc.to', recommended: false, badge:'Alt Endpoint · Subs', build({type,tmdb,season,episode}) {
       return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
   }},
@@ -1445,7 +1377,36 @@ const PROVIDERS = [
   }}
 ];
 
+/* ============================================================
+   ANIME providers — Vidy + MegaPlay + Anikoto (HiAnime library)
+   Uses MAL / AniList ids from TMDB external_ids, plus catalog ids.
+   These are used on the Anime watch flow (episode-number based).
+   ============================================================ */
+const ANIME_API_BASE = 'https://anikotoapi.site';
+const ANIME_PROVIDERS = [
+  { id:'vidy-anime', name:'Vidy Anime', recommended: true, badge:'AniList ID · Vidy.st', build({anilistId, epNum, opt, progress}) {
+      let base = `https://vidy.st/anime/${anilistId}/${epNum||1}`;
+      const p = new URLSearchParams();
+      if (opt && opt.color) p.set('color', opt.color.replace('#',''));
+      if (progress && progress > 0) p.set('progress', Math.floor(progress));
+      p.set('nextEpisode', 'true');
+      p.set('episodeSelector', 'true');
+      p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
+      const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+  }},
+  { id:'megaplay-mal', name:'MegaPlay (MAL)', badge:'MAL ID', build({malId, epNum, lang}) {
+      return `https://megaplay.buzz/stream/mal/${malId}/${epNum}/${lang || 'sub'}`;
+  }},
+  { id:'megaplay-ani', name:'MegaPlay (AniList)', badge:'AniList ID', build({anilistId, epNum, lang}) {
+      return `https://megaplay.buzz/stream/ani/${anilistId}/${epNum}/${lang || 'sub'}`;
+  }},
+  { id:'megaplay-s2', name:'MegaPlay (Catalog)', badge:'Catalog ID', build({embedId, lang}) {
+      return `https://megaplay.buzz/stream/s-2/${embedId}/${lang || 'sub'}`;
+  }}
+];
+
 function getProvider(id) { return PROVIDERS.find(p => p.id === id) || PROVIDERS[0]; }
+function getAnimeProvider(id) { return ANIME_PROVIDERS.find(p => p.id === id) || ANIME_PROVIDERS[0]; }
 
 /* ============================================================
    Anikoto anime catalog API helper (MegaPlay docs)
@@ -1511,7 +1472,7 @@ async function resolveAnimeIds(title, seasonNum, isMovie = false) {
    ============================================================ */
 const Settings = (() => {
   const KEY = 'Urnperiodic_settings';
-  const DEFAULTS = { color:'e50914', autoplay:true, muted:false, defaultProvider:'vidking', animeLang:'sub' };
+  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidy', animeProvider:'vidy-anime', animeLang:'sub' };
   function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
   function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
   function applyTheme() {
@@ -1523,7 +1484,7 @@ const Settings = (() => {
   return { get, save, applyTheme, DEFAULTS };
 })();
 
-const SWATCHES = ['e50914','ff6b00','f5a623','46d369','00b4d8','4361ee','9146ff','e91e63','ffffff'];
+const SWATCHES = ['DC2626','e50914','ff6b00','f5a623','46d369','00b4d8','4361ee','9146ff','e91e63','ffffff'];
 
 const History = (() => {
   const KEY = 'Urnperiodic_history';
@@ -1536,9 +1497,22 @@ const History = (() => {
     if (idx >= 0) list[idx] = { ...list[idx], ...entry }; else list.unshift(entry);
     list.sort((a,b) => b.updated - a.updated); save(list);
   }
+  function recordProgress({ id, type, season, episode, currentTime, duration }) {
+    if (!id || typeof currentTime !== 'number' || isNaN(currentTime)) return;
+    const list = all();
+    const idx = list.findIndex(x => x.id == id && x.type === type);
+    if (idx >= 0) {
+      list[idx].currentTime = Math.floor(currentTime);
+      if (duration && duration > 0) list[idx].duration = Math.floor(duration);
+      if (season) list[idx].season = season;
+      if (episode) list[idx].episode = episode;
+      list[idx].updated = Date.now();
+      save(list);
+    }
+  }
   function get(id, type) { return all().find(x => x.id == id && x.type === type); }
   function clear() { localStorage.removeItem(KEY); }
-  return { all, record, get, clear };
+  return { all, record, recordProgress, get, clear };
 })();
 
 /* ---------- Watchlist & Search History ---------- */
@@ -1684,6 +1658,18 @@ function buildSettingsDrawer() {
       <h3>Settings</h3>
       <p class="muted">Personalize the player, server and theme.</p>
 
+      <div class="field" style="margin-bottom:14px">
+        <label style="font-size:0.85rem;margin-bottom:6px"><i class="fa-solid fa-dragon" style="color:var(--accent)"></i> Anime server (MegaPlay)</label>
+        <div class="server-picker" id="anime-server-picker">
+          ${ANIME_PROVIDERS.map(p => `
+            <button class="server-opt is-compact ${p.id===s.animeProvider?'active':''}" data-anime-id="${p.id}">
+              <span class="sname">${p.name}</span>
+              <span class="sbadge">${p.badge}</span>
+            </button>`).join('')}
+        </div>
+        <p class="muted" style="margin-top:5px;font-size:0.75rem;margin-bottom:0">Used on Anime pages to stream HiAnime library via Anikoto.</p>
+      </div>
+
       <div class="field">
         <label><i class="fa-solid fa-server"></i> Streaming server</label>
         <div class="server-picker" id="server-picker">
@@ -1748,6 +1734,17 @@ function buildSettingsDrawer() {
     });
   });
 
+  // anime server selection
+  document.querySelectorAll('#settings-drawer .server-opt[data-anime-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#settings-drawer .server-opt[data-anime-id]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      Settings.save({ animeProvider: btn.dataset.animeId });
+      toast('Anime server set to ' + getAnimeProvider(btn.dataset.animeId).name);
+      if (window._reloadAnimePlayer) window._reloadAnimePlayer(btn.dataset.animeId);
+    });
+  });
+
   document.querySelectorAll('#swatch-list .swatch').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#swatch-list .swatch').forEach(b => b.classList.remove('active'));
@@ -1775,149 +1772,6 @@ function buildSettingsDrawer() {
       drawer.classList.add('open');
     }
   };
-}
-
-/* ============================================================
-   Touch-friendly Gesture Interface for Mobile Video Player
-   (Double-tap sides to seek, vertical swipe for volume)
-   ============================================================ */
-function attachPlayerTouchGestures(stageEl, iframeEl) {
-  if (!stageEl || !iframeEl) return;
-  let layer = stageEl.querySelector('.player-gesture-layer');
-  if (!layer) {
-    layer = document.createElement('div');
-    layer.className = 'player-gesture-layer';
-    layer.innerHTML = `
-      <div class="gesture-feedback-badge left" id="g-badge-left">
-        <i class="fa-solid fa-backward-step"></i>
-        <span id="g-text-left">-10s</span>
-      </div>
-      <div class="gesture-feedback-badge right" id="g-badge-right">
-        <i class="fa-solid fa-forward-step"></i>
-        <span id="g-text-right">+10s</span>
-      </div>
-      <div class="gesture-vol-badge" id="g-badge-vol">
-        <i class="fa-solid fa-volume-high" id="g-icon-vol"></i>
-        <div class="gesture-vol-bar-bg"><div class="gesture-vol-bar-fill" id="g-fill-vol"></div></div>
-        <span class="gesture-vol-text" id="g-text-vol">80%</span>
-      </div>
-    `;
-    stageEl.appendChild(layer);
-  }
-
-  let lastTapTime = 0;
-  let lastTapSide = null;
-  let singleTapPassTimer = null;
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let isSwiping = false;
-  let currentVol = 80;
-  let hideSeekTimer = null;
-  let hideVolTimer = null;
-
-  function showSeekFeedback(side, amountStr) {
-    const badge = side === 'left' ? document.getElementById('g-badge-left') : document.getElementById('g-badge-right');
-    const textEl = side === 'left' ? document.getElementById('g-text-left') : document.getElementById('g-text-right');
-    if (badge && textEl) {
-      textEl.textContent = amountStr;
-      badge.classList.add('active');
-      if (hideSeekTimer) clearTimeout(hideSeekTimer);
-      hideSeekTimer = setTimeout(() => badge.classList.remove('active'), 800);
-    }
-  }
-
-  function updateVolFeedback(val) {
-    currentVol = Math.max(0, Math.min(100, Math.round(val)));
-    const badge = document.getElementById('g-badge-vol');
-    const icon = document.getElementById('g-icon-vol');
-    const fill = document.getElementById('g-fill-vol');
-    const text = document.getElementById('g-text-vol');
-    if (badge && icon && fill && text) {
-      fill.style.width = `${currentVol}%`;
-      text.textContent = `${currentVol}%`;
-      if (currentVol === 0) icon.className = 'fa-solid fa-volume-xmark';
-      else if (currentVol < 50) icon.className = 'fa-solid fa-volume-low';
-      else icon.className = 'fa-solid fa-volume-high';
-      badge.classList.add('active');
-      if (hideVolTimer) clearTimeout(hideVolTimer);
-      hideVolTimer = setTimeout(() => badge.classList.remove('active'), 1200);
-    }
-  }
-
-  function sendIframeCmd(cmd, val) {
-    if (!iframeEl || !iframeEl.contentWindow) return;
-    try {
-      if (cmd === 'seek') {
-        iframeEl.contentWindow.postMessage({ event: 'seek', offset: val }, '*');
-        iframeEl.contentWindow.postMessage({ api: 'seek', seconds: val }, '*');
-        iframeEl.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'seekTo', args: [val, true] }), '*');
-      } else if (cmd === 'volume') {
-        iframeEl.contentWindow.postMessage({ event: 'volume', value: val / 100 }, '*');
-        iframeEl.contentWindow.postMessage({ api: 'setVolume', volume: val }, '*');
-      }
-    } catch(e){}
-  }
-
-  layer.addEventListener('touchstart', (e) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    const rect = stageEl.getBoundingClientRect();
-    touchStartX = touch.clientX - rect.left;
-    touchStartY = touch.clientY - rect.top;
-    isSwiping = false;
-
-    const side = touchStartX < rect.width * 0.45 ? 'left' : (touchStartX > rect.width * 0.55 ? 'right' : 'center');
-    const now = Date.now();
-
-    layer.classList.remove('pass-through');
-
-    if (lastTapSide === side && (now - lastTapTime) < 320) {
-      if (singleTapPassTimer) clearTimeout(singleTapPassTimer);
-      lastTapTime = 0;
-      lastTapSide = null;
-      if (side === 'left') {
-        showSeekFeedback('left', '-10s');
-        sendIframeCmd('seek', -10);
-      } else if (side === 'right') {
-        showSeekFeedback('right', '+10s');
-        sendIframeCmd('seek', 10);
-      }
-    } else {
-      lastTapTime = now;
-      lastTapSide = side;
-
-      if (singleTapPassTimer) clearTimeout(singleTapPassTimer);
-      singleTapPassTimer = setTimeout(() => {
-        layer.classList.add('pass-through');
-        setTimeout(() => layer.classList.remove('pass-through'), 1200);
-      }, 250);
-    }
-  }, { passive: true });
-
-  layer.addEventListener('touchmove', (e) => {
-    if (e.touches.length !== 1) return;
-    const touch = e.touches[0];
-    const rect = stageEl.getBoundingClientRect();
-    const currentY = touch.clientY - rect.top;
-    const currentX = touch.clientX - rect.left;
-
-    const dx = currentX - touchStartX;
-    const dy = touchStartY - currentY;
-
-    if (!isSwiping && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) {
-      isSwiping = true;
-      if (singleTapPassTimer) clearTimeout(singleTapPassTimer);
-    }
-
-    if (isSwiping) {
-      layer.classList.remove('pass-through');
-      const sensitivity = 0.6;
-      const deltaVol = dy * sensitivity;
-      updateVolFeedback(currentVol + deltaVol);
-      touchStartY = currentY;
-      sendIframeCmd('volume', currentVol);
-    }
-  }, { passive: true });
 }
 
 /* ============================================================
@@ -2785,19 +2639,17 @@ async function renderAnime() {
   app.innerHTML = `
     <main class="grid-page">
       <h1><i class="fa-solid fa-dragon" style="color:var(--accent)"></i> Anime</h1>
-      <p class="sub">Explore trending and top-rated anime catalog. Streamed via Megabuzz & MegaPlay (HiAnime server).</p>
+      <p class="sub">Powered by MegaPlay + Anikoto (HiAnime library). Recent additions from the HiAnime catalog.</p>
       <div id="anime-rows"></div>
     </main>`;
   initHeaderScroll();
   const rows = document.getElementById('anime-rows');
 
   Promise.all([
-    buildRow('Popular Anime', () => TMDB.popularAnime(1), rows, true),
-    buildRow('Top Rated Anime', () => TMDB.topRatedAnime(1), rows, false),
-    buildRow('Currently Airing Anime', () => TMDB.airingAnime(1), rows, true),
-    buildRow('Action & Adventure Anime', () => TMDB.byGenre('tv', 10759), rows, false),
-    buildRow('Sci-Fi & Fantasy Anime', () => TMDB.byGenre('tv', 10765), rows, true),
-    buildRow('Anime Movies', () => TMDB.byGenre('movie', 16), rows, false)
+    buildAnikotoRow('Recently Added (Page 1)', () => Anime.recent(1, 24), rows),
+    buildAnikotoRow('Recently Added (Page 2)', () => Anime.recent(2, 24), rows),
+    buildAnikotoRow('Recently Added (Page 3)', () => Anime.recent(3, 24), rows),
+    buildAnikotoRow('Recently Added (Page 4)', () => Anime.recent(4, 24), rows)
   ]);
 }
 /* ============================================================
@@ -3058,12 +2910,7 @@ async function renderWatch(params) {
     if (epWrap) {
       epWrap.style.display = 'inline-flex';
       epWrap.classList.remove('open');
-      if (epBtn) epBtn.onclick = (e) => {
-        e.stopPropagation();
-        const isOpen = epWrap.classList.toggle('open');
-        if (isOpen) scheduleEpDropdownClose();
-        else if (epDropdownCloseTimer) clearTimeout(epDropdownCloseTimer);
-      };
+      if (epBtn) epBtn.onclick = (e) => { e.stopPropagation(); epWrap.classList.toggle('open'); };
     }
     if (prevBtnHdr) prevBtnHdr.style.display = 'inline-flex';
     if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
@@ -3106,7 +2953,20 @@ async function renderWatch(params) {
     if (!stage) return;
     const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay, muted: Settings.get().muted };
     const prov = getProvider(currentProvider);
-    const src = prov.build({ type, tmdb: id, season, episode, opt });
+    
+    const hist = History.get(id, type);
+    let progress = 0;
+    if (hist && hist.currentTime && hist.currentTime > 5) {
+      if (!hist.duration || hist.currentTime < hist.duration - 15) {
+        if (type === 'tv') {
+          if (hist.season == season && hist.episode == episode) progress = hist.currentTime;
+        } else {
+          progress = hist.currentTime;
+        }
+      }
+    }
+
+    const src = prov.build({ type, tmdb: id, season, episode, opt, progress });
     
     stage.innerHTML = '';
     const iframe = document.createElement('iframe');
@@ -3115,7 +2975,6 @@ async function renderWatch(params) {
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
     stage.appendChild(iframe);
-    attachPlayerTouchGestures(stage, iframe);
     
     History.record({
       id, type, title, poster: details.poster_path, backdrop: details.backdrop_path,
@@ -3124,11 +2983,36 @@ async function renderWatch(params) {
     });
     updateEpTag();
     syncScreenButtons();
+
+    const handleVidyMessage = (event) => {
+      let data = event.data;
+      if (typeof data === "string") {
+        try { data = JSON.parse(data); } catch (e) { return; }
+      }
+      if (!data || typeof data !== "object") return;
+      if (data.event === "timeupdate" || data.event === "play" || data.event === "pause" || data.event === "ended") {
+        if (typeof data.currentTime === "number" && data.currentTime > 0) {
+          History.recordProgress({
+            id, type, season, episode,
+            currentTime: data.currentTime,
+            duration: data.duration
+          });
+        }
+        if (data.event === "ended" && type === 'tv') {
+          const autoplay = Settings.get().autoplay;
+          if (autoplay && typeof switchEpisode === 'function') {
+            switchEpisode(episode + 1);
+          }
+        }
+      }
+    };
+    window.removeEventListener('message', window._vidyWatchMessage);
+    window._vidyWatchMessage = handleVidyMessage;
+    window.addEventListener('message', handleVidyMessage);
   }
 
   window._reloadPlayer = (provId) => {
-    const r = parseHash().route;
-    if (r !== 'watch' && r !== 'anime-watch') return;
+    if (parseHash().route !== 'watch') return;
     currentProvider = provId;
     loadPlayer();
   };
@@ -3168,7 +3052,6 @@ async function renderWatch(params) {
           season = parseInt(newVal); episode = 1;
           window.history.replaceState(null, '', `#/watch?type=tv&id=${id}&s=${season}&e=${episode}`);
           await loadPlayer(); await loadEps();
-          scheduleEpDropdownClose();
         }
       });
     }
@@ -3183,7 +3066,6 @@ async function renderWatch(params) {
         const active = listEl.querySelector('.yt-ep-card.active');
         if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
-      scheduleEpDropdownClose();
     }
 
     async function loadEps() {
@@ -3203,7 +3085,7 @@ async function renderWatch(params) {
             <div class="yt-ep-info"><div class="yt-ep-title">${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div><div class="yt-ep-meta"><span>Episode ${ep.episode_number}</span></div></div>
           </div>`;
         }).join('') || '<p style="color:#888;padding:20px;text-align:center">No episodes found.</p>';
-        listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); else scheduleEpDropdownClose(); }));
+        listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); }));
       } catch (e) {
         listEl.innerHTML = '<p style="color:#888;padding:20px;text-align:center">Failed to load episodes.</p>';
       }
@@ -3238,19 +3120,20 @@ async function renderWatch(params) {
 let animeWatchState = null;
 async function renderAnimeWatch(params) {
   setChrome('anime-watch');
+  const source = params.source || 'tmdb';
   const tmdbId = params.id;
   const isMovie = params.type === 'movie';
   let season = parseInt(params.s) || 1;
   let episode = parseInt(params.e) || 1;
   let lang = Settings.get().animeLang || 'sub';
-  let currentProvider = Settings.get().defaultProvider || 'megabuzz';
+  let currentAnimeProvider = Settings.get().animeProvider;
 
   const epWrap = document.getElementById('hdr-episodes-wrap');
   const epBtn = document.getElementById('hdr-btn-episodes');
   const prevBtnHdr = document.getElementById('btn-prev-ep');
   const nextBtnHdr = document.getElementById('btn-next-ep');
 
-  if (isMovie) {
+  if (isMovie && source !== 'anikoto') {
     if (epWrap) { epWrap.style.display = 'none'; epWrap.classList.remove('open'); }
     if (prevBtnHdr) prevBtnHdr.style.display = 'none';
     if (nextBtnHdr) nextBtnHdr.style.display = 'none';
@@ -3258,12 +3141,7 @@ async function renderAnimeWatch(params) {
     if (epWrap) {
       epWrap.style.display = 'inline-flex';
       epWrap.classList.remove('open');
-      if (epBtn) epBtn.onclick = (e) => {
-        e.stopPropagation();
-        const isOpen = epWrap.classList.toggle('open');
-        if (isOpen) scheduleEpDropdownClose();
-        else if (epDropdownCloseTimer) clearTimeout(epDropdownCloseTimer);
-      };
+      if (epBtn) epBtn.onclick = (e) => { e.stopPropagation(); epWrap.classList.toggle('open'); };
     }
     if (prevBtnHdr) prevBtnHdr.style.display = 'inline-flex';
     if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
@@ -3280,13 +3158,22 @@ async function renderAnimeWatch(params) {
   document.getElementById('watch-back').onclick = () => { location.hash = '#/anime'; };
   const hdrDetailsBtn = document.getElementById('hdr-btn-details');
   if (hdrDetailsBtn) {
-    hdrDetailsBtn.onclick = () => { location.hash = `#/details?type=${isMovie ? 'movie' : 'tv'}&id=${tmdbId}${isMovie ? '' : '&s='+season}`; };
+    if (source === 'anikoto') hdrDetailsBtn.style.display = 'none';
+    else hdrDetailsBtn.onclick = () => { location.hash = `#/details?type=${isMovie ? 'movie' : 'tv'}&id=${tmdbId}${isMovie ? '' : '&s='+season}`; };
   }
 
-  let details = null, extIds = {};
+  let details = null, extIds = {}, anikotoData = null, anikotoEpisodes = [];
   try {
-    details = isMovie ? await TMDB.movieDetails(tmdbId) : await TMDB.tvDetails(tmdbId);
-    extIds = details.external_ids || {};
+    if (source === 'anikoto') {
+      const res = await Anime.series(tmdbId);
+      if (!res || !res.ok) throw new Error('Anikoto series fail');
+      anikotoData = res.data.anime;
+      anikotoEpisodes = res.data.episodes || res.data.chapters || [];
+      details = { name: anikotoData.title };
+    } else {
+      details = isMovie ? await TMDB.movieDetails(tmdbId) : await TMDB.tvDetails(tmdbId);
+      extIds = details.external_ids || {};
+    }
   } catch (e) {
     document.getElementById('player-stage').innerHTML = `<div class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Could not load anime metadata.</p></div>`;
     return;
@@ -3298,6 +3185,7 @@ async function renderAnimeWatch(params) {
   const watchTitleEl = document.getElementById('watch-title');
 
   async function resolveForCurrentSeason() {
+    if (source === 'anikoto') return;
     if (!extIds.mal_id || !extIds.anilist_id) {
       const resolved = await resolveAnimeIds(details.name || details.title || details.original_name || details.original_title, isMovie ? 1 : season, isMovie);
       if (resolved) { malId = resolved.malId || null; anilistId = resolved.anilistId || null; }
@@ -3308,7 +3196,10 @@ async function renderAnimeWatch(params) {
 
   function updateTag() {
     if (watchTitleEl) {
-      if (isMovie) {
+      if (source === 'anikoto') {
+        const epData = anikotoEpisodes[episode - 1] || {};
+        watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">EP ${epData.number || episode} · ${lang.toUpperCase()}</span>`;
+      } else if (isMovie) {
         watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">${lang.toUpperCase()}</span>`;
       } else {
         watchTitleEl.innerHTML = `<span class="wt-main">${title}</span><span class="wt-tag">EP ${episode} · ${lang.toUpperCase()}</span>`;
@@ -3317,20 +3208,36 @@ async function renderAnimeWatch(params) {
   }
 
   function buildAnimeSrc() {
-    const prov = getProvider(currentProvider);
-    const epNum = isMovie ? 1 : episode;
-    if (prov && prov.id === 'megabuzz') {
-      if (malId) return `https://megaplay.buzz/stream/mal/${malId}/${epNum}/${lang}`;
-      if (anilistId) return `https://megaplay.buzz/stream/ani/${anilistId}/${epNum}/${lang}`;
-      return `https://megaplay.buzz/stream/tmdb/${tmdbId}/${season}/${epNum}/${lang}`;
+    if (source === 'anikoto') {
+      const epData = anikotoEpisodes[episode - 1];
+      if (epData && epData.episode_embed_id) {
+        return getAnimeProvider('megaplay-s2').build({ embedId: epData.episode_embed_id, lang });
+      }
     }
-    const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay, muted: Settings.get().muted };
-    return prov.build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt });
+    const prov = getAnimeProvider(currentAnimeProvider);
+    const epNum = isMovie ? 1 : episode;
+    const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay };
+
+    const hist = History.get(tmdbId, isMovie ? 'movie' : 'tv');
+    let progress = 0;
+    if (hist && hist.currentTime && hist.currentTime > 5) {
+      if (isMovie || hist.episode == epNum) progress = hist.currentTime;
+    }
+
+    if (prov.id === 'vidy-anime') {
+      if (anilistId) return prov.build({ anilistId, epNum, opt, progress });
+      return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
+    }
+    if (prov.id === 'megaplay-mal' && malId) return prov.build({ malId, epNum, lang });
+    if (prov.id === 'megaplay-ani' && anilistId) return prov.build({ anilistId, epNum, lang });
+    if (anilistId) return getAnimeProvider('vidy-anime').build({ anilistId, epNum, opt, progress });
+    if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
+    return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
   }
 
   async function switchEpisode(epNum) {
     episode = epNum;
-    const u = `#/anime-watch?type=tv&id=${tmdbId}&s=${season}&e=${episode}`;
+    const u = source === 'anikoto' ? `#/anime-watch?source=anikoto&id=${tmdbId}&e=${episode}` : `#/anime-watch?type=tv&id=${tmdbId}&s=${season}&e=${episode}`;
     window.history.replaceState(null, '', u);
     await loadPlayer();
     const listEl = document.getElementById('sidebar-ep-list');
@@ -3339,13 +3246,12 @@ async function renderAnimeWatch(params) {
       const active = listEl.querySelector('.yt-ep-card.active');
       if (active) active.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-    scheduleEpDropdownClose();
   }
 
   async function loadPlayer() {
     const stage = document.getElementById('player-stage');
     if (!stage) return;
-    stage.innerHTML = `<div class="empty-state" style="padding:100px 20px"><p>Connecting to server…</p></div>`;
+    stage.innerHTML = `<div class="empty-state" style="padding:100px 20px"><p>Connecting to anime server…</p></div>`;
     await resolveForCurrentSeason();
     const src = buildAnimeSrc();
     stage.innerHTML = '';
@@ -3355,16 +3261,31 @@ async function renderAnimeWatch(params) {
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
     stage.appendChild(iframe);
-    attachPlayerTouchGestures(stage, iframe);
     
     updateTag();
 
     const handleMessage = (event) => {
       let data = event.data;
       if (typeof data === "string") { try { data = JSON.parse(data); } catch (e) { return; } }
-      if (data.event === "complete") {
+      if (!data || typeof data !== "object") return;
+
+      if (data.event === "timeupdate" || data.event === "play" || data.event === "pause" || data.event === "ended") {
+        if (typeof data.currentTime === "number" && data.currentTime > 0) {
+          History.recordProgress({
+            id: tmdbId,
+            type: isMovie ? 'movie' : 'tv',
+            season: isMovie ? null : season,
+            episode: isMovie ? null : episode,
+            currentTime: data.currentTime,
+            duration: data.duration
+          });
+        }
+      }
+
+      if (data.event === "complete" || data.event === "ended") {
         const nextEp = episode + 1;
-        switchEpisode(nextEp);
+        if (source === 'anikoto' && anikotoEpisodes[nextEp - 1]) switchEpisode(nextEp);
+        else if (source !== 'anikoto') switchEpisode(nextEp);
       }
     };
     window.removeEventListener('message', window._megaplayMessage);
@@ -3373,16 +3294,14 @@ async function renderAnimeWatch(params) {
 
     History.record({
       id: tmdbId, type: isMovie ? 'movie' : 'tv', title,
-      poster: details?.poster_path,
+      poster: source === 'anikoto' ? anikotoData?.poster : details?.poster_path,
       season: isMovie ? null : season, episode: isMovie ? null : episode, isAnime: true
     });
   }
 
-  window._reloadPlayer = async (pid) => {
-    const r = parseHash().route;
-    if (r !== 'watch' && r !== 'anime-watch') return;
-    currentProvider = pid;
-    await loadPlayer();
+  window._reloadAnimePlayer = async (pid) => {
+    if (parseHash().route !== 'anime-watch') return;
+    currentAnimeProvider = pid; await loadPlayer();
   };
 
   const langCont = document.getElementById('w-lang-toggle-container');
@@ -3400,7 +3319,9 @@ async function renderAnimeWatch(params) {
   const seasons = (details.seasons || []).filter(s => s.season_number > 0);
   function renderSeasonDropdown() {
     const container = document.getElementById('w-season-dropdown-container');
-    if (!container || !seasons.length) return;
+    if (!container) return;
+    if (source === 'anikoto') { container.innerHTML = ''; return; }
+    if (!seasons.length) return;
     const options = seasons.map(s => ({ value: s.season_number, label: s.name || `Season ${s.season_number}` }));
     createCustomDropdown({
       container, options, value: season,
@@ -3408,7 +3329,6 @@ async function renderAnimeWatch(params) {
         season = parseInt(newVal); episode = 1;
         window.history.replaceState(null, '', `#/anime-watch?type=tv&id=${tmdbId}&s=${season}&e=${episode}`);
         await loadPlayer(); await loadEps();
-        scheduleEpDropdownClose();
       }
     });
   }
@@ -3417,6 +3337,18 @@ async function renderAnimeWatch(params) {
     const listEl = document.getElementById('sidebar-ep-list');
     const countEl = document.getElementById('sidebar-ep-count');
     if (!listEl) return;
+    if (source === 'anikoto') {
+      const eps = anikotoEpisodes;
+      if (countEl) countEl.textContent = `${eps.length} episode${eps.length===1?'':'s'}`;
+      listEl.innerHTML = eps.map((ep, idx) => {
+        const epNum = ep.number || (idx + 1);
+        const isP = epNum === episode;
+        const thumb = anikotoData.poster ? `<img decoding="async" src="${anikotoData.poster}" alt="">` : '<div style="width:100%;height:100%;background:#222"></div>';
+        return `<div class="yt-ep-card ${isP?'active':''}" data-ep="${epNum}"><div class="yt-ep-thumb">${thumb}<span class="ep-badge">E${epNum}</span></div><div class="yt-ep-info"><div class="yt-ep-title">${epNum}. ${ep.title || ep.jp_title || ('Episode '+epNum)}</div></div></div>`;
+      }).join('') || '<p style="color:#888;padding:20px;text-align:center">No episodes found.</p>';
+      listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); }));
+      return;
+    }
 
     listEl.innerHTML = `<div class="empty-state" style="padding:30px"><p>Loading episodes…</p></div>`;
     try {
@@ -3428,7 +3360,7 @@ async function renderAnimeWatch(params) {
         const thumb = ep.still_path ? TMDB.backdrop(ep.still_path, 'w300') : (details.poster_path ? TMDB.poster(details.poster_path, 'w300') : '');
         return `<div class="yt-ep-card ${isP?'active':''}" data-ep="${ep.episode_number}"><div class="yt-ep-thumb">${thumb?`<img decoding="async" src="${thumb}" alt="">`:'<div style="width:100%;height:100%;background:#222"></div>'}<span class="ep-badge">E${ep.episode_number}</span></div><div class="yt-ep-info"><div class="yt-ep-title">${ep.episode_number}. ${ep.name||('Episode '+ep.episode_number)}</div></div></div>`;
       }).join('') || '<p style="color:#888;padding:20px;text-align:center">No episodes found.</p>';
-      listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); else scheduleEpDropdownClose(); }));
+      listEl.querySelectorAll('.yt-ep-card').forEach(c => c.addEventListener('click', () => { const n = parseInt(c.dataset.ep); if (n!==episode) switchEpisode(n); }));
     } catch (e) {
       listEl.innerHTML = '<p style="color:#888;padding:20px;text-align:center">Failed to load episodes.</p>';
     }
@@ -3446,7 +3378,7 @@ async function renderAnimeWatch(params) {
   const hdrFsBtn = document.getElementById('hdr-btn-fullscreen');
   if (hdrFsBtn) hdrFsBtn.onclick = toggleFullscreen;
 
-  if (isMovie) {
+  if (isMovie && source !== 'anikoto') {
     await loadPlayer();
   } else {
     renderSeasonDropdown();
@@ -3467,15 +3399,6 @@ async function renderAnimeWatch(params) {
 /* ============================================================
    Router dispatch & Watch Auto-Hide Idle Manager
    ============================================================ */
-let epDropdownCloseTimer = null;
-function scheduleEpDropdownClose() {
-  if (epDropdownCloseTimer) clearTimeout(epDropdownCloseTimer);
-  epDropdownCloseTimer = setTimeout(() => {
-    const epWrap = document.getElementById('hdr-episodes-wrap');
-    if (epWrap) epWrap.classList.remove('open');
-  }, 3000);
-}
-
 let watchIdleTimer = null;
 function resetWatchIdleTimer() {
   const r = parseHash().route;

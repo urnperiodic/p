@@ -1053,6 +1053,12 @@
   .search-history-item-left i { color: var(--text-dim); font-size: 0.82rem; }
   .search-history-remove { color: var(--text-dim); padding: 4px; border-radius: 50%; cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; justify-content: center; }
   .search-history-remove:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+  .top-hdr-btn.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
   </style>
 </head>
 <body>
@@ -1142,6 +1148,9 @@
           </div>
         </div>
       </div>
+      <button class="top-hdr-btn" id="hdr-btn-pip" title="Picture in Picture (P)" aria-label="Picture in Picture">
+        <i class="fa-solid fa-window-restore"></i>
+      </button>
       <button class="top-hdr-btn primary" id="hdr-btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">
         <i class="fa-solid fa-expand"></i>
       </button>
@@ -1861,6 +1870,10 @@ function initKeyboardShortcutsModal() {
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
             <span style="font-weight:500;">Toggle Fullscreen</span>
             <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700; color:var(--accent);">F</kbd>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+            <span style="font-weight:500;">Picture in Picture (PiP)</span>
+            <kbd style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); padding:2px 8px; border-radius:4px; font-family:monospace; font-weight:700; color:var(--accent);">P</kbd>
           </div>
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
             <span style="font-weight:500;">Toggle Theater Mode</span>
@@ -2888,6 +2901,132 @@ async function renderDetails(params) {
 }
 
 /* ============================================================
+   PICTURE IN PICTURE (PiP) MANAGER (OS System Level Window)
+   ============================================================ */
+const PipManager = (() => {
+  let isPipActive = false;
+  let pipWindow = null;
+
+  async function togglePip() {
+    const stage = document.getElementById('player-stage');
+    if (!stage) {
+      toast('No active video player to pop into Picture-in-Picture');
+      return;
+    }
+
+    if (isPipActive) {
+      exitPip();
+      return;
+    }
+
+    const iframe = stage.querySelector('iframe');
+    if (!iframe) {
+      toast('Player iframe not found');
+      return;
+    }
+
+    // Method 1: Document Picture-in-Picture API (Chrome/Edge/Brave 116+)
+    // Opens a true floating OS window that stays on top of other desktop apps & windows
+    if ('documentPictureInPicture' in window && typeof window.documentPictureInPicture.requestWindow === 'function') {
+      try {
+        pipWindow = await window.documentPictureInPicture.requestWindow({
+          width: 640,
+          height: 360,
+          disallowReturnToOpener: false
+        });
+
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          body { background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; }
+          .pip-stage { width: 100vw; height: 100vh; position: absolute; inset: 0; }
+          iframe { width: 100%; height: 100%; border: 0; }
+        `;
+        pipWindow.document.head.appendChild(styleSheet);
+
+        const pipContainer = pipWindow.document.createElement('div');
+        pipContainer.className = 'pip-stage';
+        pipWindow.document.body.appendChild(pipContainer);
+        pipContainer.appendChild(iframe);
+
+        pipWindow.addEventListener('unload', () => {
+          if (stage && iframe) {
+            stage.appendChild(iframe);
+          }
+          isPipActive = false;
+          pipWindow = null;
+          updatePipButtonState(false);
+          toast('Exited Picture-in-Picture');
+        });
+
+        isPipActive = true;
+        updatePipButtonState(true);
+        toast('Floating OS Picture-in-Picture window active');
+        return;
+      } catch (e) {
+        console.warn('Document Picture-in-Picture failed, using popup window fallback:', e);
+      }
+    }
+
+    // Method 2: System Standalone Pop-out Window
+    // Opens a standalone borderless pop-out window outside the browser frame
+    try {
+      const src = iframe.src;
+      const width = 680;
+      const height = 385;
+      const left = (window.screen.width - width) / 2;
+      const top = (window.screen.height - height) / 2;
+
+      pipWindow = window.open(
+        src,
+        'UrnperiodicPiPWindow',
+        `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=no,status=no,titlebar=no,toolbar=no,menubar=no`
+      );
+
+      if (pipWindow) {
+        isPipActive = true;
+        updatePipButtonState(true);
+        toast('Opened floating system player window');
+
+        const checkClosed = setInterval(() => {
+          if (!pipWindow || pipWindow.closed) {
+            clearInterval(checkClosed);
+            isPipActive = false;
+            pipWindow = null;
+            updatePipButtonState(false);
+          }
+        }, 800);
+      } else {
+        toast('Popup blocked by browser. Please allow popups to use Picture-in-Picture.');
+      }
+    } catch (err) {
+      toast('Could not launch Picture-in-Picture window');
+    }
+  }
+
+  function exitPip() {
+    if (pipWindow) {
+      try { pipWindow.close(); } catch (e) {}
+      pipWindow = null;
+    }
+    isPipActive = false;
+    updatePipButtonState(false);
+    toast('Exited Picture-in-Picture');
+  }
+
+  function updatePipButtonState(active) {
+    const btn = document.getElementById('hdr-btn-pip');
+    if (btn) {
+      btn.classList.toggle('active', active);
+      btn.style.color = active ? 'var(--accent)' : '';
+      btn.setAttribute('title', active ? 'Exit Picture-in-Picture (P)' : 'Picture in Picture (P)');
+    }
+  }
+
+  return { togglePip, exitPip, isActive: () => isPipActive, updatePipButtonState };
+})();
+
+/* ============================================================
    WATCH PAGE (YouTube Style Side-by-Side Layout & Quick Episode Swapper)
    ============================================================ */
 let watchState = null;
@@ -3034,10 +3173,14 @@ async function renderWatch(params) {
     const fsEl = document.fullscreenElement || document.webkitFullscreenElement;
     const fsBtn = document.getElementById('hdr-btn-fullscreen');
     if (fsBtn) fsBtn.innerHTML = fsEl ? '<i class="fa-solid fa-compress"></i>' : '<i class="fa-solid fa-expand"></i>';
+    PipManager.updatePipButtonState(PipManager.isActive());
   }
 
   const hdrFsBtn = document.getElementById('hdr-btn-fullscreen');
   if (hdrFsBtn) hdrFsBtn.onclick = toggleFullscreen;
+
+  const hdrPipBtn = document.getElementById('hdr-btn-pip');
+  if (hdrPipBtn) hdrPipBtn.onclick = () => PipManager.togglePip();
 
   if (type === 'tv') {
     const seasons = (details.seasons || []).filter(s => s.season_number > 0);
@@ -3106,6 +3249,7 @@ async function renderWatch(params) {
   const keyHandler = (e) => {
     if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
     if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
+    if (e.key.toLowerCase() === 'p') { e.preventDefault(); PipManager.togglePip(); }
   };
   const fsHandler = syncScreenButtons;
   document.addEventListener('keydown', keyHandler);
@@ -3378,6 +3522,9 @@ async function renderAnimeWatch(params) {
   const hdrFsBtn = document.getElementById('hdr-btn-fullscreen');
   if (hdrFsBtn) hdrFsBtn.onclick = toggleFullscreen;
 
+  const hdrPipBtn = document.getElementById('hdr-btn-pip');
+  if (hdrPipBtn) hdrPipBtn.onclick = () => PipManager.togglePip();
+
   if (isMovie && source !== 'anikoto') {
     await loadPlayer();
   } else {
@@ -3391,6 +3538,7 @@ async function renderAnimeWatch(params) {
   const keyHandler = (e) => {
     if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
     if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
+    if (e.key.toLowerCase() === 'p') { e.preventDefault(); PipManager.togglePip(); }
   };
   document.addEventListener('keydown', keyHandler);
   animeWatchState = { keyHandler };

@@ -1025,10 +1025,13 @@
     }
 
     .watch-top .back-link {
-      padding: 0 10px !important;
+      padding: 0 !important;
       height: 36px !important;
+      width: 36px !important;
       min-width: 36px !important;
-      border-radius: 9999px !important;
+      border-radius: 50% !important;
+      display: inline-flex !important;
+      align-items: center !important;
       justify-content: center !important;
       flex-shrink: 0 !important;
     }
@@ -1038,8 +1041,18 @@
     }
 
     .watch-top .watch-title,
-    .watch-top .header-spacer {
+    .watch-top .header-spacer,
+    #hdr-btn-details,
+    #hdr-btn-pip {
       display: none !important;
+    }
+
+    #hdr-server-name {
+      max-width: 65px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+      white-space: nowrap !important;
+      font-size: 0.75rem !important;
     }
 
     .watch-top-actions {
@@ -1050,6 +1063,8 @@
       justify-content: flex-end !important;
       flex: 1 !important;
       min-width: 0 !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
     }
 
     .watch-top-actions .top-hdr-btn,
@@ -1057,9 +1072,14 @@
       height: 36px !important;
       min-width: 36px !important;
       padding: 0 8px !important;
-      font-size: 0.85rem !important;
+      font-size: 0.82rem !important;
       flex-shrink: 0 !important;
       display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 4px !important;
+      box-sizing: border-box !important;
+      white-space: nowrap !important;
     }
 
     .watch-container .player-stage,
@@ -1520,7 +1540,7 @@ const ANIME_PROVIDERS = [
 ];
 
 function getProvider(id) { return PROVIDERS.find(p => p.id === id) || PROVIDERS[0]; }
-function getAnimeProvider(id) { return ANIME_PROVIDERS.find(p => p.id === id) || ANIME_PROVIDERS[0]; }
+function getAnimeProvider(id) { return ANIME_PROVIDERS.find(p => p.id === id) || PROVIDERS.find(p => p.id === id) || ANIME_PROVIDERS[0]; }
 
 /* ============================================================
    Anikoto anime catalog API helper (MegaPlay docs)
@@ -3472,12 +3492,16 @@ async function renderAnimeWatch(params) {
     const curP = getAnimeProvider(currentAnimeProvider);
     if (serverNameEl) serverNameEl.textContent = curP.name;
 
+    const totalCount = ANIME_PROVIDERS.length + PROVIDERS.length;
+
     serverMenu.innerHTML = `
-      <div style="font-size:0.78rem;font-weight:700;color:var(--text-dim);letter-spacing:0.8px;padding:6px 8px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
-        <span>ANIME STREAM SERVER</span>
-        <span style="font-size:0.7rem;color:var(--accent);font-weight:600">Keys 1–${ANIME_PROVIDERS.length}</span>
+      <div style="font-size:0.75rem;font-weight:700;color:var(--text-dim);letter-spacing:0.8px;padding:6px 8px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <span>STREAM SERVER</span>
+        <span style="font-size:0.7rem;color:var(--accent);font-weight:600">Keys 1–${totalCount}</span>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
+
+      <div style="font-size:0.68rem;font-weight:800;color:var(--accent);letter-spacing:0.8px;padding:4px 8px;margin-bottom:4px;text-transform:uppercase">ANIME DEDICATED SERVERS</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
         ${ANIME_PROVIDERS.map((p, i) => `
           <button class="server-opt-btn ${p.id === currentAnimeProvider ? 'active' : ''}" data-id="${p.id}" style="
             display:flex;align-items:center;justify-content:space-between;
@@ -3488,6 +3512,25 @@ async function renderAnimeWatch(params) {
           ">
             <div style="display:flex;align-items:center;gap:10px">
               <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentAnimeProvider ? 'var(--accent)' : '#aaa'}">${i+1}</span>
+              <span>${p.name}</span>
+            </div>
+            ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
+          </button>
+        `).join('')}
+      </div>
+
+      <div style="font-size:0.68rem;font-weight:800;color:var(--text-dim);letter-spacing:0.8px;padding:4px 8px;margin-bottom:4px;text-transform:uppercase">STANDARD MOVIE & TV SERVERS</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${PROVIDERS.map((p, i) => `
+          <button class="server-opt-btn ${p.id === currentAnimeProvider ? 'active' : ''}" data-id="${p.id}" style="
+            display:flex;align-items:center;justify-content:space-between;
+            padding:9px 12px;border-radius:8px;border:1px solid ${p.id === currentAnimeProvider ? 'var(--accent)' : 'rgba(255,255,255,0.08)'};
+            background:${p.id === currentAnimeProvider ? 'var(--accent-soft)' : 'rgba(255,255,255,0.03)'};
+            color:${p.id === currentAnimeProvider ? '#fff' : 'var(--text)'};
+            font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left;width:100%
+          ">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentAnimeProvider ? 'var(--accent)' : '#aaa'}">${ANIME_PROVIDERS.length + i + 1}</span>
               <span>${p.name}</span>
             </div>
             ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
@@ -3505,7 +3548,7 @@ async function renderAnimeWatch(params) {
         serverWrap.classList.remove('open');
         await loadPlayer();
         renderAnimeServerMenu();
-        toast('Anime server set to ' + getAnimeProvider(provId).name);
+        toast('Server set to ' + getAnimeProvider(provId).name);
       };
     });
   }
@@ -3595,13 +3638,6 @@ async function renderAnimeWatch(params) {
   }
 
   function buildAnimeSrc() {
-    if (source === 'anikoto') {
-      const epData = anikotoEpisodes[episode - 1];
-      if (epData && epData.episode_embed_id) {
-        return getAnimeProvider('megaplay-s2').build({ embedId: epData.episode_embed_id, lang });
-      }
-    }
-    const prov = getAnimeProvider(currentAnimeProvider);
     const epNum = isMovie ? 1 : episode;
     const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay };
 
@@ -3611,15 +3647,38 @@ async function renderAnimeWatch(params) {
       if (isMovie || hist.episode == epNum) progress = hist.currentTime;
     }
 
-    if (prov.id === 'vidy-anime') {
-      if (anilistId) return prov.build({ anilistId, epNum, opt, progress });
+    // First check if current provider is a standard provider (e.g. 111movies, vidking, vidlinkpro, etc.)
+    const stdProv = PROVIDERS.find(p => p.id === currentAnimeProvider);
+    if (stdProv) {
+      return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
+    }
+
+    // Otherwise check anime-specific provider
+    const animeProv = ANIME_PROVIDERS.find(p => p.id === currentAnimeProvider) || ANIME_PROVIDERS[0];
+
+    if (source === 'anikoto' && animeProv.id === 'megaplay-s2') {
+      const epData = anikotoEpisodes[episode - 1];
+      if (epData && epData.episode_embed_id) {
+        return animeProv.build({ embedId: epData.episode_embed_id, lang });
+      }
+    }
+
+    if (animeProv.id === 'vidy-anime') {
+      if (anilistId) return animeProv.build({ anilistId, epNum, opt, progress });
       return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
     }
-    if (prov.id === 'megaplay-mal' && malId) return prov.build({ malId, epNum, lang });
-    if (prov.id === 'megaplay-ani' && anilistId) return prov.build({ anilistId, epNum, lang });
+    if (animeProv.id === 'megaplay-mal' && malId) return animeProv.build({ malId, epNum, lang });
+    if (animeProv.id === 'megaplay-ani' && anilistId) return animeProv.build({ anilistId, epNum, lang });
+    if (animeProv.id === 'megaplay-s2') {
+      const epData = anikotoEpisodes[episode - 1];
+      if (epData && epData.episode_embed_id) {
+        return animeProv.build({ embedId: epData.episode_embed_id, lang });
+      }
+    }
+
     if (anilistId) return getAnimeProvider('vidy-anime').build({ anilistId, epNum, opt, progress });
     if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
-    return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
+    return getProvider('111movies').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
   }
 
   async function switchEpisode(epNum) {
@@ -3785,15 +3844,16 @@ async function renderAnimeWatch(params) {
     if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
     if (e.key.toLowerCase() === 'p') { e.preventDefault(); PipManager.togglePip(); }
     const num = parseInt(e.key);
-    if (!isNaN(num) && num >= 1 && num <= ANIME_PROVIDERS.length) {
+    const allOptions = [...ANIME_PROVIDERS, ...PROVIDERS];
+    if (!isNaN(num) && num >= 1 && num <= allOptions.length) {
       e.preventDefault();
-      const targetProv = ANIME_PROVIDERS[num - 1];
+      const targetProv = allOptions[num - 1];
       if (targetProv) {
         currentAnimeProvider = targetProv.id;
         Settings.save({ animeProvider: targetProv.id });
         loadPlayer();
         if (typeof renderAnimeServerMenu === 'function') renderAnimeServerMenu();
-        toast(`Anime server set to ${targetProv.name} (#${num})`);
+        toast(`Server set to ${targetProv.name} (#${num})`);
       }
     }
   };

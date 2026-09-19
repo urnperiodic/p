@@ -1246,7 +1246,7 @@
           <span id="hdr-server-name" style="font-size:0.82rem;font-weight:600;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Server</span>
           <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;margin-left:2px"></i>
         </button>
-        <div class="episodes-dropdown-menu" id="hdr-server-menu" style="width:280px;max-height:360px;overflow-y:auto;padding:10px;display:none">
+        <div class="episodes-dropdown-menu" id="hdr-server-menu" style="width:280px;max-height:360px;overflow-y:auto;padding:10px">
         </div>
       </div>
       <div class="episodes-dropdown-wrap" id="hdr-episodes-wrap" style="display:none">
@@ -1606,7 +1606,7 @@ async function resolveAnimeIds(title, seasonNum, isMovie = false) {
    ============================================================ */
 const Settings = (() => {
   const KEY = 'Urnperiodic_settings';
-  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'111movies', animeProvider:'vidy-anime', animeLang:'sub' };
+  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidy-anime', animeLang:'sub' };
   function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
   function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
   function applyTheme() {
@@ -1775,6 +1775,9 @@ function createCustomDropdown({ container, options, value, onChange }) {
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.custom-dropdown')) {
     document.querySelectorAll('.custom-dropdown.open').forEach(dd => dd.classList.remove('open'));
+  }
+  if (!e.target.closest('.episodes-dropdown-wrap')) {
+    document.querySelectorAll('.episodes-dropdown-wrap.open').forEach(dd => dd.classList.remove('open'));
   }
 });
 
@@ -3611,11 +3614,29 @@ async function renderAnimeWatch(params) {
 
   let malId = extIds.mal_id || null;
   let anilistId = extIds.anilist_id || null;
+  let resolvedTmdbId = /^\d+$/.test(String(tmdbId)) ? parseInt(tmdbId) : null;
   const title = details.name || details.title || 'Anime';
   const watchTitleEl = document.getElementById('watch-title');
 
   async function resolveForCurrentSeason() {
-    if (source === 'anikoto') return;
+    if (source === 'anikoto') {
+      if (!resolvedTmdbId && title) {
+        try {
+          const cleanTitle = title.replace(/\s*\(?(?:sub|dub)\)?/i, '').trim();
+          const searchRes = await TMDB.searchMulti(cleanTitle);
+          if (searchRes && searchRes.results && searchRes.results.length) {
+            const match = searchRes.results.find(x => x.media_type === 'tv' || x.media_type === 'movie') || searchRes.results[0];
+            if (match) {
+              resolvedTmdbId = match.id;
+              if (match.media_type === 'movie') isMovie = true;
+            }
+          }
+        } catch (e) {
+          console.error('Failed to resolve TMDB ID for Anikoto anime:', e);
+        }
+      }
+      return;
+    }
     if (!extIds.mal_id || !extIds.anilist_id) {
       const resolved = await resolveAnimeIds(details.name || details.title || details.original_name || details.original_title, isMovie ? 1 : season, isMovie);
       if (resolved) { malId = resolved.malId || null; anilistId = resolved.anilistId || null; }
@@ -3640,17 +3661,18 @@ async function renderAnimeWatch(params) {
   function buildAnimeSrc() {
     const epNum = isMovie ? 1 : episode;
     const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay };
+    const targetTmdb = resolvedTmdbId || tmdbId;
 
-    const hist = History.get(tmdbId, isMovie ? 'movie' : 'tv');
+    const hist = History.get(targetTmdb, isMovie ? 'movie' : 'tv');
     let progress = 0;
     if (hist && hist.currentTime && hist.currentTime > 5) {
       if (isMovie || hist.episode == epNum) progress = hist.currentTime;
     }
 
-    // First check if current provider is a standard provider (e.g. 111movies, vidking, vidlinkpro, etc.)
+    // First check if current provider is a standard main provider (e.g. 111movies, vidking, vidlinkpro, videasy, etc.)
     const stdProv = PROVIDERS.find(p => p.id === currentAnimeProvider);
     if (stdProv) {
-      return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
+      return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
     }
 
     // Otherwise check anime-specific provider
@@ -3665,7 +3687,7 @@ async function renderAnimeWatch(params) {
 
     if (animeProv.id === 'vidy-anime') {
       if (anilistId) return animeProv.build({ anilistId, epNum, opt, progress });
-      return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
+      return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
     }
     if (animeProv.id === 'megaplay-mal' && malId) return animeProv.build({ malId, epNum, lang });
     if (animeProv.id === 'megaplay-ani' && anilistId) return animeProv.build({ anilistId, epNum, lang });
@@ -3678,7 +3700,7 @@ async function renderAnimeWatch(params) {
 
     if (anilistId) return getAnimeProvider('vidy-anime').build({ anilistId, epNum, opt, progress });
     if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
-    return getProvider('111movies').build({ type: isMovie ? 'movie' : 'tv', tmdb: tmdbId, season, episode: epNum, opt, progress });
+    return getProvider('111movies').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
   }
 
   async function switchEpisode(epNum) {

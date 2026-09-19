@@ -965,7 +965,7 @@
     transform: scale(0.92);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 768px), (max-height: 550px) and (max-width: 1024px), (orientation: landscape) and (max-height: 600px) {
     .main-nav { display: none; }
     .mobile-bottom-nav { display: flex; }
     body { padding-bottom: 70px; }
@@ -996,14 +996,14 @@
     .watch-layout { grid-template-columns: 1fr !important; gap: 16px !important; }
     .watch-sidebar { max-height: none !important; position: static !important; }
 
-    /* Keep the watch top bar always visible on mobile devices */
-    body.watch-active.user-idle .watch-top {
+    /* Keep the watch top bar always visible on mobile/landscape devices when in watch mode */
+    body.watch-active.user-idle .watch-top:not([hidden]) {
       opacity: 1 !important;
       pointer-events: auto !important;
       transform: none !important;
     }
 
-    .watch-top {
+    .watch-top:not([hidden]) {
       position: fixed !important;
       top: 0 !important;
       left: 0 !important;
@@ -1018,6 +1018,10 @@
       align-items: center !important;
       justify-content: space-between !important;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+    }
+
+    .watch-top[hidden], [hidden] {
+      display: none !important;
     }
 
     .watch-top .back-link {
@@ -1085,6 +1089,39 @@
       left: 12px !important;
       right: 12px !important;
       width: auto !important;
+    }
+  }
+
+  /* Specific rules for landscape/rotated mobile orientation */
+  @media (orientation: landscape) and (max-height: 600px), (max-height: 550px) and (max-width: 1024px) {
+    .mobile-bottom-nav { display: none !important; }
+    body { padding-bottom: 0 !important; }
+
+    .watch-top:not([hidden]) {
+      height: 44px !important;
+    }
+
+    .watch-top .back-link,
+    .watch-top-actions .top-hdr-btn,
+    .watch-top-actions .icon-btn {
+      height: 32px !important;
+      min-width: 32px !important;
+      padding: 0 6px !important;
+      font-size: 0.8rem !important;
+    }
+
+    .watch-container .player-stage,
+    .watch-container.movie-mode .player-stage {
+      top: 44px !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      height: calc(100vh - 44px) !important;
+    }
+
+    .episodes-dropdown-menu {
+      top: 46px !important;
+      max-height: calc(100vh - 52px) !important;
     }
   }
 

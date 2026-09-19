@@ -779,7 +779,7 @@
   .watch-grid { width: 100vw; height: 100vh; grid-template-columns: 1fr; gap: 0; }
   .watch-main-col { width: 100vw; height: 100vh; gap: 0; position: relative; }
   .watch-container .player-stage {
-    position: absolute; top: 60px; left: 0; right: 0; bottom: 0; width: 100vw; height: calc(100vh - 60px);
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh;
     aspect-ratio: auto; border-radius: 0; box-shadow: none; background: #000;
   }
 
@@ -804,7 +804,7 @@
     width: 100vw; height: 100vh; gap: 0; position: relative;
   }
   .watch-container.movie-mode .player-stage {
-    position: absolute; top: 60px; left: 0; right: 0; bottom: 0; width: 100vw; height: calc(100vh - 60px);
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh;
     aspect-ratio: auto; border-radius: 0; box-shadow: none;
   }
   .watch-container.movie-mode .watch-info-card {
@@ -1003,20 +1003,79 @@
       transform: none !important;
     }
 
+    .watch-top {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      height: 52px !important;
+      padding: 0 8px !important;
+      gap: 4px !important;
+      z-index: 2000 !important;
+      background: rgba(10, 10, 15, 0.98) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+    }
+
+    .watch-top .back-link {
+      padding: 0 10px !important;
+      height: 36px !important;
+      min-width: 36px !important;
+      border-radius: 9999px !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+    }
+
+    .watch-top .back-link .back-text {
+      display: none !important;
+    }
+
+    .watch-top .watch-title,
+    .watch-top .header-spacer {
+      display: none !important;
+    }
+
+    .watch-top-actions {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      flex-wrap: nowrap !important;
+      justify-content: flex-end !important;
+      flex: 1 !important;
+      min-width: 0 !important;
+    }
+
+    .watch-top-actions .top-hdr-btn,
+    .watch-top-actions .icon-btn {
+      height: 36px !important;
+      min-width: 36px !important;
+      padding: 0 8px !important;
+      font-size: 0.85rem !important;
+      flex-shrink: 0 !important;
+      display: inline-flex !important;
+    }
+
     .watch-container .player-stage,
     .watch-container.movie-mode .player-stage {
+      position: absolute !important;
+      top: 52px !important;
+      left: 0 !important;
+      right: 0 !important;
       bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
-      height: calc(100vh - 60px - 62px - env(safe-area-inset-bottom, 0px)) !important;
+      height: calc(100vh - 52px - 62px - env(safe-area-inset-bottom, 0px)) !important;
     }
 
     .episodes-dropdown-menu {
       position: fixed !important;
-      top: 60px !important;
-      left: 12px !important;
-      right: 12px !important;
+      top: 54px !important;
+      left: 8px !important;
+      right: 8px !important;
       width: auto !important;
       max-width: none !important;
-      max-height: calc(100vh - 140px) !important;
+      max-height: calc(100vh - 120px) !important;
       z-index: 3000 !important;
     }
 
@@ -1111,7 +1170,7 @@
 
   <!-- ===================== WATCH HEADER ===================== -->
   <header class="watch-top" id="watch-top" hidden>
-    <button class="back-link" id="watch-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+    <button class="back-link" id="watch-back"><i class="fa-solid fa-arrow-left"></i> <span class="back-text">Back</span></button>
     <button class="top-hdr-btn" id="hdr-btn-details" title="View Details" aria-label="View Details">
       <i class="fa-solid fa-circle-info"></i>
     </button>
@@ -1283,18 +1342,9 @@ const TMDB = (() => {
    Press 1..N while watching to switch the active server.
    ============================================================ */
 const PROVIDERS = [
-  /* ---------------- RECOMMENDED SERVERS (Top 5) ---------------- */
-  { id:'vidy', name:'Vidy', recommended: true, badge:'Official · Vidy.st', build({type,tmdb,season,episode,opt,progress}) {
-      let base = type==='movie' ? `https://vidy.st/movie/${tmdb}` : `https://vidy.st/tv/${tmdb}/${season||1}/${episode||1}`;
-      const p = new URLSearchParams();
-      if (opt && opt.color) p.set('color', opt.color.replace('#',''));
-      if (progress && progress > 0) p.set('progress', Math.floor(progress));
-      if (type==='tv') {
-        p.set('nextEpisode','true');
-        p.set('episodeSelector','true');
-        p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
-      }
-      const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+  /* ---------------- RECOMMENDED SERVERS (Top 6) ---------------- */
+  { id:'111movies', name:'111Movies', recommended: true, badge:'Default · Ad-Free & Fast', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
   }},
   { id:'vidking', name:'VidKing', recommended: true, badge:'Fast', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}`;
@@ -1303,9 +1353,6 @@ const PROVIDERS = [
       p.set('autoPlay', opt && opt.autoplay === false ? 'false' : 'true');
       if (type==='tv') { p.set('nextEpisode','true'); p.set('episodeSelector','true'); }
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
-  }},
-  { id:'111movies', name:'111Movies', recommended: true, badge:'Ad-Free & Fast', build({type,tmdb,season,episode}) {
-      return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
   }},
   { id:'vidlinkpro', name:'VidLink Pro', recommended: true, badge:'Ad-Free', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://vidlink.pro/movie/${tmdb}` : `https://vidlink.pro/tv/${tmdb}/${season}/${episode}`;
@@ -1328,6 +1375,18 @@ const PROVIDERS = [
       if (opt && opt.color) p.set('theme', opt.color);
       p.set('autoPlay', opt && opt.autoplay === false ? 'false' : 'true');
       if (type==='tv') p.set('nextButton','true');
+      const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+  }},
+  { id:'vidy', name:'Vidy', recommended: true, badge:'Featured · Vidy.st', build({type,tmdb,season,episode,opt,progress}) {
+      let base = type==='movie' ? `https://vidy.st/movie/${tmdb}` : `https://vidy.st/tv/${tmdb}/${season||1}/${episode||1}`;
+      const p = new URLSearchParams();
+      if (opt && opt.color) p.set('color', opt.color.replace('#',''));
+      if (progress && progress > 0) p.set('progress', Math.floor(progress));
+      if (type==='tv') {
+        p.set('nextEpisode','true');
+        p.set('episodeSelector','true');
+        p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
+      }
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
 
@@ -1481,7 +1540,7 @@ async function resolveAnimeIds(title, seasonNum, isMovie = false) {
    ============================================================ */
 const Settings = (() => {
   const KEY = 'Urnperiodic_settings';
-  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidy', animeProvider:'vidy-anime', animeLang:'sub' };
+  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'111movies', animeProvider:'vidy-anime', animeLang:'sub' };
   function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
   function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
   function applyTheme() {
@@ -1683,9 +1742,9 @@ function buildSettingsDrawer() {
         <label><i class="fa-solid fa-server"></i> Streaming server</label>
         <div class="server-picker" id="server-picker">
           ${PROVIDERS.map((p,i) => `
-            <button class="server-opt ${i < 5 ? 'is-recommended' : ''} ${p.id===s.defaultProvider?'active':''}" data-id="${p.id}">
+            <button class="server-opt ${i < 6 ? 'is-recommended' : ''} ${p.id===s.defaultProvider?'active':''}" data-id="${p.id}">
               <span class="server-num">${i+1}</span>
-              ${i < 5 ? '<span class="rec-star-badge"><i class="fa-solid fa-star"></i> Recommended</span>' : ''}
+              ${i < 6 ? '<span class="rec-star-badge"><i class="fa-solid fa-star"></i> Recommended</span>' : ''}
               <span class="sname">${p.name}</span>
               <span class="sbadge">${p.badge}</span>
             </button>`).join('')}

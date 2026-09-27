@@ -738,16 +738,111 @@
   .watch-title .wt-tag { color: var(--accent); font-weight: 700; font-size: 0.8rem; background: rgba(229,9,20,0.18); border: 1px solid rgba(229,9,20,0.35); padding: 4px 14px; border-radius: 9999px; flex-shrink: 0; }
 
   /* Top Watch Nav Header Action Buttons */
-  .watch-top-actions { display: flex; align-items: center; gap: 8px; }
+  .watch-top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
   .top-hdr-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    height: 38px; min-width: 38px; padding: 0 14px; border-radius: 9999px; font-size: 0.9rem; font-weight: 600;
+    height: 38px; min-width: 38px; padding: 0 14px; border-radius: 9999px; font-size: 0.88rem; font-weight: 600;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    color: var(--text); cursor: pointer; transition: all 0.2s ease; white-space: nowrap;
+    color: var(--text); cursor: pointer; transition: all 0.2s ease; white-space: nowrap; flex-shrink: 0; box-sizing: border-box;
+  }
+  .top-hdr-btn.icon-btn-round {
+    width: 38px !important; height: 38px !important; min-width: 38px !important;
+    padding: 0 !important; border-radius: 50% !important; gap: 0 !important;
   }
   .top-hdr-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); color: #fff; }
   .top-hdr-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   .top-hdr-btn.primary:hover { background: #ff2a36; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(229,9,20,0.3); }
+  .top-hdr-btn.active { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.4); color: #fff; }
+
+  /* Server Selection Modal Screen */
+  .server-modal-backdrop {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+    padding: 16px;
+  }
+  .server-modal-backdrop.open {
+    opacity: 1; pointer-events: auto;
+  }
+  .server-modal {
+    width: 740px; max-width: 95vw; max-height: 88vh;
+    background: #111116; border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px; display: flex; flex-direction: column;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 1px rgba(255, 255, 255, 0.3);
+    overflow: hidden; animation: serverModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes serverModalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .server-modal-header {
+    padding: 20px 24px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  }
+  .server-modal-title { font-size: 1.25rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+  .server-modal-sub { font-size: 0.82rem; color: var(--text-dim); margin-top: 4px; }
+  .server-modal-close {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-dim); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.15s; font-size: 1rem; flex-shrink: 0;
+  }
+  .server-modal-close:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
+  .server-modal-toolbar {
+    padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  }
+  .server-modal-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  .server-tab-btn {
+    padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-dim); cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .server-tab-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
+  .server-tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .server-search-input {
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px; padding: 6px 12px; font-size: 0.82rem; color: #fff; outline: none; width: 170px;
+  }
+  .server-search-input:focus { border-color: var(--accent); }
+  .server-modal-grid {
+    padding: 16px 24px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px; max-height: calc(88vh - 180px);
+  }
+  .server-card-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px; border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer; transition: all 0.18s ease; text-align: left; width: 100%;
+  }
+  .server-card-item:hover {
+    background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-1px);
+  }
+  .server-card-item.active {
+    background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 0 16px rgba(220, 38, 38, 0.2);
+  }
+  .server-card-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .server-card-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08); color: var(--text-dim);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 800; flex-shrink: 0;
+  }
+  .server-card-item.active .server-card-num { background: var(--accent); color: #fff; }
+  .server-card-info { display: flex; flex-direction: column; min-width: 0; }
+  .server-card-name { font-size: 0.92rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .server-card-badge { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
+  .server-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .server-shield-badge {
+    font-size: 0.7rem; color: #22c55e; background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25); padding: 2px 7px; border-radius: 9999px;
+    display: inline-flex; align-items: center; gap: 4px; font-weight: 600;
+  }
+  .server-active-tag {
+    font-size: 0.7rem; color: #fff; background: var(--accent);
+    padding: 3px 8px; border-radius: 9999px; font-weight: 700;
+  }
 
   .player-stage { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
   .player-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -1058,28 +1153,40 @@
     .watch-top-actions {
       display: flex !important;
       align-items: center !important;
-      gap: 4px !important;
+      gap: 6px !important;
       flex-wrap: nowrap !important;
       justify-content: flex-end !important;
-      flex: 1 !important;
+      flex-shrink: 0 !important;
       min-width: 0 !important;
-      overflow-x: auto !important;
-      scrollbar-width: none !important;
     }
 
-    .watch-top-actions .top-hdr-btn,
-    .watch-top-actions .icon-btn {
+    .watch-top-actions .top-hdr-btn {
       height: 36px !important;
-      min-width: 36px !important;
-      padding: 0 8px !important;
       font-size: 0.82rem !important;
       flex-shrink: 0 !important;
+      white-space: nowrap !important;
+      padding: 0 10px !important;
+    }
+
+    .watch-top-actions .top-hdr-btn.icon-btn-round,
+    .watch-top-actions .icon-btn {
+      width: 36px !important;
+      height: 36px !important;
+      min-width: 36px !important;
+      padding: 0 !important;
+      border-radius: 50% !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 4px !important;
-      box-sizing: border-box !important;
-      white-space: nowrap !important;
+      gap: 0 !important;
+    }
+
+    .watch-top-actions #hdr-btn-server,
+    .watch-top-actions #hdr-btn-episodes {
+      width: auto !important;
+      padding: 0 10px !important;
+      border-radius: 9999px !important;
+      gap: 5px !important;
     }
 
     .watch-container .player-stage,
@@ -1122,12 +1229,20 @@
     }
 
     .watch-top .back-link,
-    .watch-top-actions .top-hdr-btn,
+    .watch-top-actions .top-hdr-btn.icon-btn-round,
     .watch-top-actions .icon-btn {
       height: 32px !important;
+      width: 32px !important;
       min-width: 32px !important;
-      padding: 0 6px !important;
+      padding: 0 !important;
       font-size: 0.8rem !important;
+    }
+    .watch-top-actions #hdr-btn-server,
+    .watch-top-actions #hdr-btn-episodes {
+      height: 32px !important;
+      padding: 0 8px !important;
+      font-size: 0.78rem !important;
+      gap: 4px !important;
     }
 
     .watch-container .player-stage,
@@ -1234,24 +1349,22 @@
     <span class="watch-title" id="watch-title">Loading…</span>
     <div class="header-spacer"></div>
     <div class="watch-top-actions">
-      <button class="top-hdr-btn" id="btn-prev-ep" title="Previous Episode" aria-label="Previous Episode" style="display:none">
+      <button class="top-hdr-btn icon-btn-round" id="btn-prev-ep" title="Previous Episode" aria-label="Previous Episode" style="display:none">
         <i class="fa-solid fa-step-backward"></i>
       </button>
-      <button class="top-hdr-btn" id="btn-next-ep" title="Next Episode" aria-label="Next Episode" style="display:none">
+      <button class="top-hdr-btn icon-btn-round" id="btn-next-ep" title="Next Episode" aria-label="Next Episode" style="display:none">
         <i class="fa-solid fa-step-forward"></i>
       </button>
-      <div class="episodes-dropdown-wrap" id="hdr-server-wrap" style="display:none">
-        <button class="top-hdr-btn" id="hdr-btn-server" title="Switch Server" aria-label="Switch Server">
-          <i class="fa-solid fa-server" style="color:var(--accent)"></i>
-          <span id="hdr-server-name" style="font-size:0.82rem;font-weight:600;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Server</span>
-          <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;margin-left:2px"></i>
-        </button>
-        <div class="episodes-dropdown-menu" id="hdr-server-menu" style="width:280px;max-height:360px;overflow-y:auto;padding:10px">
-        </div>
-      </div>
+      <button class="top-hdr-btn" id="hdr-btn-server" title="Switch Stream Server" aria-label="Switch Server">
+        <i class="fa-solid fa-server" style="color:var(--accent)"></i>
+        <span id="hdr-server-name">VidKing</span>
+        <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;opacity:0.75;margin-left:2px"></i>
+      </button>
       <div class="episodes-dropdown-wrap" id="hdr-episodes-wrap" style="display:none">
         <button class="top-hdr-btn" id="hdr-btn-episodes" title="Episodes" aria-label="Episodes">
-          <i class="fa-solid fa-list-ul" style="color:var(--accent)"></i> <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;margin-left:2px"></i>
+          <i class="fa-solid fa-list-ul" style="color:var(--accent)"></i>
+          <span>Episodes</span>
+          <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;opacity:0.75;margin-left:2px"></i>
         </button>
         <div class="episodes-dropdown-menu" id="hdr-episodes-menu">
           <div class="sidebar-header">
@@ -1273,13 +1386,18 @@
           </div>
         </div>
       </div>
-      <button class="top-hdr-btn" id="hdr-btn-pip" title="Picture in Picture (P)" aria-label="Picture in Picture">
+      <button class="top-hdr-btn icon-btn-round active" id="hdr-btn-shield" title="Ad Shield: Popups & Malicious Redirects Blocked · Click to Toggle" aria-label="Ad Shield">
+        <i class="fa-solid fa-shield-halved" style="color:#22c55e"></i>
+      </button>
+      <button class="top-hdr-btn icon-btn-round" id="hdr-btn-pip" title="Picture in Picture (P)" aria-label="Picture in Picture">
         <i class="fa-solid fa-window-restore"></i>
       </button>
-      <button class="top-hdr-btn primary" id="hdr-btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">
+      <button class="top-hdr-btn icon-btn-round primary" id="hdr-btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">
         <i class="fa-solid fa-expand"></i>
       </button>
-      <button class="icon-btn" id="settings-btn-watch" aria-label="Settings" title="Settings"><i class="fa-solid fa-sliders"></i></button>
+      <button class="top-hdr-btn icon-btn-round" id="settings-btn-watch" aria-label="Settings" title="Settings">
+        <i class="fa-solid fa-sliders"></i>
+      </button>
     </div>
   </header>
 
@@ -1614,7 +1732,7 @@ async function resolveAnimeIds(title, seasonNum, isMovie = false) {
    ============================================================ */
 const Settings = (() => {
   const KEY = 'Urnperiodic_settings';
-  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidy-anime', animeLang:'sub' };
+  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidking', animeLang:'sub', adShield:true };
   function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
   function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
   function applyTheme() {
@@ -1624,6 +1742,40 @@ const Settings = (() => {
     document.documentElement.style.setProperty('--accent-soft', `rgba(${r},${g},${b},0.15)`);
   }
   return { get, save, applyTheme, DEFAULTS };
+})();
+
+/* ============================================================
+   Ad Shield — Popups & Top-Redirect Blocker
+   Stops 3rd-party ad scripts, new tab popups, and malicious redirects
+   WITHOUT breaking HTML5 playback, MSE, HLS streams, or DRM blobs.
+   ============================================================ */
+const AdShield = {
+  isActive() {
+    return Settings.get().adShield !== false;
+  },
+  toggle() {
+    const next = !this.isActive();
+    Settings.save({ adShield: next });
+    return next;
+  },
+  applyToIframe(iframe) {
+    if (this.isActive()) {
+      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
+    } else {
+      iframe.removeAttribute('sandbox');
+    }
+  }
+};
+
+(() => {
+  const originalOpen = window.open;
+  window.open = function(url, target, features) {
+    if (AdShield.isActive() && (location.hash.startsWith('#/watch') || location.hash.startsWith('#/anime-watch'))) {
+      console.info('Ad Shield: Intercepted popup navigation to:', url);
+      return null;
+    }
+    return originalOpen ? originalOpen.call(window, url, target, features) : null;
+  };
 })();
 
 const SWATCHES = ['DC2626','e50914','ff6b00','f5a623','46d369','00b4d8','4361ee','9146ff','e91e63','ffffff'];
@@ -1803,16 +1955,20 @@ function buildSettingsDrawer() {
       <h3>Settings</h3>
       <p class="muted">Personalize the player, server and theme.</p>
 
+      <button class="btn btn-primary" id="drawer-open-server-modal" style="width:100%;justify-content:center;margin:12px 0 16px;background:var(--accent);font-weight:700">
+        <i class="fa-solid fa-server"></i> Open Server Selection Screen
+      </button>
+
       <div class="field" style="margin-bottom:14px">
-        <label style="font-size:0.85rem;margin-bottom:6px"><i class="fa-solid fa-dragon" style="color:var(--accent)"></i> Anime server (MegaPlay)</label>
+        <label style="font-size:0.85rem;margin-bottom:6px"><i class="fa-solid fa-dragon" style="color:var(--accent)"></i> Anime server (Dedicated & Main)</label>
         <div class="server-picker" id="anime-server-picker">
-          ${ANIME_PROVIDERS.map(p => `
+          ${[...ANIME_PROVIDERS, ...PROVIDERS.slice(0, 5)].map(p => `
             <button class="server-opt is-compact ${p.id===s.animeProvider?'active':''}" data-anime-id="${p.id}">
               <span class="sname">${p.name}</span>
               <span class="sbadge">${p.badge}</span>
             </button>`).join('')}
         </div>
-        <p class="muted" style="margin-top:5px;font-size:0.75rem;margin-bottom:0">Used on Anime pages to stream HiAnime library via Anikoto.</p>
+        <p class="muted" style="margin-top:5px;font-size:0.75rem;margin-bottom:0">Works on all Anime titles (dedicated sources or TMDB streams).</p>
       </div>
 
       <div class="field">
@@ -1841,7 +1997,8 @@ function buildSettingsDrawer() {
       </div>
 
       <div class="field">
-        <label>Playback</label>
+        <label>Playback & Protection</label>
+        <div class="toggle-row"><span><i class="fa-solid fa-shield-halved" style="color:#22c55e;margin-right:6px"></i> Ad Shield (Block Popups & Redirects)</span><label class="switch"><input type="checkbox" id="opt-adshield" ${s.adShield!==false?'checked':''}><span class="slider"></span></label></div>
         <div class="toggle-row"><span>Autoplay</span><label class="switch"><input type="checkbox" id="opt-autoplay" ${s.autoplay?'checked':''}><span class="slider"></span></label></div>
         <div class="toggle-row"><span>Start muted</span><label class="switch"><input type="checkbox" id="opt-muted" ${s.muted?'checked':''}><span class="slider"></span></label></div>
       </div>
@@ -1868,14 +2025,38 @@ function buildSettingsDrawer() {
   backdrop.addEventListener('click', close);
   document.getElementById('drawer-close').addEventListener('click', close);
 
+  document.getElementById('drawer-open-server-modal').addEventListener('click', () => {
+    close();
+    const curHash = location.hash;
+    const isAnime = curHash.startsWith('#/anime-watch');
+    const curId = isAnime ? Settings.get().animeProvider : Settings.get().defaultProvider;
+    window.openServerModal({
+      isAnime,
+      currentId: curId,
+      onSelect: (provId) => {
+        if (isAnime) {
+          Settings.save({ animeProvider: provId });
+          if (window._reloadAnimePlayer) window._reloadAnimePlayer(provId);
+          toast('Anime server set to ' + getAnimeProvider(provId).name);
+        } else {
+          Settings.save({ defaultProvider: provId });
+          if (window._reloadPlayer) window._reloadPlayer(provId);
+          toast('Server set to ' + getProvider(provId).name);
+        }
+      }
+    });
+  });
+
   // server selection
   document.querySelectorAll('#settings-drawer .server-opt[data-id]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#settings-drawer .server-opt[data-id]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      Settings.save({ defaultProvider: btn.dataset.id });
-      toast('Server set to ' + getProvider(btn.dataset.id).name);
-      if (window._reloadPlayer) window._reloadPlayer(btn.dataset.id);
+      const provId = btn.dataset.id;
+      Settings.save({ defaultProvider: provId });
+      toast('Server set to ' + getProvider(provId).name);
+      if (window._reloadPlayer) window._reloadPlayer(provId);
+      if (window._reloadAnimePlayer) window._reloadAnimePlayer(provId);
     });
   });
 
@@ -1884,9 +2065,11 @@ function buildSettingsDrawer() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#settings-drawer .server-opt[data-anime-id]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      Settings.save({ animeProvider: btn.dataset.animeId });
-      toast('Anime server set to ' + getAnimeProvider(btn.dataset.animeId).name);
-      if (window._reloadAnimePlayer) window._reloadAnimePlayer(btn.dataset.animeId);
+      const provId = btn.dataset.animeId;
+      Settings.save({ animeProvider: provId });
+      toast('Anime server set to ' + getAnimeProvider(provId).name);
+      if (window._reloadAnimePlayer) window._reloadAnimePlayer(provId);
+      if (window._reloadPlayer) window._reloadPlayer(provId);
     });
   });
 
@@ -1902,6 +2085,14 @@ function buildSettingsDrawer() {
     const c = e.target.value.replace('#','');
     document.querySelectorAll('#swatch-list .swatch').forEach(b => b.classList.remove('active'));
     Settings.save({ color: c });
+  });
+  document.getElementById('opt-adshield').addEventListener('change', e => {
+    Settings.save({ adShield: e.target.checked });
+    toast(e.target.checked ? '🛡️ Ad Shield ON: Popups blocked' : '⚠️ Ad Shield OFF: Permissive mode');
+    const curP = Settings.get().defaultProvider;
+    const curA = Settings.get().animeProvider;
+    if (window._reloadPlayer) window._reloadPlayer(curP);
+    if (window._reloadAnimePlayer) window._reloadAnimePlayer(curA);
   });
   document.getElementById('opt-autoplay').addEventListener('change', e => Settings.save({ autoplay: e.target.checked }));
   document.getElementById('opt-muted').addEventListener('change', e => Settings.save({ muted: e.target.checked }));
@@ -1923,6 +2114,139 @@ function buildSettingsDrawer() {
       backdrop.classList.add('open');
       drawer.classList.add('open');
     }
+  };
+}
+
+/* ============================================================
+   Server Selection Modal Screen (Unified for Movies, TV & Anime)
+   ============================================================ */
+function initServerSelectModal() {
+  if (document.getElementById('server-modal-backdrop')) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = `
+    <div class="server-modal-backdrop" id="server-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="server-modal-title">
+      <div class="server-modal">
+        <div class="server-modal-header">
+          <div>
+            <div class="server-modal-title" id="server-modal-title">
+              <i class="fa-solid fa-server" style="color:var(--accent)"></i>
+              <span>Select Stream Server</span>
+            </div>
+            <div class="server-modal-sub">Switch servers instantly if video freezes, buffers, or has playback issues.</div>
+          </div>
+          <button class="server-modal-close" id="server-modal-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="server-modal-toolbar">
+          <div class="server-modal-tabs" id="server-modal-tabs">
+            <button class="server-tab-btn active" data-tab="all">All Servers</button>
+            <button class="server-tab-btn" data-tab="clean">Recommended & Fast</button>
+            <button class="server-tab-btn" data-tab="anime">Anime Dedicated</button>
+            <button class="server-tab-btn" data-tab="mirrors">Backup Mirrors</button>
+          </div>
+          <input type="text" class="server-search-input" id="server-modal-search" placeholder="Search servers…" autocomplete="off">
+        </div>
+        <div class="server-modal-grid" id="server-modal-grid"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(wrap);
+
+  const backdrop = document.getElementById('server-modal-backdrop');
+  const closeBtn = document.getElementById('server-modal-close');
+  const grid = document.getElementById('server-modal-grid');
+  const searchInput = document.getElementById('server-modal-search');
+  const tabs = document.querySelectorAll('#server-modal-tabs .server-tab-btn');
+
+  let activeModalState = null;
+  let currentFilter = 'all';
+
+  const closeModal = () => {
+    backdrop.classList.remove('open');
+    activeModalState = null;
+  };
+
+  closeBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closeModal();
+  });
+
+  const getAllList = () => {
+    const rec = PROVIDERS.filter(p => p.recommended);
+    const backups = PROVIDERS.filter(p => !p.recommended);
+    return [
+      ...rec.map(p => ({ ...p, category: 'rec', type: 'standard' })),
+      ...ANIME_PROVIDERS.map(p => ({ ...p, category: 'anime', type: 'anime' })),
+      ...backups.map(p => ({ ...p, category: 'backup', type: 'standard' }))
+    ];
+  };
+
+  const renderGrid = () => {
+    if (!activeModalState) return;
+    const { isAnime, currentId, onSelect } = activeModalState;
+    const q = (searchInput.value || '').trim().toLowerCase();
+    const all = getAllList();
+
+    let filtered = all.filter(s => {
+      if (currentFilter === 'clean' && s.category !== 'rec') return false;
+      if (currentFilter === 'anime' && s.category !== 'anime') return false;
+      if (currentFilter === 'mirrors' && s.category !== 'backup') return false;
+      if (q) {
+        return s.name.toLowerCase().includes(q) || (s.badge && s.badge.toLowerCase().includes(q));
+      }
+      return true;
+    });
+
+    if (!filtered.length) {
+      grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-dim)">No servers match "${q}".</div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.map((s, idx) => {
+      const isActive = s.id === currentId;
+      return `
+        <button class="server-card-item ${isActive ? 'active' : ''}" data-id="${s.id}">
+          <div class="server-card-left">
+            <span class="server-card-num">${idx + 1}</span>
+            <div class="server-card-info">
+              <span class="server-card-name">${s.name}</span>
+              <span class="server-card-badge">${s.badge || 'Fast HD'}</span>
+            </div>
+          </div>
+          <div class="server-card-right">
+            <span class="server-shield-badge"><i class="fa-solid fa-shield-halved"></i> Protected</span>
+            ${isActive ? '<span class="server-active-tag">Active</span>' : ''}
+          </div>
+        </button>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.server-card-item').forEach(btn => {
+      btn.onclick = () => {
+        const provId = btn.dataset.id;
+        if (onSelect) onSelect(provId);
+        closeModal();
+      };
+    });
+  };
+
+  searchInput.addEventListener('input', renderGrid);
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentFilter = tab.dataset.tab;
+      renderGrid();
+    });
+  });
+
+  window.openServerModal = ({ isAnime, currentId, onSelect }) => {
+    activeModalState = { isAnime, currentId, onSelect };
+    currentFilter = 'all';
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === 'all'));
+    searchInput.value = '';
+    renderGrid();
+    backdrop.classList.add('open');
+    searchInput.focus();
   };
 }
 
@@ -3184,64 +3508,51 @@ async function renderWatch(params) {
   const langCont = document.getElementById('w-lang-toggle-container');
   if (langCont) langCont.innerHTML = '';
 
-  const serverWrap = document.getElementById('hdr-server-wrap');
   const serverBtn = document.getElementById('hdr-btn-server');
-  const serverMenu = document.getElementById('hdr-server-menu');
   const serverNameEl = document.getElementById('hdr-server-name');
+  const shieldBtn = document.getElementById('hdr-btn-shield');
 
-  function renderServerMenu() {
-    if (!serverWrap || !serverMenu) return;
-    serverWrap.style.display = 'inline-flex';
+  function updateServerDisplay() {
     const curP = getProvider(currentProvider);
     if (serverNameEl) serverNameEl.textContent = curP.name;
-
-    serverMenu.innerHTML = `
-      <div style="font-size:0.78rem;font-weight:700;color:var(--text-dim);letter-spacing:0.8px;padding:6px 8px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
-        <span>STREAM SERVER</span>
-        <span style="font-size:0.7rem;color:var(--accent);font-weight:600">Keys 1–${PROVIDERS.length}</span>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        ${PROVIDERS.map((p, i) => `
-          <button class="server-opt-btn ${p.id === currentProvider ? 'active' : ''}" data-id="${p.id}" style="
-            display:flex;align-items:center;justify-content:space-between;
-            padding:9px 12px;border-radius:8px;border:1px solid ${p.id === currentProvider ? 'var(--accent)' : 'rgba(255,255,255,0.08)'};
-            background:${p.id === currentProvider ? 'var(--accent-soft)' : 'rgba(255,255,255,0.03)'};
-            color:${p.id === currentProvider ? '#fff' : 'var(--text)'};
-            font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left;width:100%
-          ">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentProvider ? 'var(--accent)' : '#aaa'}">${i+1}</span>
-              <span>${p.name}</span>
-            </div>
-            ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
-          </button>
-        `).join('')}
-      </div>
-    `;
-
-    serverMenu.querySelectorAll('.server-opt-btn').forEach(btn => {
-      btn.onclick = (e) => {
-        e.stopPropagation();
-        const provId = btn.dataset.id;
-        currentProvider = provId;
-        Settings.save({ defaultProvider: provId });
-        serverWrap.classList.remove('open');
-        loadPlayer();
-        renderServerMenu();
-        toast('Server set to ' + getProvider(provId).name);
-      };
-    });
   }
+  updateServerDisplay();
 
-  if (serverBtn && serverWrap) {
+  if (serverBtn) {
     serverBtn.onclick = (e) => {
       e.stopPropagation();
-      if (epWrap) epWrap.classList.remove('open');
-      serverWrap.classList.toggle('open');
+      window.openServerModal({
+        isAnime: false,
+        currentId: currentProvider,
+        onSelect: (provId) => {
+          currentProvider = provId;
+          Settings.save({ defaultProvider: provId });
+          updateServerDisplay();
+          loadPlayer();
+          toast('Server set to ' + getProvider(provId).name);
+        }
+      });
     };
   }
 
-  renderServerMenu();
+  function syncShieldBtn() {
+    if (!shieldBtn) return;
+    const active = AdShield.isActive();
+    shieldBtn.classList.toggle('active', active);
+    shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
+    shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked) · Click to Toggle' : 'Ad Shield: Disabled · Click to Enable';
+  }
+  syncShieldBtn();
+
+  if (shieldBtn) {
+    shieldBtn.onclick = (e) => {
+      e.stopPropagation();
+      const next = AdShield.toggle();
+      syncShieldBtn();
+      toast(next ? '🛡️ Ad Shield ON: Popups & redirects blocked' : '⚠️ Ad Shield OFF: Permissive mode');
+      loadPlayer();
+    };
+  }
 
   if (type === 'tv') {
     if (epWrap) {
@@ -3311,6 +3622,7 @@ async function renderWatch(params) {
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
+    AdShield.applyToIframe(iframe);
     stage.appendChild(iframe);
     
     History.record({
@@ -3351,8 +3663,8 @@ async function renderWatch(params) {
   window._reloadPlayer = (provId) => {
     if (parseHash().route !== 'watch') return;
     currentProvider = provId;
+    updateServerDisplay();
     loadPlayer();
-    if (typeof renderServerMenu === 'function') renderServerMenu();
   };
 
   const stageEl = () => document.getElementById('player-stage');
@@ -3456,8 +3768,8 @@ async function renderWatch(params) {
       if (targetProv) {
         currentProvider = targetProv.id;
         Settings.save({ defaultProvider: targetProv.id });
+        updateServerDisplay();
         loadPlayer();
-        if (typeof renderServerMenu === 'function') renderServerMenu();
         toast(`Server set to ${targetProv.name} (#${num})`);
       }
     }
@@ -3488,87 +3800,51 @@ async function renderAnimeWatch(params) {
   const prevBtnHdr = document.getElementById('btn-prev-ep');
   const nextBtnHdr = document.getElementById('btn-next-ep');
 
-  const serverWrap = document.getElementById('hdr-server-wrap');
   const serverBtn = document.getElementById('hdr-btn-server');
-  const serverMenu = document.getElementById('hdr-server-menu');
   const serverNameEl = document.getElementById('hdr-server-name');
+  const shieldBtn = document.getElementById('hdr-btn-shield');
 
-  function renderAnimeServerMenu() {
-    if (!serverWrap || !serverMenu) return;
-    serverWrap.style.display = 'inline-flex';
+  function updateAnimeServerDisplay() {
     const curP = getAnimeProvider(currentAnimeProvider);
     if (serverNameEl) serverNameEl.textContent = curP.name;
-
-    const totalCount = ANIME_PROVIDERS.length + PROVIDERS.length;
-
-    serverMenu.innerHTML = `
-      <div style="font-size:0.75rem;font-weight:700;color:var(--text-dim);letter-spacing:0.8px;padding:6px 8px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
-        <span>STREAM SERVER</span>
-        <span style="font-size:0.7rem;color:var(--accent);font-weight:600">Keys 1–${totalCount}</span>
-      </div>
-
-      <div style="font-size:0.68rem;font-weight:800;color:var(--accent);letter-spacing:0.8px;padding:4px 8px;margin-bottom:4px;text-transform:uppercase">ANIME DEDICATED SERVERS</div>
-      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
-        ${ANIME_PROVIDERS.map((p, i) => `
-          <button class="server-opt-btn ${p.id === currentAnimeProvider ? 'active' : ''}" data-id="${p.id}" style="
-            display:flex;align-items:center;justify-content:space-between;
-            padding:9px 12px;border-radius:8px;border:1px solid ${p.id === currentAnimeProvider ? 'var(--accent)' : 'rgba(255,255,255,0.08)'};
-            background:${p.id === currentAnimeProvider ? 'var(--accent-soft)' : 'rgba(255,255,255,0.03)'};
-            color:${p.id === currentAnimeProvider ? '#fff' : 'var(--text)'};
-            font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left;width:100%
-          ">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentAnimeProvider ? 'var(--accent)' : '#aaa'}">${i+1}</span>
-              <span>${p.name}</span>
-            </div>
-            ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
-          </button>
-        `).join('')}
-      </div>
-
-      <div style="font-size:0.68rem;font-weight:800;color:var(--text-dim);letter-spacing:0.8px;padding:4px 8px;margin-bottom:4px;text-transform:uppercase">STANDARD MOVIE & TV SERVERS</div>
-      <div style="display:flex;flex-direction:column;gap:6px">
-        ${PROVIDERS.map((p, i) => `
-          <button class="server-opt-btn ${p.id === currentAnimeProvider ? 'active' : ''}" data-id="${p.id}" style="
-            display:flex;align-items:center;justify-content:space-between;
-            padding:9px 12px;border-radius:8px;border:1px solid ${p.id === currentAnimeProvider ? 'var(--accent)' : 'rgba(255,255,255,0.08)'};
-            background:${p.id === currentAnimeProvider ? 'var(--accent-soft)' : 'rgba(255,255,255,0.03)'};
-            color:${p.id === currentAnimeProvider ? '#fff' : 'var(--text)'};
-            font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left;width:100%
-          ">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentAnimeProvider ? 'var(--accent)' : '#aaa'}">${ANIME_PROVIDERS.length + i + 1}</span>
-              <span>${p.name}</span>
-            </div>
-            ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
-          </button>
-        `).join('')}
-      </div>
-    `;
-
-    serverMenu.querySelectorAll('.server-opt-btn').forEach(btn => {
-      btn.onclick = async (e) => {
-        e.stopPropagation();
-        const provId = btn.dataset.id;
-        currentAnimeProvider = provId;
-        Settings.save({ animeProvider: provId });
-        serverWrap.classList.remove('open');
-        await loadPlayer();
-        renderAnimeServerMenu();
-        toast('Server set to ' + getAnimeProvider(provId).name);
-      };
-    });
   }
+  updateAnimeServerDisplay();
 
-  if (serverBtn && serverWrap) {
+  if (serverBtn) {
     serverBtn.onclick = (e) => {
       e.stopPropagation();
-      if (epWrap) epWrap.classList.remove('open');
-      serverWrap.classList.toggle('open');
+      window.openServerModal({
+        isAnime: true,
+        currentId: currentAnimeProvider,
+        onSelect: async (provId) => {
+          currentAnimeProvider = provId;
+          Settings.save({ animeProvider: provId });
+          updateAnimeServerDisplay();
+          await loadPlayer();
+          toast('Server set to ' + getAnimeProvider(provId).name);
+        }
+      });
     };
   }
 
-  renderAnimeServerMenu();
+  function syncShieldBtn() {
+    if (!shieldBtn) return;
+    const active = AdShield.isActive();
+    shieldBtn.classList.toggle('active', active);
+    shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
+    shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked) · Click to Toggle' : 'Ad Shield: Disabled · Click to Enable';
+  }
+  syncShieldBtn();
+
+  if (shieldBtn) {
+    shieldBtn.onclick = (e) => {
+      e.stopPropagation();
+      const next = AdShield.toggle();
+      syncShieldBtn();
+      toast(next ? '🛡️ Ad Shield ON: Popups & redirects blocked' : '⚠️ Ad Shield OFF: Permissive mode');
+      loadPlayer();
+    };
+  }
 
   if (isMovie && source !== 'anikoto') {
     if (epWrap) { epWrap.style.display = 'none'; epWrap.classList.remove('open'); }
@@ -3665,9 +3941,9 @@ async function renderAnimeWatch(params) {
   function buildAnimeSrc() {
     const epNum = isMovie ? 1 : episode;
     const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay };
-    const targetTmdb = resolvedTmdbId || tmdbId;
+    const targetTmdb = resolvedTmdbId || (/^\d+$/.test(String(tmdbId)) ? parseInt(tmdbId) : null);
 
-    const hist = History.get(targetTmdb, isMovie ? 'movie' : 'tv');
+    const hist = History.get(targetTmdb || tmdbId, isMovie ? 'movie' : 'tv');
     let progress = 0;
     if (hist && hist.currentTime && hist.currentTime > 5) {
       if (isMovie || hist.episode == epNum) progress = hist.currentTime;
@@ -3676,36 +3952,42 @@ async function renderAnimeWatch(params) {
     // First check if current provider is a standard main provider (e.g. 111movies, vidking, vidlinkpro, videasy, etc.)
     const stdProv = PROVIDERS.find(p => p.id === currentAnimeProvider);
     if (stdProv) {
-      return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+      if (targetTmdb) {
+        return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+      }
     }
 
     // Otherwise check anime-specific provider
-    const animeProv = ANIME_PROVIDERS.find(p => p.id === currentAnimeProvider) || ANIME_PROVIDERS[0];
-
-    if (source === 'anikoto' && animeProv.id === 'megaplay-s2') {
-      const epData = anikotoEpisodes[episode - 1];
-      if (epData && epData.episode_embed_id) {
-        return animeProv.build({ embedId: epData.episode_embed_id, lang });
+    const animeProv = ANIME_PROVIDERS.find(p => p.id === currentAnimeProvider);
+    if (animeProv) {
+      if (animeProv.id === 'vidy-anime') {
+        if (anilistId) return animeProv.build({ anilistId, epNum, opt, progress });
+        if (targetTmdb) return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+      }
+      if (animeProv.id === 'vidlink-anime' && malId) return animeProv.build({ malId, epNum, lang, opt });
+      if (animeProv.id === 'megaplay-mal' && malId) return animeProv.build({ malId, epNum, lang });
+      if (animeProv.id === 'megaplay-ani' && anilistId) return animeProv.build({ anilistId, epNum, lang });
+      if (animeProv.id === 'megaplay-s2') {
+        const epData = anikotoEpisodes[episode - 1];
+        if (epData && epData.episode_embed_id) {
+          return animeProv.build({ embedId: epData.episode_embed_id, lang });
+        }
       }
     }
 
-    if (animeProv.id === 'vidy-anime') {
-      if (anilistId) return animeProv.build({ anilistId, epNum, opt, progress });
-      return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+    // Fallbacks
+    if (stdProv && targetTmdb) {
+      return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
     }
-    if (animeProv.id === 'vidlink-anime' && malId) return animeProv.build({ malId, epNum, lang, opt });
-    if (animeProv.id === 'megaplay-mal' && malId) return animeProv.build({ malId, epNum, lang });
-    if (animeProv.id === 'megaplay-ani' && anilistId) return animeProv.build({ anilistId, epNum, lang });
-    if (animeProv.id === 'megaplay-s2') {
-      const epData = anikotoEpisodes[episode - 1];
-      if (epData && epData.episode_embed_id) {
-        return animeProv.build({ embedId: epData.episode_embed_id, lang });
-      }
-    }
-
+    if (targetTmdb) return getProvider(Settings.get().defaultProvider || 'vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
     if (anilistId) return getAnimeProvider('vidy-anime').build({ anilistId, epNum, opt, progress });
     if (malId) return getAnimeProvider('vidlink-anime').build({ malId, epNum, lang, opt });
-    return getProvider(Settings.get().defaultProvider || 'vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+
+    const epData = anikotoEpisodes[episode - 1];
+    if (epData && epData.episode_embed_id) {
+      return getAnimeProvider('megaplay-s2').build({ embedId: epData.episode_embed_id, lang });
+    }
+    return getProvider('vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb || 37854, season, episode: epNum, opt, progress });
   }
 
   async function switchEpisode(epNum) {
@@ -3733,6 +4015,7 @@ async function renderAnimeWatch(params) {
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
+    AdShield.applyToIframe(iframe);
     stage.appendChild(iframe);
     
     updateTag();
@@ -3775,8 +4058,8 @@ async function renderAnimeWatch(params) {
   window._reloadAnimePlayer = async (pid) => {
     if (parseHash().route !== 'anime-watch') return;
     currentAnimeProvider = pid;
+    updateAnimeServerDisplay();
     await loadPlayer();
-    if (typeof renderAnimeServerMenu === 'function') renderAnimeServerMenu();
   };
 
   const langCont = document.getElementById('w-lang-toggle-container');
@@ -3871,15 +4154,19 @@ async function renderAnimeWatch(params) {
     if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
     if (e.key.toLowerCase() === 'p') { e.preventDefault(); PipManager.togglePip(); }
     const num = parseInt(e.key);
-    const allOptions = [...ANIME_PROVIDERS, ...PROVIDERS];
+    const allOptions = [
+      ...PROVIDERS.filter(p => p.recommended),
+      ...ANIME_PROVIDERS,
+      ...PROVIDERS.filter(p => !p.recommended)
+    ];
     if (!isNaN(num) && num >= 1 && num <= allOptions.length) {
       e.preventDefault();
       const targetProv = allOptions[num - 1];
       if (targetProv) {
         currentAnimeProvider = targetProv.id;
         Settings.save({ animeProvider: targetProv.id });
+        updateAnimeServerDisplay();
         loadPlayer();
-        if (typeof renderAnimeServerMenu === 'function') renderAnimeServerMenu();
         toast(`Server set to ${targetProv.name} (#${num})`);
       }
     }
@@ -4075,6 +4362,7 @@ function renderSearchHistory() {
    Global init
    ============================================================ */
 function initGlobal() {
+  initServerSelectModal();
   initFirstTimeNotice();
   initKeyboardShortcutsModal();
   buildSettingsDrawer();

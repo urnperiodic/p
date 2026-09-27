@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
+    "lint": "node -c server.js",
     "build": "echo 'No build step required'",
     "start": "node server.js"
   },

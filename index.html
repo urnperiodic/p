@@ -1409,10 +1409,7 @@ const TMDB = (() => {
    ============================================================ */
 const PROVIDERS = [
   /* ---------------- RECOMMENDED SERVERS (Top 6) ---------------- */
-  { id:'111movies', name:'111Movies', recommended: true, badge:'Default · Ad-Free & Fast', build({type,tmdb,season,episode}) {
-      return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
-  }},
-  { id:'vidking', name:'VidKing', recommended: true, badge:'Fast', build({type,tmdb,season,episode,opt}) {
+  { id:'vidking', name:'VidKing', recommended: true, badge:'Default · Fast & Clean', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}`;
       const p = new URLSearchParams();
       if (opt && opt.color) p.set('color', opt.color);
@@ -1420,7 +1417,7 @@ const PROVIDERS = [
       if (type==='tv') { p.set('nextEpisode','true'); p.set('episodeSelector','true'); }
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
-  { id:'vidlinkpro', name:'VidLink Pro', recommended: true, badge:'Ad-Free', build({type,tmdb,season,episode,opt}) {
+  { id:'vidlinkpro', name:'VidLink Pro', recommended: true, badge:'Ad-Free & Fast', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://vidlink.pro/movie/${tmdb}` : `https://vidlink.pro/tv/${tmdb}/${season}/${episode}`;
       const p = new URLSearchParams();
       if (opt && opt.color) p.set('primaryColor', opt.color);
@@ -1428,7 +1425,7 @@ const PROVIDERS = [
       if (type==='tv') p.set('nextbutton','true');
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
-  { id:'videasy', name:'Videasy', recommended: true, badge:'Ad-Free & Great UI', build({type,tmdb,season,episode,opt}) {
+  { id:'videasy', name:'Videasy', recommended: true, badge:'Ad-Free & Clean', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://player.videasy.net/movie/${tmdb}` : `https://player.videasy.net/tv/${tmdb}/${season}/${episode}`;
       const p = new URLSearchParams();
       if (opt && opt.color) p.set('color', opt.color);
@@ -1454,6 +1451,9 @@ const PROVIDERS = [
         p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
       }
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+  }},
+  { id:'111movies', name:'111Movies', recommended: false, badge:'Backup Mirror', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
   }},
 
   /* ---------------- BACKUP SERVERS (Ordered) ---------------- */
@@ -1526,6 +1526,14 @@ const ANIME_PROVIDERS = [
       p.set('nextEpisode', 'true');
       p.set('episodeSelector', 'true');
       p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
+      const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+  }},
+  { id:'vidlink-anime', name:'VidLink Anime', recommended: true, badge:'Ad-Free · MAL ID', build({malId, epNum, lang, opt}) {
+      let base = `https://vidlink.pro/anime/${malId}/${epNum}/${lang || 'sub'}`;
+      const p = new URLSearchParams();
+      if (opt && opt.color) p.set('primaryColor', opt.color.replace('#',''));
+      p.set('autoplay', opt && opt.autoplay === false ? 'false' : 'true');
+      p.set('fallback', 'true');
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
   { id:'megaplay-mal', name:'MegaPlay (MAL)', badge:'MAL ID', build({malId, epNum, lang}) {
@@ -1919,7 +1927,7 @@ function buildSettingsDrawer() {
 }
 
 /* ============================================================
-   First-Time Adblocker Notice
+   Ad-Free & Player Protection Notice (On-Demand)
    ============================================================ */
 function initFirstTimeNotice() {
   if (document.getElementById('notice-backdrop')) return;
@@ -1931,33 +1939,32 @@ function initFirstTimeNotice() {
           <div class="notice-title-box">
             <div class="notice-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
             <div>
-              <h2 id="notice-title">Adblocker Notice</h2>
-              <p>Important recommendation for best experience</p>
+              <h2 id="notice-title">Clean Playback & Player Info</h2>
+              <p>Ad-free streaming architecture</p>
             </div>
           </div>
           <button class="notice-close-btn" id="notice-close" aria-label="Close Notice"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <div class="notice-body-text">
-          <p style="margin-bottom: 12px; font-weight: 600; color: #fff;">Welcome, fellow peers and strangers! 👋</p>
-          <p style="margin-bottom: 12px;">To ensure you get the absolute best, uninterrupted streaming experience, I (the creator of this site) strongly recommend using a trusted adblocker extension:</p>
+          <p style="margin-bottom: 12px; font-weight: 600; color: #fff;">Stream cleanly without interruptions 👋</p>
+          <p style="margin-bottom: 12px;">This platform does not load any ad scripts, marketing trackers, or client-side ad containers. Video playback is configured separately from advertising, ensuring our recommended servers stream video cleanly without intrusive client-side ads.</p>
+          <p style="margin-bottom: 12px; font-size: 0.88rem; color: #a0a0b5;"><em>🔒 For external backup mirrors that might attempt third-party scripts, reputable browser extensions like <strong>uBlock Origin</strong> or <strong>uBlock Origin Lite</strong> can provide additional defense-in-depth:</em></p>
           <ul style="margin: 0 0 12px 18px; padding: 0; line-height: 1.7; color: var(--text-dim);">
-            <li><strong style="color: #fff;">uBlock Origin Lite</strong> (for Chrome, Edge & Chromium browsers)</li>
-            <li><strong style="color: #fff;">uBlock Origin</strong> (for those using Firefox... <em>ew</em>)</li>
+            <li><strong style="color: #fff;">uBlock Origin Lite</strong> (Chromium browsers)</li>
+            <li><strong style="color: #fff;">uBlock Origin</strong> (Firefox & others)</li>
           </ul>
-          <p style="margin-bottom: 12px; font-size: 0.88rem; color: #a0a0b5;"><em>🔒 Rest assured, these are 100% safe, open-source browser extensions trusted by over 10 million users worldwide.</em></p>
-          <p style="margin: 0;"><strong style="color: var(--accent);">Next Step:</strong> After installing, set your filtering mode to <strong style="color: #fff;">"Complete"</strong> as shown in the guide below.</p>
         </div>
 
         <div class="ublock-guide-container">
-          <img src="./ublock_guide.jpg" alt="Set filtering mode to complete in uBlock" class="ublock-guide-img" onerror="this.style.display='none'">
+          <img src="./ublock_guide.jpg" alt="Recommended filtering settings" class="ublock-guide-img" onerror="this.style.display='none'">
           <div class="ublock-guide-caption">
-            <i class="fa-solid fa-circle-info"></i> Set filtering mode to <strong>complete</strong> in uBlock Lite extension
+            <i class="fa-solid fa-circle-info"></i> Set filtering mode to <strong>complete</strong> in uBlock Lite extension if used
           </div>
         </div>
 
         <button id="notice-dismiss-btn" class="btn btn-primary" style="width:100%; justify-content:center; padding: 12px 20px; font-weight: 700; font-size: 0.98rem; border-radius: 10px;">
-          <i class="fa-solid fa-circle-check"></i> I Understand & Got It
+          <i class="fa-solid fa-circle-check"></i> Got It
         </button>
       </div>
     </div>`;
@@ -1975,10 +1982,7 @@ function initFirstTimeNotice() {
     if (e.target === backdrop) closeNotice();
   });
 
-  if (!localStorage.getItem('adblocker_notice_seen')) {
-    setTimeout(() => backdrop.classList.add('open'), 450);
-  }
-
+  // Modal does not pop up automatically; available from Settings drawer
   window.openAdblockerNotice = () => backdrop.classList.add('open');
 }
 
@@ -3689,6 +3693,7 @@ async function renderAnimeWatch(params) {
       if (anilistId) return animeProv.build({ anilistId, epNum, opt, progress });
       return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
     }
+    if (animeProv.id === 'vidlink-anime' && malId) return animeProv.build({ malId, epNum, lang, opt });
     if (animeProv.id === 'megaplay-mal' && malId) return animeProv.build({ malId, epNum, lang });
     if (animeProv.id === 'megaplay-ani' && anilistId) return animeProv.build({ anilistId, epNum, lang });
     if (animeProv.id === 'megaplay-s2') {
@@ -3699,8 +3704,8 @@ async function renderAnimeWatch(params) {
     }
 
     if (anilistId) return getAnimeProvider('vidy-anime').build({ anilistId, epNum, opt, progress });
-    if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
-    return getProvider('111movies').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+    if (malId) return getAnimeProvider('vidlink-anime').build({ malId, epNum, lang, opt });
+    return getProvider(Settings.get().defaultProvider || 'vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
   }
 
   async function switchEpisode(epNum) {

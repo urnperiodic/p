@@ -1732,7 +1732,7 @@ async function resolveAnimeIds(title, seasonNum, isMovie = false) {
    ============================================================ */
 const Settings = (() => {
   const KEY = 'Urnperiodic_settings';
-  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidking', animeLang:'sub', adShield:true };
+  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidking', animeLang:'sub', adShield:false };
   function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
   function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
   function applyTheme() {
@@ -1745,21 +1745,30 @@ const Settings = (() => {
 })();
 
 /* ============================================================
-   Ad Shield — Popups & Top-Redirect Blocker
-   Stops 3rd-party ad scripts, new tab popups, and malicious redirects
-   WITHOUT breaking HTML5 playback, MSE, HLS streams, or DRM blobs.
+   Ad Shield & Provider Compatibility Manager
+   Providers like VidSrc.to explicitly check for iframe sandbox and
+   refuse to play if sandboxed. We protect against top-level redirects
+   and popups without breaking anti-sandbox video hosts.
    ============================================================ */
+const ANTI_SANDBOX_PROVIDERS = [
+  'vidsrcto', 'vidsrcme', 'vidsrcxyz', 'vidsrcvip', 'vidsrcpro',
+  'embedsu', 'superembed', 'smashystream', '2embed', 'cinescrape',
+  'moviesapi', '111movies', 'vidbinge', 'nontongo'
+];
+
 const AdShield = {
   isActive() {
-    return Settings.get().adShield !== false;
+    return Settings.get().adShield === true;
   },
   toggle() {
     const next = !this.isActive();
     Settings.save({ adShield: next });
     return next;
   },
-  applyToIframe(iframe) {
-    if (this.isActive()) {
+  applyToIframe(iframe, providerId) {
+    // If the provider prohibits sandboxing (e.g. VidSrc.to) or adShield is false,
+    // NEVER add the sandbox attribute to prevent the "can't be embedded" error.
+    if (this.isActive() && !ANTI_SANDBOX_PROVIDERS.includes(providerId)) {
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
     } else {
       iframe.removeAttribute('sandbox');
@@ -2203,6 +2212,7 @@ function initServerSelectModal() {
 
     grid.innerHTML = filtered.map((s, idx) => {
       const isActive = s.id === currentId;
+      const isClean = s.recommended || s.category === 'rec' || s.id === 'vidlink-anime' || s.id === 'vidy-anime';
       return `
         <button class="server-card-item ${isActive ? 'active' : ''}" data-id="${s.id}">
           <div class="server-card-left">
@@ -2213,7 +2223,7 @@ function initServerSelectModal() {
             </div>
           </div>
           <div class="server-card-right">
-            <span class="server-shield-badge"><i class="fa-solid fa-shield-halved"></i> Protected</span>
+            ${isClean ? '<span class="server-shield-badge" style="color:#22c55e;background:rgba(34,197,94,0.12)"><i class="fa-solid fa-circle-check"></i> Clean</span>' : '<span class="server-shield-badge" style="color:#f59e0b;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.25)"><i class="fa-solid fa-server"></i> Mirror</span>'}
             ${isActive ? '<span class="server-active-tag">Active</span>' : ''}
           </div>
         </button>
@@ -3515,6 +3525,27 @@ async function renderWatch(params) {
   function updateServerDisplay() {
     const curP = getProvider(currentProvider);
     if (serverNameEl) serverNameEl.textContent = curP.name;
+    syncShieldBtn();
+  }
+
+  function syncShieldBtn() {
+    if (!shieldBtn) return;
+    const curP = getProvider(currentProvider);
+    const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentProvider);
+    if (curP.recommended) {
+      shieldBtn.classList.add('active');
+      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#22c55e"></i>`;
+      shieldBtn.title = `${curP.name}: Recommended Clean & Ad-Free Server`;
+    } else if (isAntiSandbox) {
+      shieldBtn.classList.remove('active');
+      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#f59e0b"></i>`;
+      shieldBtn.title = `${curP.name}: External Mirror (Blocks iframe sandboxing). Switch to VidKing or VidLink for clean streams.`;
+    } else {
+      const active = AdShield.isActive();
+      shieldBtn.classList.toggle('active', active);
+      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
+      shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked)' : 'Ad Shield: Disabled';
+    }
   }
   updateServerDisplay();
 
@@ -3535,18 +3566,14 @@ async function renderWatch(params) {
     };
   }
 
-  function syncShieldBtn() {
-    if (!shieldBtn) return;
-    const active = AdShield.isActive();
-    shieldBtn.classList.toggle('active', active);
-    shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
-    shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked) · Click to Toggle' : 'Ad Shield: Disabled · Click to Enable';
-  }
-  syncShieldBtn();
-
   if (shieldBtn) {
     shieldBtn.onclick = (e) => {
       e.stopPropagation();
+      const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentProvider);
+      if (isAntiSandbox) {
+        toast(`⚠️ ${getProvider(currentProvider).name} blocks iframe sandboxing. For 100% clean streams, switch to VidKing or VidLink Pro.`);
+        return;
+      }
       const next = AdShield.toggle();
       syncShieldBtn();
       toast(next ? '🛡️ Ad Shield ON: Popups & redirects blocked' : '⚠️ Ad Shield OFF: Permissive mode');
@@ -3622,7 +3649,7 @@ async function renderWatch(params) {
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
-    AdShield.applyToIframe(iframe);
+    AdShield.applyToIframe(iframe, currentProvider);
     stage.appendChild(iframe);
     
     History.record({
@@ -3807,6 +3834,27 @@ async function renderAnimeWatch(params) {
   function updateAnimeServerDisplay() {
     const curP = getAnimeProvider(currentAnimeProvider);
     if (serverNameEl) serverNameEl.textContent = curP.name;
+    syncShieldBtn();
+  }
+
+  function syncShieldBtn() {
+    if (!shieldBtn) return;
+    const curP = getAnimeProvider(currentAnimeProvider);
+    const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentAnimeProvider);
+    if (curP.recommended) {
+      shieldBtn.classList.add('active');
+      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#22c55e"></i>`;
+      shieldBtn.title = `${curP.name}: Recommended Clean & Ad-Free Server`;
+    } else if (isAntiSandbox) {
+      shieldBtn.classList.remove('active');
+      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#f59e0b"></i>`;
+      shieldBtn.title = `${curP.name}: External Mirror (Blocks iframe sandboxing). Switch to VidKing or VidLink for clean streams.`;
+    } else {
+      const active = AdShield.isActive();
+      shieldBtn.classList.toggle('active', active);
+      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
+      shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked)' : 'Ad Shield: Disabled';
+    }
   }
   updateAnimeServerDisplay();
 
@@ -3827,18 +3875,14 @@ async function renderAnimeWatch(params) {
     };
   }
 
-  function syncShieldBtn() {
-    if (!shieldBtn) return;
-    const active = AdShield.isActive();
-    shieldBtn.classList.toggle('active', active);
-    shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
-    shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked) · Click to Toggle' : 'Ad Shield: Disabled · Click to Enable';
-  }
-  syncShieldBtn();
-
   if (shieldBtn) {
     shieldBtn.onclick = (e) => {
       e.stopPropagation();
+      const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentAnimeProvider);
+      if (isAntiSandbox) {
+        toast(`⚠️ ${getAnimeProvider(currentAnimeProvider).name} blocks iframe sandboxing. For 100% clean streams, switch to VidKing or VidLink Pro.`);
+        return;
+      }
       const next = AdShield.toggle();
       syncShieldBtn();
       toast(next ? '🛡️ Ad Shield ON: Popups & redirects blocked' : '⚠️ Ad Shield OFF: Permissive mode');
@@ -4015,7 +4059,7 @@ async function renderAnimeWatch(params) {
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
-    AdShield.applyToIframe(iframe);
+    AdShield.applyToIframe(iframe, currentAnimeProvider);
     stage.appendChild(iframe);
     
     updateTag();

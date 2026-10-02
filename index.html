@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Urnperiodic Streaming</title>
-  <meta name="description" content="Watch Movies for free">
+  <title>Urnperiodic Streaming & 4K Downloads</title>
+  <meta name="description" content="Watch Movies & TV Shows Free, and Download 4K UHD & 1080p Releases from 4kHdHub">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%236c8cff'/><polygon points='40,32 72,50 40,68' fill='white'/></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://api.themoviedb.org">
@@ -719,10 +719,11 @@
      ============================================================ */
   .watch-top {
     position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 60px;
-    display: flex; align-items: center; gap: 16px; padding: 0 4vw;
+    display: flex; align-items: center; gap: 10px; padding: 0 16px;
     background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: opacity 0.4s ease, transform 0.4s ease;
+    overflow: hidden;
   }
   .watch-top > * {
     pointer-events: auto;
@@ -730,119 +731,24 @@
   .back-link {
     display: inline-flex; align-items: center; gap: 8px; color: var(--text); font-weight: 600; cursor: pointer;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    padding: 7px 16px; border-radius: 9999px; transition: all 0.2s ease;
+    padding: 7px 14px; border-radius: 9999px; transition: all 0.2s ease; flex-shrink: 0;
   }
   .back-link:hover { color: #fff; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
-  .watch-title { font-size: 1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-  .watch-title .wt-main { font-weight: 800; font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .watch-title .wt-tag { color: var(--accent); font-weight: 700; font-size: 0.8rem; background: rgba(229,9,20,0.18); border: 1px solid rgba(229,9,20,0.35); padding: 4px 14px; border-radius: 9999px; flex-shrink: 0; }
+  .watch-title { font-size: 0.95rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; max-width: 360px; }
+  .watch-title .wt-main { font-weight: 800; font-size: 0.98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .watch-title .wt-tag { color: var(--accent); font-weight: 700; font-size: 0.78rem; background: rgba(229,9,20,0.18); border: 1px solid rgba(229,9,20,0.35); padding: 3px 10px; border-radius: 9999px; flex-shrink: 0; }
 
   /* Top Watch Nav Header Action Buttons */
-  .watch-top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .watch-top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: auto; }
   .top-hdr-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    height: 38px; min-width: 38px; padding: 0 14px; border-radius: 9999px; font-size: 0.88rem; font-weight: 600;
+    height: 38px; min-width: 38px; padding: 0 12px; border-radius: 9999px; font-size: 0.88rem; font-weight: 600;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-    color: var(--text); cursor: pointer; transition: all 0.2s ease; white-space: nowrap; flex-shrink: 0; box-sizing: border-box;
-  }
-  .top-hdr-btn.icon-btn-round {
-    width: 38px !important; height: 38px !important; min-width: 38px !important;
-    padding: 0 !important; border-radius: 50% !important; gap: 0 !important;
+    color: var(--text); cursor: pointer; transition: all 0.2s ease; white-space: nowrap; flex-shrink: 0;
   }
   .top-hdr-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); color: #fff; }
   .top-hdr-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   .top-hdr-btn.primary:hover { background: #ff2a36; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(229,9,20,0.3); }
-  .top-hdr-btn.active { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.4); color: #fff; }
-
-  /* Server Selection Modal Screen */
-  .server-modal-backdrop {
-    position: fixed; inset: 0; z-index: 5000;
-    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
-    padding: 16px;
-  }
-  .server-modal-backdrop.open {
-    opacity: 1; pointer-events: auto;
-  }
-  .server-modal {
-    width: 740px; max-width: 95vw; max-height: 88vh;
-    background: #111116; border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px; display: flex; flex-direction: column;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 1px rgba(255, 255, 255, 0.3);
-    overflow: hidden; animation: serverModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  @keyframes serverModalIn {
-    from { opacity: 0; transform: scale(0.95) translateY(12px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-  .server-modal-header {
-    padding: 20px 24px 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
-  }
-  .server-modal-title { font-size: 1.25rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
-  .server-modal-sub { font-size: 0.82rem; color: var(--text-dim); margin-top: 4px; }
-  .server-modal-close {
-    width: 36px; height: 36px; border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12);
-    color: var(--text-dim); display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s; font-size: 1rem; flex-shrink: 0;
-  }
-  .server-modal-close:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
-  .server-modal-toolbar {
-    padding: 12px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  }
-  .server-modal-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
-  .server-tab-btn {
-    padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;
-    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--text-dim); cursor: pointer; transition: all 0.15s; white-space: nowrap;
-  }
-  .server-tab-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.12); }
-  .server-tab-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .server-search-input {
-    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 8px; padding: 6px 12px; font-size: 0.82rem; color: #fff; outline: none; width: 170px;
-  }
-  .server-search-input:focus { border-color: var(--accent); }
-  .server-modal-grid {
-    padding: 16px 24px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 10px; max-height: calc(88vh - 180px);
-  }
-  .server-card-item {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 14px; border-radius: 12px;
-    background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08);
-    cursor: pointer; transition: all 0.18s ease; text-align: left; width: 100%;
-  }
-  .server-card-item:hover {
-    background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); transform: translateY(-1px);
-  }
-  .server-card-item.active {
-    background: var(--accent-soft); border-color: var(--accent); box-shadow: 0 0 16px rgba(220, 38, 38, 0.2);
-  }
-  .server-card-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-  .server-card-num {
-    width: 28px; height: 28px; border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08); color: var(--text-dim);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem; font-weight: 800; flex-shrink: 0;
-  }
-  .server-card-item.active .server-card-num { background: var(--accent); color: #fff; }
-  .server-card-info { display: flex; flex-direction: column; min-width: 0; }
-  .server-card-name { font-size: 0.92rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .server-card-badge { font-size: 0.72rem; color: var(--text-dim); margin-top: 2px; }
-  .server-card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-  .server-shield-badge {
-    font-size: 0.7rem; color: #22c55e; background: rgba(34, 197, 94, 0.12);
-    border: 1px solid rgba(34, 197, 94, 0.25); padding: 2px 7px; border-radius: 9999px;
-    display: inline-flex; align-items: center; gap: 4px; font-weight: 600;
-  }
-  .server-active-tag {
-    font-size: 0.7rem; color: #fff; background: var(--accent);
-    padding: 3px 8px; border-radius: 9999px; font-weight: 700;
-  }
 
   .player-stage { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
   .player-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -874,8 +780,9 @@
   .watch-grid { width: 100vw; height: 100vh; grid-template-columns: 1fr; gap: 0; }
   .watch-main-col { width: 100vw; height: 100vh; gap: 0; position: relative; }
   .watch-container .player-stage {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh;
+    position: absolute; top: 60px; left: 0; right: 0; bottom: 0; width: 100vw; height: calc(100vh - 60px);
     aspect-ratio: auto; border-radius: 0; box-shadow: none; background: #000;
+    transition: top 0.3s ease, height 0.3s ease;
   }
 
   .watch-info-card {
@@ -899,16 +806,21 @@
     width: 100vw; height: 100vh; gap: 0; position: relative;
   }
   .watch-container.movie-mode .player-stage {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh;
+    position: absolute; top: 60px; left: 0; right: 0; bottom: 0; width: 100vw; height: calc(100vh - 60px);
     aspect-ratio: auto; border-radius: 0; box-shadow: none;
+    transition: top 0.3s ease, height 0.3s ease;
   }
   .watch-container.movie-mode .watch-info-card {
     display: none !important;
   }
 
-  /* Auto-hide controls after 3 seconds of mouse inactivity */
+  /* Auto-hide controls after 3 seconds of mouse inactivity -> player becomes full-bleed 100vh */
   body.watch-active.user-idle .watch-top {
     opacity: 0 !important; pointer-events: none !important; transform: translateY(-12px);
+  }
+  body.watch-active.user-idle .watch-container .player-stage,
+  body.watch-active.user-idle .watch-container.movie-mode .player-stage {
+    top: 0 !important; height: 100vh !important;
   }
   body.watch-active.user-idle .watch-info-card {
     opacity: 0 !important; pointer-events: none !important; transform: translateY(12px);
@@ -1014,15 +926,15 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: 62px;
-    background: rgba(15, 16, 24, 0.94);
+    height: 58px;
+    background: rgba(15, 16, 24, 0.96);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.12);
     z-index: 2500;
     justify-content: space-around;
     align-items: center;
-    padding: 0 4px;
+    padding: 0 2px;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.6);
   }
@@ -1032,23 +944,34 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 2px;
     color: var(--text-dim);
     text-decoration: none;
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 600;
     background: none;
     border: none;
-    padding: 6px 8px;
-    border-radius: 10px;
+    padding: 4px 2px;
+    border-radius: 8px;
     flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
     transition: color 0.15s, transform 0.15s;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
   .mobile-nav-item i {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .mobile-nav-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+    line-height: 1.1;
   }
   .mobile-nav-item.active {
     color: var(--accent);
@@ -1060,10 +983,45 @@
     transform: scale(0.92);
   }
 
+  /* Responsive desktop & tablet rules to prevent header & nav clipping */
+  @media (max-width: 1250px) {
+    #hdr-btn-download span { display: none !important; }
+    #hdr-btn-download { padding: 0 10px !important; }
+    #hdr-server-name { max-width: 80px !important; }
+    .watch-title { max-width: 250px !important; }
+  }
+
+  @media (max-width: 1100px) and (min-width: 769px) {
+    .site-header { padding: 12px 2vw; gap: 12px; }
+    .main-nav { gap: 12px; margin-left: 0; }
+    .main-nav a { font-size: 0.88rem; }
+    .nav-4k-text { font-size: 0.88rem; }
+    .search-box { width: 180px; }
+    .search-box:focus-within { width: 220px; }
+    .back-link .back-text { display: none; }
+    .back-link { padding: 7px 10px; }
+    .watch-title .wt-tag { display: none; }
+    .watch-title { max-width: 170px; }
+  }
+
+  @media (max-width: 950px) and (min-width: 769px) {
+    .brand-streaming-text { display: none; }
+    .main-nav { gap: 8px; }
+    .main-nav a { font-size: 0.84rem; }
+    .nav-4k-text { display: none; }
+    .search-box { width: 140px; }
+    .search-box:focus-within { width: 180px; }
+    #hdr-server-name { max-width: 60px !important; }
+  }
+
   @media (max-width: 768px), (max-height: 550px) and (max-width: 1024px), (orientation: landscape) and (max-height: 600px) {
     .main-nav { display: none; }
     .mobile-bottom-nav { display: flex; }
     body { padding-bottom: 70px; }
+
+    /* Hide bottom nav during video playback to prevent clipping the player */
+    body.watch-active .mobile-bottom-nav { display: none !important; }
+    body.watch-active { padding-bottom: 0 !important; }
 
     .site-header { padding: 10px 14px; gap: 10px; }
     .brand-streaming-text { display: none; }
@@ -1082,8 +1040,8 @@
     .details-inner { gap: 20px; }
     .details-poster { flex: 0 0 130px; }
     .details-meta h1 { font-size: 1.6rem; }
-    .details-actions { flex-wrap: wrap; width: 100%; }
-    .details-actions .btn { flex: 1; justify-content: center; }
+    .details-actions { flex-wrap: wrap; width: 100%; gap: 10px; }
+    .details-actions .btn { flex: 1; justify-content: center; min-width: 130px; }
 
     .drawer { width: 100% !important; max-width: 100vw !important; border-left: none !important; }
     .notice-modal { width: 92vw !important; padding: 18px !important; }
@@ -1113,6 +1071,7 @@
       align-items: center !important;
       justify-content: space-between !important;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
+      overflow: hidden !important;
     }
 
     .watch-top[hidden], [hidden] {
@@ -1138,7 +1097,8 @@
     .watch-top .watch-title,
     .watch-top .header-spacer,
     #hdr-btn-details,
-    #hdr-btn-pip {
+    #hdr-btn-pip,
+    #hdr-btn-download span {
       display: none !important;
     }
 
@@ -1153,40 +1113,28 @@
     .watch-top-actions {
       display: flex !important;
       align-items: center !important;
-      gap: 6px !important;
+      gap: 4px !important;
       flex-wrap: nowrap !important;
       justify-content: flex-end !important;
-      flex-shrink: 0 !important;
+      flex: 1 !important;
       min-width: 0 !important;
+      overflow-x: visible !important;
+      scrollbar-width: none !important;
     }
 
-    .watch-top-actions .top-hdr-btn {
-      height: 36px !important;
-      font-size: 0.82rem !important;
-      flex-shrink: 0 !important;
-      white-space: nowrap !important;
-      padding: 0 10px !important;
-    }
-
-    .watch-top-actions .top-hdr-btn.icon-btn-round,
+    .watch-top-actions .top-hdr-btn,
     .watch-top-actions .icon-btn {
-      width: 36px !important;
       height: 36px !important;
       min-width: 36px !important;
-      padding: 0 !important;
-      border-radius: 50% !important;
+      padding: 0 8px !important;
+      font-size: 0.82rem !important;
+      flex-shrink: 0 !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
-      gap: 0 !important;
-    }
-
-    .watch-top-actions #hdr-btn-server,
-    .watch-top-actions #hdr-btn-episodes {
-      width: auto !important;
-      padding: 0 10px !important;
-      border-radius: 9999px !important;
-      gap: 5px !important;
+      gap: 4px !important;
+      box-sizing: border-box !important;
+      white-space: nowrap !important;
     }
 
     .watch-container .player-stage,
@@ -1195,8 +1143,14 @@
       top: 52px !important;
       left: 0 !important;
       right: 0 !important;
-      bottom: calc(62px + env(safe-area-inset-bottom, 0px)) !important;
-      height: calc(100vh - 52px - 62px - env(safe-area-inset-bottom, 0px)) !important;
+      bottom: 0 !important;
+      height: calc(100vh - 52px) !important;
+    }
+
+    body.watch-active.user-idle .watch-container .player-stage,
+    body.watch-active.user-idle .watch-container.movie-mode .player-stage {
+      top: 0 !important;
+      height: 100vh !important;
     }
 
     .episodes-dropdown-menu {
@@ -1229,20 +1183,12 @@
     }
 
     .watch-top .back-link,
-    .watch-top-actions .top-hdr-btn.icon-btn-round,
+    .watch-top-actions .top-hdr-btn,
     .watch-top-actions .icon-btn {
       height: 32px !important;
-      width: 32px !important;
       min-width: 32px !important;
-      padding: 0 !important;
+      padding: 0 6px !important;
       font-size: 0.8rem !important;
-    }
-    .watch-top-actions #hdr-btn-server,
-    .watch-top-actions #hdr-btn-episodes {
-      height: 32px !important;
-      padding: 0 8px !important;
-      font-size: 0.78rem !important;
-      gap: 4px !important;
     }
 
     .watch-container .player-stage,
@@ -1290,6 +1236,552 @@
     border-color: var(--accent);
     color: var(--accent);
   }
+
+  /* ============================================================
+     4K-HDHUB DOWNLOADS HUB STYLING
+     ============================================================ */
+  .downloads-hero {
+    position: relative;
+    padding: 100px 4vw 36px;
+    background: linear-gradient(180deg, rgba(229, 9, 20, 0.08) 0%, rgba(10, 10, 15, 0) 100%);
+    border-bottom: 1px solid var(--border);
+  }
+  .downloads-hero-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .hub-glow-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(229, 9, 20, 0.25) 0%, rgba(255, 107, 0, 0.25) 100%);
+    border: 1px solid rgba(229, 9, 20, 0.5);
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 18px rgba(229, 9, 20, 0.3);
+  }
+  .downloads-hero h1 {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -1px;
+    margin-bottom: 12px;
+  }
+  .downloads-hero p {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 680px;
+    margin: 0 auto 28px;
+  }
+  .hub-search-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    border: 2px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    padding: 8px 12px 8px 20px;
+    max-width: 820px;
+    margin: 0 auto 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+  .hub-search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 12px 40px rgba(229, 9, 20, 0.25);
+  }
+  .hub-search-box input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 1.02rem;
+    font-family: inherit;
+  }
+  .hub-quick-chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+  }
+  .hub-chip-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #d1d1db;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hub-chip-btn:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  /* Extracted Item Container */
+  .extracted-container {
+    max-width: 1160px;
+    margin: 32px auto 60px;
+    padding: 0 4vw;
+  }
+  .extracted-header-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+  }
+  .extracted-poster {
+    width: 150px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--bg-card);
+    flex-shrink: 0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .extracted-poster img {
+    width: 100%;
+    aspect-ratio: 2/3;
+    object-fit: cover;
+  }
+  .extracted-info {
+    flex: 1;
+    min-width: 280px;
+  }
+  .extracted-title-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  .extracted-title-row h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+  }
+  .extracted-type-pill {
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    text-transform: uppercase;
+  }
+  .extracted-desc {
+    color: var(--text-dim);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin: 10px 0 16px;
+  }
+  .extracted-action-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* Badges */
+  .badge-quality-4k { background: #ea580c !important; color: #fff !important; }
+  .badge-quality-hdr { background: #059669 !important; color: #fff !important; }
+  .badge-quality-1080p { background: #2563eb !important; color: #fff !important; }
+  .badge-quality-audio { background: #0d9488 !important; color: #fff !important; }
+  .badge-quality-size { background: #7c3aed !important; color: #fff !important; }
+
+  /* Season Packs & Episode Cards */
+  .dl-section-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 32px 0 16px;
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+  .dl-pack-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 14px;
+    margin-bottom: 24px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .dl-pack-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: all 0.25s;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  .dl-pack-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.6);
+  }
+  .dl-pack-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .dl-pack-header .ep-code-badge {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .dl-pack-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+  .dl-pack-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .dl-pack-pill {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .dl-pack-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    width: 100%;
+  }
+  .dl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    white-space: nowrap;
+  }
+  .dl-btn-hubcloud {
+    background: linear-gradient(135deg, #e50914 0%, #ff5260 100%);
+    color: #fff;
+  }
+  .dl-btn-hubcloud:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(229, 9, 20, 0.4);
+  }
+  .dl-btn-hubdrive {
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #e2e8f0;
+  }
+  .dl-btn-hubdrive:hover {
+    background: #334155;
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .dl-btn-copy {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-dim);
+    padding: 8px 10px !important;
+    flex-shrink: 0;
+  }
+  .dl-btn-copy:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+  }
+
+  /* Episode Accordion Group */
+  .ep-quality-group {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .ep-quality-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.03);
+    user-select: none;
+    transition: background 0.2s;
+  }
+  .ep-quality-header:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .ep-quality-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .ep-quality-header h3 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+  }
+  .ep-list-drawer {
+    display: flex;
+    flex-direction: column;
+    divide-y: divide-slate-800;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .ep-dl-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    gap: 12px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    transition: background 0.15s;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  .ep-dl-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .ep-dl-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1 1 260px;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .ep-code-badge {
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .ep-filename {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    min-width: 0;
+    flex: 1;
+  }
+  .ep-dl-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 640px) {
+    .hub-search-box {
+      flex-wrap: wrap;
+      padding: 10px 14px;
+      gap: 10px;
+    }
+    .hub-search-box input {
+      width: 100%;
+      min-width: 0;
+      flex: 1 1 100%;
+      font-size: 0.95rem;
+    }
+    .hub-search-box #hub-paste-btn {
+      flex: 1;
+      justify-content: center;
+    }
+    .hub-search-box #hub-extract-btn {
+      flex: 1.4;
+      justify-content: center;
+    }
+    .ep-dl-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+    .ep-dl-left {
+      width: 100%;
+      flex: 1 1 100%;
+    }
+    .ep-dl-actions {
+      width: 100%;
+      justify-content: flex-start;
+    }
+    .ep-dl-actions .dl-btn {
+      flex: 1;
+      justify-content: center;
+    }
+    .extracted-header-card {
+      padding: 16px;
+      gap: 16px;
+    }
+    .extracted-poster {
+      width: 110px;
+    }
+    .extracted-action-bar {
+      flex-direction: column;
+      width: 100%;
+    }
+    .extracted-action-bar .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  /* Search Result Items Grid */
+  .hub-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
+    margin-top: 24px;
+  }
+  .hub-result-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+  }
+  .hub-result-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  }
+  .hub-result-poster {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: var(--bg-elev);
+    position: relative;
+    overflow: hidden;
+  }
+  .hub-result-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hub-result-info {
+    padding: 12px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .hub-result-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .hub-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: auto;
+  }
+  .hub-result-pill {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #cbd5e1;
+  }
+
+  /* Download Guide Box */
+  .download-guide-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 40px auto 20px;
+    max-width: 1160px;
+  }
+  .download-guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    margin-top: 16px;
+  }
+  .guide-step-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .guide-step-card h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .guide-step-card p {
+    font-size: 0.84rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
   </style>
 </head>
 <body>
@@ -1303,6 +1795,7 @@
       <a href="#/browse?type=tv">TV Shows</a>
       <a href="#/anime">Anime</a>
       <a href="#/watchlist">Watchlist</a>
+      <a href="#/downloads" style="display:inline-flex;align-items:center;gap:5px;color:var(--text);font-weight:700"><i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent)"></i> <span class="nav-4k-text">4K Downloads</span></a>
     </nav>
     <div class="header-spacer"></div>
     <div class="search-box">
@@ -1330,6 +1823,10 @@
       <i class="fa-solid fa-dragon"></i>
       <span>Anime</span>
     </a>
+    <a href="#/downloads" class="mobile-nav-item" data-route="downloads">
+      <i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent)"></i>
+      <span>4K Hub</span>
+    </a>
     <a href="#/watchlist" class="mobile-nav-item" data-route="watchlist">
       <i class="fa-solid fa-bookmark"></i>
       <span>Watchlist</span>
@@ -1349,22 +1846,28 @@
     <span class="watch-title" id="watch-title">Loading…</span>
     <div class="header-spacer"></div>
     <div class="watch-top-actions">
-      <button class="top-hdr-btn icon-btn-round" id="btn-prev-ep" title="Previous Episode" aria-label="Previous Episode" style="display:none">
+      <button class="top-hdr-btn" id="hdr-btn-download" title="4K & HD Downloads" aria-label="4K & HD Downloads" style="display:inline-flex">
+        <i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent)"></i>
+        <span class="hdr-dl-text" style="font-size:0.8rem;font-weight:700">4K Download</span>
+      </button>
+      <button class="top-hdr-btn" id="btn-prev-ep" title="Previous Episode" aria-label="Previous Episode" style="display:none">
         <i class="fa-solid fa-step-backward"></i>
       </button>
-      <button class="top-hdr-btn icon-btn-round" id="btn-next-ep" title="Next Episode" aria-label="Next Episode" style="display:none">
+      <button class="top-hdr-btn" id="btn-next-ep" title="Next Episode" aria-label="Next Episode" style="display:none">
         <i class="fa-solid fa-step-forward"></i>
       </button>
-      <button class="top-hdr-btn" id="hdr-btn-server" title="Switch Stream Server" aria-label="Switch Server">
-        <i class="fa-solid fa-server" style="color:var(--accent)"></i>
-        <span id="hdr-server-name">VidKing</span>
-        <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;opacity:0.75;margin-left:2px"></i>
-      </button>
+      <div class="episodes-dropdown-wrap" id="hdr-server-wrap" style="display:none">
+        <button class="top-hdr-btn" id="hdr-btn-server" title="Switch Server" aria-label="Switch Server">
+          <i class="fa-solid fa-server" style="color:var(--accent)"></i>
+          <span id="hdr-server-name" style="font-size:0.82rem;font-weight:600;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Server</span>
+          <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;margin-left:2px"></i>
+        </button>
+        <div class="episodes-dropdown-menu" id="hdr-server-menu" style="width:280px;max-height:360px;overflow-y:auto;padding:10px">
+        </div>
+      </div>
       <div class="episodes-dropdown-wrap" id="hdr-episodes-wrap" style="display:none">
         <button class="top-hdr-btn" id="hdr-btn-episodes" title="Episodes" aria-label="Episodes">
-          <i class="fa-solid fa-list-ul" style="color:var(--accent)"></i>
-          <span>Episodes</span>
-          <i class="fa-solid fa-chevron-down" style="font-size:0.7rem;opacity:0.75;margin-left:2px"></i>
+          <i class="fa-solid fa-list-ul" style="color:var(--accent)"></i> <i class="fa-solid fa-chevron-down" style="font-size:0.75rem;margin-left:2px"></i>
         </button>
         <div class="episodes-dropdown-menu" id="hdr-episodes-menu">
           <div class="sidebar-header">
@@ -1386,18 +1889,13 @@
           </div>
         </div>
       </div>
-      <button class="top-hdr-btn icon-btn-round active" id="hdr-btn-shield" title="Ad Shield: Popups & Malicious Redirects Blocked · Click to Toggle" aria-label="Ad Shield">
-        <i class="fa-solid fa-shield-halved" style="color:#22c55e"></i>
-      </button>
-      <button class="top-hdr-btn icon-btn-round" id="hdr-btn-pip" title="Picture in Picture (P)" aria-label="Picture in Picture">
+      <button class="top-hdr-btn" id="hdr-btn-pip" title="Picture in Picture (P)" aria-label="Picture in Picture">
         <i class="fa-solid fa-window-restore"></i>
       </button>
-      <button class="top-hdr-btn icon-btn-round primary" id="hdr-btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">
+      <button class="top-hdr-btn primary" id="hdr-btn-fullscreen" title="Fullscreen (F)" aria-label="Fullscreen">
         <i class="fa-solid fa-expand"></i>
       </button>
-      <button class="top-hdr-btn icon-btn-round" id="settings-btn-watch" aria-label="Settings" title="Settings">
-        <i class="fa-solid fa-sliders"></i>
-      </button>
+      <button class="icon-btn" id="settings-btn-watch" aria-label="Settings" title="Settings"><i class="fa-solid fa-sliders"></i></button>
     </div>
   </header>
 
@@ -1527,7 +2025,10 @@ const TMDB = (() => {
    ============================================================ */
 const PROVIDERS = [
   /* ---------------- RECOMMENDED SERVERS (Top 6) ---------------- */
-  { id:'vidking', name:'VidKing', recommended: true, badge:'Default · Fast & Clean', build({type,tmdb,season,episode,opt}) {
+  { id:'111movies', name:'111Movies', recommended: true, badge:'Default · Ad-Free & Fast', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
+  }},
+  { id:'vidking', name:'VidKing', recommended: true, badge:'Fast', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}`;
       const p = new URLSearchParams();
       if (opt && opt.color) p.set('color', opt.color);
@@ -1535,7 +2036,7 @@ const PROVIDERS = [
       if (type==='tv') { p.set('nextEpisode','true'); p.set('episodeSelector','true'); }
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
-  { id:'vidlinkpro', name:'VidLink Pro', recommended: true, badge:'Ad-Free & Fast', build({type,tmdb,season,episode,opt}) {
+  { id:'vidlinkpro', name:'VidLink Pro', recommended: true, badge:'Ad-Free', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://vidlink.pro/movie/${tmdb}` : `https://vidlink.pro/tv/${tmdb}/${season}/${episode}`;
       const p = new URLSearchParams();
       if (opt && opt.color) p.set('primaryColor', opt.color);
@@ -1543,7 +2044,7 @@ const PROVIDERS = [
       if (type==='tv') p.set('nextbutton','true');
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
-  { id:'videasy', name:'Videasy', recommended: true, badge:'Ad-Free & Clean', build({type,tmdb,season,episode,opt}) {
+  { id:'videasy', name:'Videasy', recommended: true, badge:'Ad-Free & Great UI', build({type,tmdb,season,episode,opt}) {
       let base = type==='movie' ? `https://player.videasy.net/movie/${tmdb}` : `https://player.videasy.net/tv/${tmdb}/${season}/${episode}`;
       const p = new URLSearchParams();
       if (opt && opt.color) p.set('color', opt.color);
@@ -1569,9 +2070,6 @@ const PROVIDERS = [
         p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
       }
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
-  }},
-  { id:'111movies', name:'111Movies', recommended: false, badge:'Backup Mirror', build({type,tmdb,season,episode}) {
-      return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
   }},
 
   /* ---------------- BACKUP SERVERS (Ordered) ---------------- */
@@ -1644,14 +2142,6 @@ const ANIME_PROVIDERS = [
       p.set('nextEpisode', 'true');
       p.set('episodeSelector', 'true');
       p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
-      const qs = p.toString(); return qs ? `${base}?${qs}` : base;
-  }},
-  { id:'vidlink-anime', name:'VidLink Anime', recommended: true, badge:'Ad-Free · MAL ID', build({malId, epNum, lang, opt}) {
-      let base = `https://vidlink.pro/anime/${malId}/${epNum}/${lang || 'sub'}`;
-      const p = new URLSearchParams();
-      if (opt && opt.color) p.set('primaryColor', opt.color.replace('#',''));
-      p.set('autoplay', opt && opt.autoplay === false ? 'false' : 'true');
-      p.set('fallback', 'true');
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
   { id:'megaplay-mal', name:'MegaPlay (MAL)', badge:'MAL ID', build({malId, epNum, lang}) {
@@ -1732,7 +2222,7 @@ async function resolveAnimeIds(title, seasonNum, isMovie = false) {
    ============================================================ */
 const Settings = (() => {
   const KEY = 'Urnperiodic_settings';
-  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidking', animeLang:'sub', adShield:false };
+  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidy-anime', animeLang:'sub' };
   function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
   function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
   function applyTheme() {
@@ -1742,49 +2232,6 @@ const Settings = (() => {
     document.documentElement.style.setProperty('--accent-soft', `rgba(${r},${g},${b},0.15)`);
   }
   return { get, save, applyTheme, DEFAULTS };
-})();
-
-/* ============================================================
-   Ad Shield & Provider Compatibility Manager
-   Providers like VidSrc.to explicitly check for iframe sandbox and
-   refuse to play if sandboxed. We protect against top-level redirects
-   and popups without breaking anti-sandbox video hosts.
-   ============================================================ */
-const ANTI_SANDBOX_PROVIDERS = [
-  'vidsrcto', 'vidsrcme', 'vidsrcxyz', 'vidsrcvip', 'vidsrcpro',
-  'embedsu', 'superembed', 'smashystream', '2embed', 'cinescrape',
-  'moviesapi', '111movies', 'vidbinge', 'nontongo'
-];
-
-const AdShield = {
-  isActive() {
-    return Settings.get().adShield === true;
-  },
-  toggle() {
-    const next = !this.isActive();
-    Settings.save({ adShield: next });
-    return next;
-  },
-  applyToIframe(iframe, providerId) {
-    // If the provider prohibits sandboxing (e.g. VidSrc.to) or adShield is false,
-    // NEVER add the sandbox attribute to prevent the "can't be embedded" error.
-    if (this.isActive() && !ANTI_SANDBOX_PROVIDERS.includes(providerId)) {
-      iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-presentation');
-    } else {
-      iframe.removeAttribute('sandbox');
-    }
-  }
-};
-
-(() => {
-  const originalOpen = window.open;
-  window.open = function(url, target, features) {
-    if (AdShield.isActive() && (location.hash.startsWith('#/watch') || location.hash.startsWith('#/anime-watch'))) {
-      console.info('Ad Shield: Intercepted popup navigation to:', url);
-      return null;
-    }
-    return originalOpen ? originalOpen.call(window, url, target, features) : null;
-  };
 })();
 
 const SWATCHES = ['DC2626','e50914','ff6b00','f5a623','46d369','00b4d8','4361ee','9146ff','e91e63','ffffff'];
@@ -1964,20 +2411,16 @@ function buildSettingsDrawer() {
       <h3>Settings</h3>
       <p class="muted">Personalize the player, server and theme.</p>
 
-      <button class="btn btn-primary" id="drawer-open-server-modal" style="width:100%;justify-content:center;margin:12px 0 16px;background:var(--accent);font-weight:700">
-        <i class="fa-solid fa-server"></i> Open Server Selection Screen
-      </button>
-
       <div class="field" style="margin-bottom:14px">
-        <label style="font-size:0.85rem;margin-bottom:6px"><i class="fa-solid fa-dragon" style="color:var(--accent)"></i> Anime server (Dedicated & Main)</label>
+        <label style="font-size:0.85rem;margin-bottom:6px"><i class="fa-solid fa-dragon" style="color:var(--accent)"></i> Anime server (MegaPlay)</label>
         <div class="server-picker" id="anime-server-picker">
-          ${[...ANIME_PROVIDERS, ...PROVIDERS.slice(0, 5)].map(p => `
+          ${ANIME_PROVIDERS.map(p => `
             <button class="server-opt is-compact ${p.id===s.animeProvider?'active':''}" data-anime-id="${p.id}">
               <span class="sname">${p.name}</span>
               <span class="sbadge">${p.badge}</span>
             </button>`).join('')}
         </div>
-        <p class="muted" style="margin-top:5px;font-size:0.75rem;margin-bottom:0">Works on all Anime titles (dedicated sources or TMDB streams).</p>
+        <p class="muted" style="margin-top:5px;font-size:0.75rem;margin-bottom:0">Used on Anime pages to stream HiAnime library via Anikoto.</p>
       </div>
 
       <div class="field">
@@ -2006,8 +2449,7 @@ function buildSettingsDrawer() {
       </div>
 
       <div class="field">
-        <label>Playback & Protection</label>
-        <div class="toggle-row"><span><i class="fa-solid fa-shield-halved" style="color:#22c55e;margin-right:6px"></i> Ad Shield (Block Popups & Redirects)</span><label class="switch"><input type="checkbox" id="opt-adshield" ${s.adShield!==false?'checked':''}><span class="slider"></span></label></div>
+        <label>Playback</label>
         <div class="toggle-row"><span>Autoplay</span><label class="switch"><input type="checkbox" id="opt-autoplay" ${s.autoplay?'checked':''}><span class="slider"></span></label></div>
         <div class="toggle-row"><span>Start muted</span><label class="switch"><input type="checkbox" id="opt-muted" ${s.muted?'checked':''}><span class="slider"></span></label></div>
       </div>
@@ -2034,38 +2476,14 @@ function buildSettingsDrawer() {
   backdrop.addEventListener('click', close);
   document.getElementById('drawer-close').addEventListener('click', close);
 
-  document.getElementById('drawer-open-server-modal').addEventListener('click', () => {
-    close();
-    const curHash = location.hash;
-    const isAnime = curHash.startsWith('#/anime-watch');
-    const curId = isAnime ? Settings.get().animeProvider : Settings.get().defaultProvider;
-    window.openServerModal({
-      isAnime,
-      currentId: curId,
-      onSelect: (provId) => {
-        if (isAnime) {
-          Settings.save({ animeProvider: provId });
-          if (window._reloadAnimePlayer) window._reloadAnimePlayer(provId);
-          toast('Anime server set to ' + getAnimeProvider(provId).name);
-        } else {
-          Settings.save({ defaultProvider: provId });
-          if (window._reloadPlayer) window._reloadPlayer(provId);
-          toast('Server set to ' + getProvider(provId).name);
-        }
-      }
-    });
-  });
-
   // server selection
   document.querySelectorAll('#settings-drawer .server-opt[data-id]').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#settings-drawer .server-opt[data-id]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const provId = btn.dataset.id;
-      Settings.save({ defaultProvider: provId });
-      toast('Server set to ' + getProvider(provId).name);
-      if (window._reloadPlayer) window._reloadPlayer(provId);
-      if (window._reloadAnimePlayer) window._reloadAnimePlayer(provId);
+      Settings.save({ defaultProvider: btn.dataset.id });
+      toast('Server set to ' + getProvider(btn.dataset.id).name);
+      if (window._reloadPlayer) window._reloadPlayer(btn.dataset.id);
     });
   });
 
@@ -2074,11 +2492,9 @@ function buildSettingsDrawer() {
     btn.addEventListener('click', () => {
       document.querySelectorAll('#settings-drawer .server-opt[data-anime-id]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const provId = btn.dataset.animeId;
-      Settings.save({ animeProvider: provId });
-      toast('Anime server set to ' + getAnimeProvider(provId).name);
-      if (window._reloadAnimePlayer) window._reloadAnimePlayer(provId);
-      if (window._reloadPlayer) window._reloadPlayer(provId);
+      Settings.save({ animeProvider: btn.dataset.animeId });
+      toast('Anime server set to ' + getAnimeProvider(btn.dataset.animeId).name);
+      if (window._reloadAnimePlayer) window._reloadAnimePlayer(btn.dataset.animeId);
     });
   });
 
@@ -2094,14 +2510,6 @@ function buildSettingsDrawer() {
     const c = e.target.value.replace('#','');
     document.querySelectorAll('#swatch-list .swatch').forEach(b => b.classList.remove('active'));
     Settings.save({ color: c });
-  });
-  document.getElementById('opt-adshield').addEventListener('change', e => {
-    Settings.save({ adShield: e.target.checked });
-    toast(e.target.checked ? '🛡️ Ad Shield ON: Popups blocked' : '⚠️ Ad Shield OFF: Permissive mode');
-    const curP = Settings.get().defaultProvider;
-    const curA = Settings.get().animeProvider;
-    if (window._reloadPlayer) window._reloadPlayer(curP);
-    if (window._reloadAnimePlayer) window._reloadAnimePlayer(curA);
   });
   document.getElementById('opt-autoplay').addEventListener('change', e => Settings.save({ autoplay: e.target.checked }));
   document.getElementById('opt-muted').addEventListener('change', e => Settings.save({ muted: e.target.checked }));
@@ -2127,141 +2535,7 @@ function buildSettingsDrawer() {
 }
 
 /* ============================================================
-   Server Selection Modal Screen (Unified for Movies, TV & Anime)
-   ============================================================ */
-function initServerSelectModal() {
-  if (document.getElementById('server-modal-backdrop')) return;
-  const wrap = document.createElement('div');
-  wrap.innerHTML = `
-    <div class="server-modal-backdrop" id="server-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="server-modal-title">
-      <div class="server-modal">
-        <div class="server-modal-header">
-          <div>
-            <div class="server-modal-title" id="server-modal-title">
-              <i class="fa-solid fa-server" style="color:var(--accent)"></i>
-              <span>Select Stream Server</span>
-            </div>
-            <div class="server-modal-sub">Switch servers instantly if video freezes, buffers, or has playback issues.</div>
-          </div>
-          <button class="server-modal-close" id="server-modal-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="server-modal-toolbar">
-          <div class="server-modal-tabs" id="server-modal-tabs">
-            <button class="server-tab-btn active" data-tab="all">All Servers</button>
-            <button class="server-tab-btn" data-tab="clean">Recommended & Fast</button>
-            <button class="server-tab-btn" data-tab="anime">Anime Dedicated</button>
-            <button class="server-tab-btn" data-tab="mirrors">Backup Mirrors</button>
-          </div>
-          <input type="text" class="server-search-input" id="server-modal-search" placeholder="Search servers…" autocomplete="off">
-        </div>
-        <div class="server-modal-grid" id="server-modal-grid"></div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(wrap);
-
-  const backdrop = document.getElementById('server-modal-backdrop');
-  const closeBtn = document.getElementById('server-modal-close');
-  const grid = document.getElementById('server-modal-grid');
-  const searchInput = document.getElementById('server-modal-search');
-  const tabs = document.querySelectorAll('#server-modal-tabs .server-tab-btn');
-
-  let activeModalState = null;
-  let currentFilter = 'all';
-
-  const closeModal = () => {
-    backdrop.classList.remove('open');
-    activeModalState = null;
-  };
-
-  closeBtn.addEventListener('click', closeModal);
-  backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) closeModal();
-  });
-
-  const getAllList = () => {
-    const rec = PROVIDERS.filter(p => p.recommended);
-    const backups = PROVIDERS.filter(p => !p.recommended);
-    return [
-      ...rec.map(p => ({ ...p, category: 'rec', type: 'standard' })),
-      ...ANIME_PROVIDERS.map(p => ({ ...p, category: 'anime', type: 'anime' })),
-      ...backups.map(p => ({ ...p, category: 'backup', type: 'standard' }))
-    ];
-  };
-
-  const renderGrid = () => {
-    if (!activeModalState) return;
-    const { isAnime, currentId, onSelect } = activeModalState;
-    const q = (searchInput.value || '').trim().toLowerCase();
-    const all = getAllList();
-
-    let filtered = all.filter(s => {
-      if (currentFilter === 'clean' && s.category !== 'rec') return false;
-      if (currentFilter === 'anime' && s.category !== 'anime') return false;
-      if (currentFilter === 'mirrors' && s.category !== 'backup') return false;
-      if (q) {
-        return s.name.toLowerCase().includes(q) || (s.badge && s.badge.toLowerCase().includes(q));
-      }
-      return true;
-    });
-
-    if (!filtered.length) {
-      grid.innerHTML = `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-dim)">No servers match "${q}".</div>`;
-      return;
-    }
-
-    grid.innerHTML = filtered.map((s, idx) => {
-      const isActive = s.id === currentId;
-      const isClean = s.recommended || s.category === 'rec' || s.id === 'vidlink-anime' || s.id === 'vidy-anime';
-      return `
-        <button class="server-card-item ${isActive ? 'active' : ''}" data-id="${s.id}">
-          <div class="server-card-left">
-            <span class="server-card-num">${idx + 1}</span>
-            <div class="server-card-info">
-              <span class="server-card-name">${s.name}</span>
-              <span class="server-card-badge">${s.badge || 'Fast HD'}</span>
-            </div>
-          </div>
-          <div class="server-card-right">
-            ${isClean ? '<span class="server-shield-badge" style="color:#22c55e;background:rgba(34,197,94,0.12)"><i class="fa-solid fa-circle-check"></i> Clean</span>' : '<span class="server-shield-badge" style="color:#f59e0b;background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.25)"><i class="fa-solid fa-server"></i> Mirror</span>'}
-            ${isActive ? '<span class="server-active-tag">Active</span>' : ''}
-          </div>
-        </button>
-      `;
-    }).join('');
-
-    grid.querySelectorAll('.server-card-item').forEach(btn => {
-      btn.onclick = () => {
-        const provId = btn.dataset.id;
-        if (onSelect) onSelect(provId);
-        closeModal();
-      };
-    });
-  };
-
-  searchInput.addEventListener('input', renderGrid);
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentFilter = tab.dataset.tab;
-      renderGrid();
-    });
-  });
-
-  window.openServerModal = ({ isAnime, currentId, onSelect }) => {
-    activeModalState = { isAnime, currentId, onSelect };
-    currentFilter = 'all';
-    tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === 'all'));
-    searchInput.value = '';
-    renderGrid();
-    backdrop.classList.add('open');
-    searchInput.focus();
-  };
-}
-
-/* ============================================================
-   Ad-Free & Player Protection Notice (On-Demand)
+   First-Time Adblocker Notice
    ============================================================ */
 function initFirstTimeNotice() {
   if (document.getElementById('notice-backdrop')) return;
@@ -2273,32 +2547,33 @@ function initFirstTimeNotice() {
           <div class="notice-title-box">
             <div class="notice-icon-badge"><i class="fa-solid fa-shield-halved"></i></div>
             <div>
-              <h2 id="notice-title">Clean Playback & Player Info</h2>
-              <p>Ad-free streaming architecture</p>
+              <h2 id="notice-title">Adblocker Notice</h2>
+              <p>Important recommendation for best experience</p>
             </div>
           </div>
           <button class="notice-close-btn" id="notice-close" aria-label="Close Notice"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <div class="notice-body-text">
-          <p style="margin-bottom: 12px; font-weight: 600; color: #fff;">Stream cleanly without interruptions 👋</p>
-          <p style="margin-bottom: 12px;">This platform does not load any ad scripts, marketing trackers, or client-side ad containers. Video playback is configured separately from advertising, ensuring our recommended servers stream video cleanly without intrusive client-side ads.</p>
-          <p style="margin-bottom: 12px; font-size: 0.88rem; color: #a0a0b5;"><em>🔒 For external backup mirrors that might attempt third-party scripts, reputable browser extensions like <strong>uBlock Origin</strong> or <strong>uBlock Origin Lite</strong> can provide additional defense-in-depth:</em></p>
+          <p style="margin-bottom: 12px; font-weight: 600; color: #fff;">Welcome, fellow peers and strangers! 👋</p>
+          <p style="margin-bottom: 12px;">To ensure you get the absolute best, uninterrupted streaming experience, I (the creator of this site) strongly recommend using a trusted adblocker extension:</p>
           <ul style="margin: 0 0 12px 18px; padding: 0; line-height: 1.7; color: var(--text-dim);">
-            <li><strong style="color: #fff;">uBlock Origin Lite</strong> (Chromium browsers)</li>
-            <li><strong style="color: #fff;">uBlock Origin</strong> (Firefox & others)</li>
+            <li><strong style="color: #fff;">uBlock Origin Lite</strong> (for Chrome, Edge & Chromium browsers)</li>
+            <li><strong style="color: #fff;">uBlock Origin</strong> (for those using Firefox... <em>ew</em>)</li>
           </ul>
+          <p style="margin-bottom: 12px; font-size: 0.88rem; color: #a0a0b5;"><em>🔒 Rest assured, these are 100% safe, open-source browser extensions trusted by over 10 million users worldwide.</em></p>
+          <p style="margin: 0;"><strong style="color: var(--accent);">Next Step:</strong> After installing, set your filtering mode to <strong style="color: #fff;">"Complete"</strong> as shown in the guide below.</p>
         </div>
 
         <div class="ublock-guide-container">
-          <img src="./ublock_guide.jpg" alt="Recommended filtering settings" class="ublock-guide-img" onerror="this.style.display='none'">
+          <img src="./ublock_guide.jpg" alt="Set filtering mode to complete in uBlock" class="ublock-guide-img" onerror="this.style.display='none'">
           <div class="ublock-guide-caption">
-            <i class="fa-solid fa-circle-info"></i> Set filtering mode to <strong>complete</strong> in uBlock Lite extension if used
+            <i class="fa-solid fa-circle-info"></i> Set filtering mode to <strong>complete</strong> in uBlock Lite extension
           </div>
         </div>
 
         <button id="notice-dismiss-btn" class="btn btn-primary" style="width:100%; justify-content:center; padding: 12px 20px; font-weight: 700; font-size: 0.98rem; border-radius: 10px;">
-          <i class="fa-solid fa-circle-check"></i> Got It
+          <i class="fa-solid fa-circle-check"></i> I Understand & Got It
         </button>
       </div>
     </div>`;
@@ -2316,7 +2591,10 @@ function initFirstTimeNotice() {
     if (e.target === backdrop) closeNotice();
   });
 
-  // Modal does not pop up automatically; available from Settings drawer
+  if (!localStorage.getItem('adblocker_notice_seen')) {
+    setTimeout(() => backdrop.classList.add('open'), 450);
+  }
+
   window.openAdblockerNotice = () => backdrop.classList.add('open');
 }
 
@@ -2676,6 +2954,7 @@ function parseHash() {
   if (path === '/watch') return { route: 'watch', params };
   if (path === '/anime') return { route: 'anime', params };
   if (path === '/anime-watch') return { route: 'anime-watch', params };
+  if (path === '/downloads' || path === '/hub') return { route: 'downloads', params };
   if (path === '/watchlist') return { route: 'watchlist', params };
   return { route: 'home', params: {} };
 }
@@ -3219,8 +3498,11 @@ async function renderDetails(params) {
             </div>
             <div class="genre-tags">${genres}</div>
             <p class="details-overview">${details.overview || 'No description available.'}</p>
-            <div class="details-actions" style="display:flex;gap:12px;margin-bottom:24px;">
+            <div class="details-actions" style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
               <button class="btn btn-primary" id="det-play" style="flex-shrink:0;"><i class="fa-solid fa-play"></i> ${type==='tv'?'Play S'+season+' E1':'Play'}</button>
+              <button class="btn btn-outline" id="det-4khub-btn" style="display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:10px;border-color:rgba(229,9,20,0.5);background:rgba(229,9,20,0.12)">
+                <i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent)"></i> <span>4K & HD Downloads</span>
+              </button>
               <button class="btn btn-outline" id="det-watchlist" style="display:flex;align-items:center;gap:8px;padding:12px 20px;border-radius:10px;">
                 ${Watchlist.has(id, type) ? '<i class="fa-solid fa-check" style="color:var(--accent)"></i> Saved' : '<i class="fa-solid fa-plus"></i> Add to Watchlist'}
               </button>
@@ -3238,6 +3520,23 @@ async function renderDetails(params) {
       </section>
 
       <div class="details-body">
+        <!-- 4K-HDHub Fast Downloads Section -->
+        <section class="downloads-section" id="details-downloads-section" style="margin: 20px 0 32px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+            <h2 class="section-title" style="margin:0"><span class="accent-bar"></span> ⚡ 4K-HDHub Fast Downloads (4K UHD & 1080p)</h2>
+            <a href="#/downloads?q=${encodeURIComponent(title)}" class="btn btn-ghost" style="padding:6px 14px;font-size:0.82rem;border-radius:8px">
+              Open Full 4K Hub <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:0.75rem;margin-left:4px"></i>
+            </a>
+          </div>
+          <div id="inline-4khub-content">
+            <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:22px;text-align:center;">
+              <p style="color:var(--text-dim);font-size:0.9rem;display:flex;align-items:center;justify-content:center;gap:10px;">
+                <i class="fa-solid fa-spinner fa-spin" style="color:var(--accent)"></i> Loading 4K-HDHub high-speed download mirrors for "${escapeHTML(title)}"...
+              </p>
+            </div>
+          </div>
+        </section>
+
         ${type==='tv' ? `
         <section class="episodes-section" id="episodes-section">
           <h2 class="section-title"><span class="accent-bar"></span> Episodes</h2>
@@ -3260,6 +3559,149 @@ async function renderDetails(params) {
       navigateToWatch(id, type, season, 1);
     }
   };
+
+  const hubBtn = document.getElementById('det-4khub-btn');
+  if (hubBtn) {
+    hubBtn.onclick = () => {
+      const sec = document.getElementById('details-downloads-section');
+      if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+  }
+
+  // Async load inline 4kHdHub downloads
+  (async function loadInline4kHub() {
+    const cont = document.getElementById('inline-4khub-content');
+    if (!cont) return;
+    try {
+      const searchRes = await HubAPI.search(title);
+      const results = searchRes.results || [];
+      if (!results.length) {
+        cont.innerHTML = `
+          <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;">
+            <p style="color:var(--text-dim);font-size:0.88rem">No direct 4K-HDHub release matched "${escapeHTML(title)}" automatically.</p>
+            <a href="#/downloads?q=${encodeURIComponent(title)}" class="btn btn-outline" style="margin-top:10px;font-size:0.82rem;padding:6px 14px">
+              <i class="fa-solid fa-magnifying-glass"></i> Search 4K-HDHub Manually
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      // Pick best matching item
+      const best = results[0];
+      const parsedData = await HubAPI.parse(best.url);
+      const seasons = parsedData.completeSeasons || [];
+      const eps = parsedData.episodeGroups || [];
+      const movies = parsedData.movieDownloads || [];
+
+      if (!seasons.length && !eps.length && !movies.length) {
+        cont.innerHTML = `
+          <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;">
+            <p style="color:var(--text-dim);font-size:0.88rem">Found "${escapeHTML(best.title)}", click below to open download packages.</p>
+            <a href="#/downloads?url=${encodeURIComponent(best.url)}" class="btn btn-primary" style="margin-top:10px;font-size:0.85rem">
+              <i class="fa-solid fa-cloud-arrow-down"></i> Open 4K Download Links
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      let innerHTML = '';
+      if (seasons.length > 0) {
+        innerHTML += `
+          <div style="margin-bottom:18px;">
+            <div style="font-size:0.85rem;font-weight:700;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">
+              <i class="fa-solid fa-file-zipper" style="color:#ea580c"></i> Complete Season Batches (ZIP)
+            </div>
+            <div class="dl-pack-grid" style="grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;">
+              ${seasons.slice(0, 4).map(s => `
+                <div class="dl-pack-card" style="padding:14px">
+                  <div class="dl-pack-header">
+                    <span class="ep-code-badge">${escapeHTML(s.season || 'S01')}</span>
+                    <div class="dl-pack-title" style="font-size:0.88rem">${escapeHTML(s.fileTitle || s.title)}</div>
+                  </div>
+                  <div class="dl-pack-meta">
+                    ${(s.badges || []).slice(0, 3).map(b => `<span class="dl-pack-pill">${escapeHTML(b)}</span>`).join('')}
+                  </div>
+                  <div class="dl-pack-buttons" style="margin-top:8px;padding-top:8px">
+                    ${(s.links || []).map(link => `
+                      <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="dl-btn ${link.name.toLowerCase().includes('cloud') ? 'dl-btn-hubcloud' : 'dl-btn-hubdrive'}" style="padding:6px 10px;font-size:0.8rem">
+                        <i class="fa-solid ${link.name.toLowerCase().includes('cloud') ? 'fa-cloud-arrow-down' : 'fa-hard-drive'}"></i> ${escapeHTML(link.name)}
+                      </a>
+                    `).join('')}
+                    <button class="dl-btn dl-btn-copy" data-copy-link="${(s.links[0] || {}).url || ''}" title="Copy Link" style="padding:6px 10px;font-size:0.8rem">
+                      <i class="fa-solid fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      if (movies.length > 0 && !seasons.length) {
+        innerHTML += `
+          <div style="margin-bottom:18px;">
+            <div style="font-size:0.85rem;font-weight:700;color:var(--text-dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px">
+              <i class="fa-solid fa-compact-disc" style="color:var(--accent)"></i> 4K UHD & 1080p Movie Releases
+            </div>
+            <div class="dl-pack-grid" style="grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:12px;">
+              ${movies.slice(0, 4).map(m => `
+                <div class="dl-pack-card" style="padding:14px">
+                  <div class="dl-pack-header">
+                    <div class="dl-pack-title" style="font-size:0.88rem">${escapeHTML(m.fileTitle || m.title)}</div>
+                  </div>
+                  <div class="dl-pack-meta">
+                    ${(m.badges || []).slice(0, 3).map(b => `<span class="dl-pack-pill">${escapeHTML(b)}</span>`).join('')}
+                  </div>
+                  <div class="dl-pack-buttons" style="margin-top:8px;padding-top:8px">
+                    ${(m.links || []).map(link => `
+                      <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="dl-btn ${link.name.toLowerCase().includes('cloud') ? 'dl-btn-hubcloud' : 'dl-btn-hubdrive'}" style="padding:6px 10px;font-size:0.8rem">
+                        <i class="fa-solid ${link.name.toLowerCase().includes('cloud') ? 'fa-cloud-arrow-down' : 'fa-hard-drive'}"></i> ${escapeHTML(link.name)}
+                      </a>
+                    `).join('')}
+                    <button class="dl-btn dl-btn-copy" data-copy-link="${(m.links[0] || {}).url || ''}" title="Copy Link" style="padding:6px 10px;font-size:0.8rem">
+                      <i class="fa-solid fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      innerHTML += `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;gap:10px">
+          <span style="font-size:0.8rem;color:var(--text-dim)">Source: 4K-HDHub (${escapeHTML(best.title)})</span>
+          <a href="#/downloads?url=${encodeURIComponent(best.url)}" class="btn btn-outline" style="font-size:0.82rem;padding:6px 14px;border-radius:8px">
+            View All Episodes & 4K Qualities in 4K Hub <i class="fa-solid fa-arrow-right" style="font-size:0.75rem;margin-left:4px"></i>
+          </a>
+        </div>
+      `;
+
+      cont.innerHTML = innerHTML;
+
+      cont.querySelectorAll('button[data-copy-link]').forEach(b => {
+        b.onclick = (e) => {
+          e.stopPropagation();
+          const l = b.dataset.copyLink;
+          if (l) copyToClipboard(l, 'Download link copied!');
+        };
+      });
+
+    } catch (e) {
+      cont.innerHTML = `
+        <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:14px;padding:20px;text-align:center;">
+          <p style="color:var(--text-dim);font-size:0.88rem">Explore full 4K and 1080p downloads on 4K-HDHub.</p>
+          <a href="#/downloads?q=${encodeURIComponent(title)}" class="btn btn-outline" style="margin-top:10px;font-size:0.82rem;padding:6px 14px">
+            <i class="fa-solid fa-cloud-arrow-down"></i> Open in 4K Downloads Hub
+          </a>
+        </div>
+      `;
+    }
+  })();
 
   const watchlistBtn = document.getElementById('det-watchlist');
   if (watchlistBtn) {
@@ -3518,68 +3960,64 @@ async function renderWatch(params) {
   const langCont = document.getElementById('w-lang-toggle-container');
   if (langCont) langCont.innerHTML = '';
 
+  const serverWrap = document.getElementById('hdr-server-wrap');
   const serverBtn = document.getElementById('hdr-btn-server');
+  const serverMenu = document.getElementById('hdr-server-menu');
   const serverNameEl = document.getElementById('hdr-server-name');
-  const shieldBtn = document.getElementById('hdr-btn-shield');
 
-  function updateServerDisplay() {
+  function renderServerMenu() {
+    if (!serverWrap || !serverMenu) return;
+    serverWrap.style.display = 'inline-flex';
     const curP = getProvider(currentProvider);
     if (serverNameEl) serverNameEl.textContent = curP.name;
-    syncShieldBtn();
+
+    serverMenu.innerHTML = `
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text-dim);letter-spacing:0.8px;padding:6px 8px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <span>STREAM SERVER</span>
+        <span style="font-size:0.7rem;color:var(--accent);font-weight:600">Keys 1–${PROVIDERS.length}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${PROVIDERS.map((p, i) => `
+          <button class="server-opt-btn ${p.id === currentProvider ? 'active' : ''}" data-id="${p.id}" style="
+            display:flex;align-items:center;justify-content:space-between;
+            padding:9px 12px;border-radius:8px;border:1px solid ${p.id === currentProvider ? 'var(--accent)' : 'rgba(255,255,255,0.08)'};
+            background:${p.id === currentProvider ? 'var(--accent-soft)' : 'rgba(255,255,255,0.03)'};
+            color:${p.id === currentProvider ? '#fff' : 'var(--text)'};
+            font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left;width:100%
+          ">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentProvider ? 'var(--accent)' : '#aaa'}">${i+1}</span>
+              <span>${p.name}</span>
+            </div>
+            ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
+          </button>
+        `).join('')}
+      </div>
+    `;
+
+    serverMenu.querySelectorAll('.server-opt-btn').forEach(btn => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const provId = btn.dataset.id;
+        currentProvider = provId;
+        Settings.save({ defaultProvider: provId });
+        serverWrap.classList.remove('open');
+        loadPlayer();
+        renderServerMenu();
+        toast('Server set to ' + getProvider(provId).name);
+      };
+    });
   }
 
-  function syncShieldBtn() {
-    if (!shieldBtn) return;
-    const curP = getProvider(currentProvider);
-    const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentProvider);
-    if (curP.recommended) {
-      shieldBtn.classList.add('active');
-      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#22c55e"></i>`;
-      shieldBtn.title = `${curP.name}: Recommended Clean & Ad-Free Server`;
-    } else if (isAntiSandbox) {
-      shieldBtn.classList.remove('active');
-      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#f59e0b"></i>`;
-      shieldBtn.title = `${curP.name}: External Mirror (Blocks iframe sandboxing). Switch to VidKing or VidLink for clean streams.`;
-    } else {
-      const active = AdShield.isActive();
-      shieldBtn.classList.toggle('active', active);
-      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
-      shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked)' : 'Ad Shield: Disabled';
-    }
-  }
-  updateServerDisplay();
-
-  if (serverBtn) {
+  if (serverBtn && serverWrap) {
     serverBtn.onclick = (e) => {
       e.stopPropagation();
-      window.openServerModal({
-        isAnime: false,
-        currentId: currentProvider,
-        onSelect: (provId) => {
-          currentProvider = provId;
-          Settings.save({ defaultProvider: provId });
-          updateServerDisplay();
-          loadPlayer();
-          toast('Server set to ' + getProvider(provId).name);
-        }
-      });
+      if (epWrap) epWrap.classList.remove('open');
+      serverWrap.classList.toggle('open');
     };
   }
 
-  if (shieldBtn) {
-    shieldBtn.onclick = (e) => {
-      e.stopPropagation();
-      const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentProvider);
-      if (isAntiSandbox) {
-        toast(`⚠️ ${getProvider(currentProvider).name} blocks iframe sandboxing. For 100% clean streams, switch to VidKing or VidLink Pro.`);
-        return;
-      }
-      const next = AdShield.toggle();
-      syncShieldBtn();
-      toast(next ? '🛡️ Ad Shield ON: Popups & redirects blocked' : '⚠️ Ad Shield OFF: Permissive mode');
-      loadPlayer();
-    };
-  }
+  renderServerMenu();
 
   if (type === 'tv') {
     if (epWrap) {
@@ -3618,6 +4056,11 @@ async function renderWatch(params) {
   const title = details.title || details.name || 'Untitled';
   const watchTitleEl = document.getElementById('watch-title');
 
+  const hdrDlBtn = document.getElementById('hdr-btn-download');
+  if (hdrDlBtn) {
+    hdrDlBtn.onclick = () => { location.hash = `#/downloads?q=${encodeURIComponent(title)}`; };
+  }
+
   function updateEpTag() {
     const curTag = type==='tv' ? `Season ${season} · Episode ${episode}` : '';
     if (watchTitleEl) watchTitleEl.innerHTML = `<span class="wt-main">${title}</span>${curTag ? `<span class="wt-tag">${curTag}</span>` : ''}`;
@@ -3649,7 +4092,6 @@ async function renderWatch(params) {
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
-    AdShield.applyToIframe(iframe, currentProvider);
     stage.appendChild(iframe);
     
     History.record({
@@ -3690,8 +4132,8 @@ async function renderWatch(params) {
   window._reloadPlayer = (provId) => {
     if (parseHash().route !== 'watch') return;
     currentProvider = provId;
-    updateServerDisplay();
     loadPlayer();
+    if (typeof renderServerMenu === 'function') renderServerMenu();
   };
 
   const stageEl = () => document.getElementById('player-stage');
@@ -3795,8 +4237,8 @@ async function renderWatch(params) {
       if (targetProv) {
         currentProvider = targetProv.id;
         Settings.save({ defaultProvider: targetProv.id });
-        updateServerDisplay();
         loadPlayer();
+        if (typeof renderServerMenu === 'function') renderServerMenu();
         toast(`Server set to ${targetProv.name} (#${num})`);
       }
     }
@@ -3827,68 +4269,87 @@ async function renderAnimeWatch(params) {
   const prevBtnHdr = document.getElementById('btn-prev-ep');
   const nextBtnHdr = document.getElementById('btn-next-ep');
 
+  const serverWrap = document.getElementById('hdr-server-wrap');
   const serverBtn = document.getElementById('hdr-btn-server');
+  const serverMenu = document.getElementById('hdr-server-menu');
   const serverNameEl = document.getElementById('hdr-server-name');
-  const shieldBtn = document.getElementById('hdr-btn-shield');
 
-  function updateAnimeServerDisplay() {
+  function renderAnimeServerMenu() {
+    if (!serverWrap || !serverMenu) return;
+    serverWrap.style.display = 'inline-flex';
     const curP = getAnimeProvider(currentAnimeProvider);
     if (serverNameEl) serverNameEl.textContent = curP.name;
-    syncShieldBtn();
+
+    const totalCount = ANIME_PROVIDERS.length + PROVIDERS.length;
+
+    serverMenu.innerHTML = `
+      <div style="font-size:0.75rem;font-weight:700;color:var(--text-dim);letter-spacing:0.8px;padding:6px 8px 10px;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
+        <span>STREAM SERVER</span>
+        <span style="font-size:0.7rem;color:var(--accent);font-weight:600">Keys 1–${totalCount}</span>
+      </div>
+
+      <div style="font-size:0.68rem;font-weight:800;color:var(--accent);letter-spacing:0.8px;padding:4px 8px;margin-bottom:4px;text-transform:uppercase">ANIME DEDICATED SERVERS</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+        ${ANIME_PROVIDERS.map((p, i) => `
+          <button class="server-opt-btn ${p.id === currentAnimeProvider ? 'active' : ''}" data-id="${p.id}" style="
+            display:flex;align-items:center;justify-content:space-between;
+            padding:9px 12px;border-radius:8px;border:1px solid ${p.id === currentAnimeProvider ? 'var(--accent)' : 'rgba(255,255,255,0.08)'};
+            background:${p.id === currentAnimeProvider ? 'var(--accent-soft)' : 'rgba(255,255,255,0.03)'};
+            color:${p.id === currentAnimeProvider ? '#fff' : 'var(--text)'};
+            font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left;width:100%
+          ">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentAnimeProvider ? 'var(--accent)' : '#aaa'}">${i+1}</span>
+              <span>${p.name}</span>
+            </div>
+            ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
+          </button>
+        `).join('')}
+      </div>
+
+      <div style="font-size:0.68rem;font-weight:800;color:var(--text-dim);letter-spacing:0.8px;padding:4px 8px;margin-bottom:4px;text-transform:uppercase">STANDARD MOVIE & TV SERVERS</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${PROVIDERS.map((p, i) => `
+          <button class="server-opt-btn ${p.id === currentAnimeProvider ? 'active' : ''}" data-id="${p.id}" style="
+            display:flex;align-items:center;justify-content:space-between;
+            padding:9px 12px;border-radius:8px;border:1px solid ${p.id === currentAnimeProvider ? 'var(--accent)' : 'rgba(255,255,255,0.08)'};
+            background:${p.id === currentAnimeProvider ? 'var(--accent-soft)' : 'rgba(255,255,255,0.03)'};
+            color:${p.id === currentAnimeProvider ? '#fff' : 'var(--text)'};
+            font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.15s;text-align:left;width:100%
+          ">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,0.1);display:inline-flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:800;color:${p.id === currentAnimeProvider ? 'var(--accent)' : '#aaa'}">${ANIME_PROVIDERS.length + i + 1}</span>
+              <span>${p.name}</span>
+            </div>
+            ${p.badge ? `<span style="font-size:0.68rem;padding:2px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:var(--text-dim)">${p.badge}</span>` : ''}
+          </button>
+        `).join('')}
+      </div>
+    `;
+
+    serverMenu.querySelectorAll('.server-opt-btn').forEach(btn => {
+      btn.onclick = async (e) => {
+        e.stopPropagation();
+        const provId = btn.dataset.id;
+        currentAnimeProvider = provId;
+        Settings.save({ animeProvider: provId });
+        serverWrap.classList.remove('open');
+        await loadPlayer();
+        renderAnimeServerMenu();
+        toast('Server set to ' + getAnimeProvider(provId).name);
+      };
+    });
   }
 
-  function syncShieldBtn() {
-    if (!shieldBtn) return;
-    const curP = getAnimeProvider(currentAnimeProvider);
-    const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentAnimeProvider);
-    if (curP.recommended) {
-      shieldBtn.classList.add('active');
-      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#22c55e"></i>`;
-      shieldBtn.title = `${curP.name}: Recommended Clean & Ad-Free Server`;
-    } else if (isAntiSandbox) {
-      shieldBtn.classList.remove('active');
-      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:#f59e0b"></i>`;
-      shieldBtn.title = `${curP.name}: External Mirror (Blocks iframe sandboxing). Switch to VidKing or VidLink for clean streams.`;
-    } else {
-      const active = AdShield.isActive();
-      shieldBtn.classList.toggle('active', active);
-      shieldBtn.innerHTML = `<i class="fa-solid fa-shield-halved" style="color:${active ? '#22c55e' : '#888'}"></i>`;
-      shieldBtn.title = active ? 'Ad Shield: Active (Popups Blocked)' : 'Ad Shield: Disabled';
-    }
-  }
-  updateAnimeServerDisplay();
-
-  if (serverBtn) {
+  if (serverBtn && serverWrap) {
     serverBtn.onclick = (e) => {
       e.stopPropagation();
-      window.openServerModal({
-        isAnime: true,
-        currentId: currentAnimeProvider,
-        onSelect: async (provId) => {
-          currentAnimeProvider = provId;
-          Settings.save({ animeProvider: provId });
-          updateAnimeServerDisplay();
-          await loadPlayer();
-          toast('Server set to ' + getAnimeProvider(provId).name);
-        }
-      });
+      if (epWrap) epWrap.classList.remove('open');
+      serverWrap.classList.toggle('open');
     };
   }
 
-  if (shieldBtn) {
-    shieldBtn.onclick = (e) => {
-      e.stopPropagation();
-      const isAntiSandbox = ANTI_SANDBOX_PROVIDERS.includes(currentAnimeProvider);
-      if (isAntiSandbox) {
-        toast(`⚠️ ${getAnimeProvider(currentAnimeProvider).name} blocks iframe sandboxing. For 100% clean streams, switch to VidKing or VidLink Pro.`);
-        return;
-      }
-      const next = AdShield.toggle();
-      syncShieldBtn();
-      toast(next ? '🛡️ Ad Shield ON: Popups & redirects blocked' : '⚠️ Ad Shield OFF: Permissive mode');
-      loadPlayer();
-    };
-  }
+  renderAnimeServerMenu();
 
   if (isMovie && source !== 'anikoto') {
     if (epWrap) { epWrap.style.display = 'none'; epWrap.classList.remove('open'); }
@@ -3942,6 +4403,11 @@ async function renderAnimeWatch(params) {
   const title = details.name || details.title || 'Anime';
   const watchTitleEl = document.getElementById('watch-title');
 
+  const hdrDlBtn = document.getElementById('hdr-btn-download');
+  if (hdrDlBtn) {
+    hdrDlBtn.onclick = () => { location.hash = `#/downloads?q=${encodeURIComponent(title)}`; };
+  }
+
   async function resolveForCurrentSeason() {
     if (source === 'anikoto') {
       if (!resolvedTmdbId && title) {
@@ -3985,9 +4451,9 @@ async function renderAnimeWatch(params) {
   function buildAnimeSrc() {
     const epNum = isMovie ? 1 : episode;
     const opt = { color: Settings.get().color, autoplay: Settings.get().autoplay };
-    const targetTmdb = resolvedTmdbId || (/^\d+$/.test(String(tmdbId)) ? parseInt(tmdbId) : null);
+    const targetTmdb = resolvedTmdbId || tmdbId;
 
-    const hist = History.get(targetTmdb || tmdbId, isMovie ? 'movie' : 'tv');
+    const hist = History.get(targetTmdb, isMovie ? 'movie' : 'tv');
     let progress = 0;
     if (hist && hist.currentTime && hist.currentTime > 5) {
       if (isMovie || hist.episode == epNum) progress = hist.currentTime;
@@ -3996,42 +4462,35 @@ async function renderAnimeWatch(params) {
     // First check if current provider is a standard main provider (e.g. 111movies, vidking, vidlinkpro, videasy, etc.)
     const stdProv = PROVIDERS.find(p => p.id === currentAnimeProvider);
     if (stdProv) {
-      if (targetTmdb) {
-        return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
-      }
+      return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
     }
 
     // Otherwise check anime-specific provider
-    const animeProv = ANIME_PROVIDERS.find(p => p.id === currentAnimeProvider);
-    if (animeProv) {
-      if (animeProv.id === 'vidy-anime') {
-        if (anilistId) return animeProv.build({ anilistId, epNum, opt, progress });
-        if (targetTmdb) return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
-      }
-      if (animeProv.id === 'vidlink-anime' && malId) return animeProv.build({ malId, epNum, lang, opt });
-      if (animeProv.id === 'megaplay-mal' && malId) return animeProv.build({ malId, epNum, lang });
-      if (animeProv.id === 'megaplay-ani' && anilistId) return animeProv.build({ anilistId, epNum, lang });
-      if (animeProv.id === 'megaplay-s2') {
-        const epData = anikotoEpisodes[episode - 1];
-        if (epData && epData.episode_embed_id) {
-          return animeProv.build({ embedId: epData.episode_embed_id, lang });
-        }
+    const animeProv = ANIME_PROVIDERS.find(p => p.id === currentAnimeProvider) || ANIME_PROVIDERS[0];
+
+    if (source === 'anikoto' && animeProv.id === 'megaplay-s2') {
+      const epData = anikotoEpisodes[episode - 1];
+      if (epData && epData.episode_embed_id) {
+        return animeProv.build({ embedId: epData.episode_embed_id, lang });
       }
     }
 
-    // Fallbacks
-    if (stdProv && targetTmdb) {
-      return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+    if (animeProv.id === 'vidy-anime') {
+      if (anilistId) return animeProv.build({ anilistId, epNum, opt, progress });
+      return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
     }
-    if (targetTmdb) return getProvider(Settings.get().defaultProvider || 'vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+    if (animeProv.id === 'megaplay-mal' && malId) return animeProv.build({ malId, epNum, lang });
+    if (animeProv.id === 'megaplay-ani' && anilistId) return animeProv.build({ anilistId, epNum, lang });
+    if (animeProv.id === 'megaplay-s2') {
+      const epData = anikotoEpisodes[episode - 1];
+      if (epData && epData.episode_embed_id) {
+        return animeProv.build({ embedId: epData.episode_embed_id, lang });
+      }
+    }
+
     if (anilistId) return getAnimeProvider('vidy-anime').build({ anilistId, epNum, opt, progress });
-    if (malId) return getAnimeProvider('vidlink-anime').build({ malId, epNum, lang, opt });
-
-    const epData = anikotoEpisodes[episode - 1];
-    if (epData && epData.episode_embed_id) {
-      return getAnimeProvider('megaplay-s2').build({ embedId: epData.episode_embed_id, lang });
-    }
-    return getProvider('vidking').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb || 37854, season, episode: epNum, opt, progress });
+    if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
+    return getProvider('111movies').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
   }
 
   async function switchEpisode(epNum) {
@@ -4059,7 +4518,6 @@ async function renderAnimeWatch(params) {
     iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
     iframe.setAttribute('allowfullscreen', '');
     iframe.referrerPolicy = 'origin';
-    AdShield.applyToIframe(iframe, currentAnimeProvider);
     stage.appendChild(iframe);
     
     updateTag();
@@ -4102,8 +4560,8 @@ async function renderAnimeWatch(params) {
   window._reloadAnimePlayer = async (pid) => {
     if (parseHash().route !== 'anime-watch') return;
     currentAnimeProvider = pid;
-    updateAnimeServerDisplay();
     await loadPlayer();
+    if (typeof renderAnimeServerMenu === 'function') renderAnimeServerMenu();
   };
 
   const langCont = document.getElementById('w-lang-toggle-container');
@@ -4198,19 +4656,15 @@ async function renderAnimeWatch(params) {
     if (e.key.toLowerCase() === 'f') { e.preventDefault(); toggleFullscreen(); }
     if (e.key.toLowerCase() === 'p') { e.preventDefault(); PipManager.togglePip(); }
     const num = parseInt(e.key);
-    const allOptions = [
-      ...PROVIDERS.filter(p => p.recommended),
-      ...ANIME_PROVIDERS,
-      ...PROVIDERS.filter(p => !p.recommended)
-    ];
+    const allOptions = [...ANIME_PROVIDERS, ...PROVIDERS];
     if (!isNaN(num) && num >= 1 && num <= allOptions.length) {
       e.preventDefault();
       const targetProv = allOptions[num - 1];
       if (targetProv) {
         currentAnimeProvider = targetProv.id;
         Settings.save({ animeProvider: targetProv.id });
-        updateAnimeServerDisplay();
         loadPlayer();
+        if (typeof renderAnimeServerMenu === 'function') renderAnimeServerMenu();
         toast(`Server set to ${targetProv.name} (#${num})`);
       }
     }
@@ -4253,6 +4707,7 @@ function updateMobileNav(route, params = {}) {
     else if (r === 'movies' && route === 'browse' && params.type === 'movie') isActive = true;
     else if (r === 'tv' && route === 'browse' && params.type === 'tv') isActive = true;
     else if (r === 'anime' && route === 'anime') isActive = true;
+    else if (r === 'downloads' && route === 'downloads') isActive = true;
     else if (r === 'watchlist' && route === 'watchlist') isActive = true;
     el.classList.toggle('active', isActive);
   });
@@ -4273,8 +4728,601 @@ async function render() {
   if (route === 'details') return renderDetails(params);
   if (route === 'browse') return renderBrowse(params);
   if (route === 'anime') return renderAnime(params);
+  if (route === 'downloads') return renderDownloads(params);
   if (route === 'watchlist') return renderWatchlist();
   return renderHome();
+}
+
+/* ============================================================
+   4K-HDHUB DOWNLOADS API & PAGE
+   ============================================================ */
+const HubAPI = {
+  async parse(urlOrSlug) {
+    const res = await fetch(`/api/4khdhub/parse?url=${encodeURIComponent(urlOrSlug)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  },
+  async search(query) {
+    const res = await fetch(`/api/4khdhub/search?q=${encodeURIComponent(query)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  },
+  async latest(category = '') {
+    const res = await fetch(`/api/4khdhub/latest?category=${encodeURIComponent(category)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  }
+};
+
+function copyToClipboard(text, successMsg = 'Copied to clipboard!') {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => toast(successMsg)).catch(() => {
+      fallbackCopy(text, successMsg);
+    });
+  } else {
+    fallbackCopy(text, successMsg);
+  }
+}
+
+function fallbackCopy(text, successMsg) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    toast(successMsg);
+  } catch (e) {
+    prompt('Copy download link:', text);
+  }
+  document.body.removeChild(ta);
+}
+
+/* ============================================================
+   4K DOWNLOADS HUB PAGE
+   ============================================================ */
+async function renderDownloads(params) {
+  setChrome('home');
+  siteHeader.classList.add('scrolled');
+  document.querySelectorAll('#main-nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#/downloads'));
+
+  const initialUrl = params.url || (params.slug ? `https://4khdhub.one/${params.slug}/` : '');
+  const initialQuery = params.q || '';
+
+  app.innerHTML = `
+    <div class="downloads-page">
+      <section class="downloads-hero">
+        <div class="downloads-hero-inner">
+          <div class="hub-glow-badge">
+            <i class="fa-solid fa-bolt"></i> 4K-HDHub Link Extractor & Fast Downloader
+          </div>
+          <h1>4K Ultra HD & 1080p Downloads</h1>
+          <p>Extract direct download links from 4kHdHub (4K 2160p HDR, 1080p REMUX, AV1 & Complete Season Zips) via HubCloud & HubDrive.</p>
+          
+          <div class="hub-search-box">
+            <i class="fa-solid fa-magnifying-glass" style="color:var(--accent);font-size:1.15rem"></i>
+            <input type="text" id="hub-input" placeholder="Paste 4kHdHub URL (e.g. https://4khdhub.one/i-would-rather-die-series-8257/) or search title..." value="${escapeHTML(initialUrl || initialQuery)}" autocomplete="off" spellcheck="false">
+            <button class="btn btn-ghost" id="hub-paste-btn" title="Paste from clipboard" style="padding:8px 12px;font-size:0.85rem"><i class="fa-solid fa-paste"></i> Paste</button>
+            <button class="btn btn-primary" id="hub-extract-btn" style="padding:8px 18px;font-size:0.92rem;font-weight:700"><i class="fa-solid fa-cloud-arrow-down"></i> Extract</button>
+          </div>
+
+          <div class="hub-quick-chips">
+            <span style="font-size:0.8rem;color:var(--text-dim);font-weight:600;margin-right:4px">Quick Try:</span>
+            <button class="hub-chip-btn" data-url="https://4khdhub.one/i-would-rather-die-series-8257/"><i class="fa-solid fa-fire" style="color:#ea580c"></i> I Would Rather Die (2026)</button>
+            <button class="hub-chip-btn" data-query="Deadpool"><i class="fa-solid fa-film"></i> Deadpool</button>
+            <button class="hub-chip-btn" data-query="Jujutsu Kaisen"><i class="fa-solid fa-dragon"></i> Jujutsu Kaisen</button>
+            <button class="hub-chip-btn" data-query="House of the Dragon"><i class="fa-solid fa-crown"></i> House of the Dragon</button>
+            <button class="hub-chip-btn" data-query="Interstellar"><i class="fa-solid fa-rocket"></i> Interstellar</button>
+          </div>
+        </div>
+      </section>
+
+      <main class="extracted-container" id="hub-results-area">
+        <div id="hub-active-result"></div>
+        
+        <!-- Latest releases section -->
+        <section style="margin-top:36px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+            <h2 class="dl-section-title" style="margin:0"><i class="fa-solid fa-fire" style="color:var(--accent)"></i> Latest Releases on 4K-HDHub</h2>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="hub-cat-chips">
+              <button class="chip active" data-cat="">All Releases</button>
+              <button class="chip" data-cat="2160p">2160p 4K UHD</button>
+              <button class="chip" data-cat="1080p">1080p Full HD</button>
+              <button class="chip" data-cat="series">TV Series</button>
+            </div>
+          </div>
+          <div class="hub-results-grid" id="hub-latest-grid">
+            ${Array(8).fill(`
+              <div class="hub-result-card" style="pointer-events:none">
+                <div class="hub-result-poster skeleton"></div>
+                <div class="hub-result-info">
+                  <div class="skeleton" style="height:18px;width:80%;margin-bottom:8px;border-radius:4px"></div>
+                  <div class="skeleton" style="height:14px;width:50%;border-radius:4px"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+
+        <!-- Fast Download & Adblocker Guide -->
+        <div class="download-guide-box">
+          <h3 style="font-size:1.15rem;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px">
+            <i class="fa-solid fa-circle-info" style="color:var(--accent)"></i> High-Speed 4K Downloading Tips & Guide
+          </h3>
+          <div class="download-guide-grid">
+            <div class="guide-step-card">
+              <h4><i class="fa-solid fa-rocket" style="color:#ea580c"></i> 1. HubCloud & HubDrive</h4>
+              <p>HubCloud offers direct high-speed multi-threaded chunks. HubDrive provides Google Drive and cloud mirrors. Both support download resumption.</p>
+            </div>
+            <div class="guide-step-card">
+              <h4><i class="fa-solid fa-download" style="color:#3b82f6"></i> 2. Download Managers</h4>
+              <p>Use <strong>IDM (Internet Download Manager)</strong>, <strong>Free Download Manager (FDM)</strong>, or <strong>JDownloader 2</strong> to maximize download speeds up to 100+ MB/s.</p>
+            </div>
+            <div class="guide-step-card">
+              <h4><i class="fa-solid fa-tv" style="color:#10b981"></i> 3. 4K HDR Playback</h4>
+              <p>For Dolby Vision (DV) and HDR10 HEVC files, we recommend playing offline files using <strong>VLC Media Player</strong>, <strong>MPC-HC</strong>, or <strong>Infuse / IINA</strong>.</p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  `;
+
+  initHeaderScroll();
+
+  const inputEl = document.getElementById('hub-input');
+  const extractBtn = document.getElementById('hub-extract-btn');
+  const pasteBtn = document.getElementById('hub-paste-btn');
+  const activeResultArea = document.getElementById('hub-active-result');
+  const latestGrid = document.getElementById('hub-latest-grid');
+
+  // Load latest releases
+  async function loadLatestReleases(category = '') {
+    if (!latestGrid) return;
+    latestGrid.innerHTML = Array(8).fill(`
+      <div class="hub-result-card" style="pointer-events:none">
+        <div class="hub-result-poster skeleton"></div>
+        <div class="hub-result-info">
+          <div class="skeleton" style="height:18px;width:80%;margin-bottom:8px;border-radius:4px"></div>
+          <div class="skeleton" style="height:14px;width:50%;border-radius:4px"></div>
+        </div>
+      </div>
+    `).join('');
+
+    try {
+      const data = await HubAPI.latest(category);
+      const list = data.results || [];
+      if (!list.length) {
+        latestGrid.innerHTML = '<p style="color:var(--text-dim);grid-column:1/-1;padding:20px;text-align:center">No releases found.</p>';
+        return;
+      }
+      latestGrid.innerHTML = list.map(item => `
+        <div class="hub-result-card" data-url="${item.url}">
+          <div class="hub-result-poster">
+            ${item.poster ? `<img src="${item.poster}" alt="${escapeHTML(item.title)}" loading="lazy">` : '<div style="width:100%;height:100%;display:grid;place-items:center;color:#666"><i class="fa-solid fa-film fa-2x"></i></div>'}
+          </div>
+          <div class="hub-result-info">
+            <div class="hub-result-title">${escapeHTML(item.title)}</div>
+            <div class="hub-result-meta">
+              ${(item.badges || []).map(b => `<span class="hub-result-pill">${b}</span>`).join('')}
+              ${item.year ? `<span class="hub-result-pill">${item.year}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      latestGrid.querySelectorAll('.hub-result-card').forEach(c => {
+        c.addEventListener('click', () => {
+          const u = c.dataset.url;
+          if (inputEl) inputEl.value = u;
+          performExtractOrSearch(u);
+          window.scrollTo({ top: 180, behavior: 'smooth' });
+        });
+      });
+    } catch (e) {
+      latestGrid.innerHTML = '<p style="color:var(--text-dim);grid-column:1/-1;padding:20px;text-align:center">Could not load 4kHdHub releases.</p>';
+    }
+  }
+
+  // Handle category chips
+  document.querySelectorAll('#hub-cat-chips .chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#hub-cat-chips .chip').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      loadLatestReleases(btn.dataset.cat);
+    });
+  });
+
+  // Extract or Search logic
+  async function performExtractOrSearch(queryOrUrl) {
+    const raw = (queryOrUrl || '').trim();
+    if (!raw) return;
+
+    activeResultArea.innerHTML = `
+      <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:40px 20px;text-align:center;">
+        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--accent);margin-bottom:14px"></i>
+        <h3 style="font-size:1.15rem;font-weight:700">Connecting to 4K-HDHub...</h3>
+        <p style="color:var(--text-dim);margin-top:6px;font-size:0.9rem">Fetching verified high-speed download links & quality packages.</p>
+      </div>
+    `;
+
+    // Is it a direct URL or slug?
+    const isUrl = raw.startsWith('http://') || raw.startsWith('https://') || raw.includes('-series-') || raw.includes('-movie-') || raw.includes('/');
+
+    if (isUrl) {
+      try {
+        const data = await HubAPI.parse(raw);
+        renderParsedItem(data);
+      } catch (err) {
+        // Fall back to searching raw string
+        try {
+          const sData = await HubAPI.search(raw.replace(/https?:\/\/[^\/]+\//, '').replace(/[-_]/g, ' '));
+          renderSearchResults(sData, raw);
+        } catch (sErr) {
+          activeResultArea.innerHTML = `
+            <div style="background:var(--bg-elev);border:1px solid rgba(229,9,20,0.3);border-radius:16px;padding:30px 20px;text-align:center;">
+              <i class="fa-solid fa-triangle-exclamation fa-2x" style="color:var(--accent);margin-bottom:12px"></i>
+              <h3 style="font-size:1.15rem;font-weight:700">Failed to Extract Links</h3>
+              <p style="color:var(--text-dim);margin-top:6px;font-size:0.9rem">${escapeHTML(err.message)}</p>
+              <button class="btn btn-primary" onclick="location.hash='#/downloads?url=https://4khdhub.one/i-would-rather-die-series-8257/'" style="margin-top:16px"><i class="fa-solid fa-rotate-left"></i> Try User Example: I Would Rather Die (2026)</button>
+            </div>
+          `;
+        }
+      }
+    } else {
+      // It is a search query
+      try {
+        const sData = await HubAPI.search(raw);
+        if (sData.results && sData.results.length === 1) {
+          // If only 1 result, auto-parse it directly!
+          const single = sData.results[0];
+          const data = await HubAPI.parse(single.url);
+          renderParsedItem(data);
+        } else {
+          renderSearchResults(sData, raw);
+        }
+      } catch (err) {
+        activeResultArea.innerHTML = `
+          <div style="background:var(--bg-elev);border:1px solid rgba(229,9,20,0.3);border-radius:16px;padding:30px 20px;text-align:center;">
+            <i class="fa-solid fa-triangle-exclamation fa-2x" style="color:var(--accent);margin-bottom:12px"></i>
+            <h3 style="font-size:1.15rem;font-weight:700">Search Failed</h3>
+            <p style="color:var(--text-dim);margin-top:6px;font-size:0.9rem">${escapeHTML(err.message)}</p>
+          </div>
+        `;
+      }
+    }
+  }
+
+  function renderSearchResults(data, query) {
+    const list = data.results || [];
+    if (!list.length) {
+      activeResultArea.innerHTML = `
+        <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:40px 20px;text-align:center;">
+          <i class="fa-solid fa-magnifying-glass fa-2x" style="color:var(--text-dim);margin-bottom:12px;opacity:0.5"></i>
+          <h3 style="font-size:1.15rem;font-weight:700">No results found on 4K-HDHub for "${escapeHTML(query)}"</h3>
+          <p style="color:var(--text-dim);margin-top:6px;font-size:0.9rem">Check spelling or paste direct link like <code>https://4khdhub.one/i-would-rather-die-series-8257/</code></p>
+        </div>
+      `;
+      return;
+    }
+
+    activeResultArea.innerHTML = `
+      <div style="margin-bottom:28px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+          <h2 style="font-size:1.3rem;font-weight:800;color:#fff">Found ${list.length} Results on 4K-HDHub for "${escapeHTML(query)}"</h2>
+          <span style="font-size:0.85rem;color:var(--text-dim)">Click any title to extract all 4K HDR & 1080p download links</span>
+        </div>
+        <div class="hub-results-grid">
+          ${list.map(item => `
+            <div class="hub-result-card" data-url="${item.url}">
+              <div class="hub-result-poster">
+                ${item.poster ? `<img src="${item.poster}" alt="${escapeHTML(item.title)}" loading="lazy">` : '<div style="width:100%;height:100%;display:grid;place-items:center;color:#666"><i class="fa-solid fa-film fa-2x"></i></div>'}
+              </div>
+              <div class="hub-result-info">
+                <div class="hub-result-title">${escapeHTML(item.title)}</div>
+                <div class="hub-result-meta">
+                  ${(item.badges || []).map(b => `<span class="hub-result-pill">${b}</span>`).join('')}
+                  ${item.year ? `<span class="hub-result-pill">${item.year}</span>` : ''}
+                  ${item.seasonInfo ? `<span class="hub-result-pill" style="color:var(--accent)">${item.seasonInfo}</span>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    activeResultArea.querySelectorAll('.hub-result-card').forEach(c => {
+      c.addEventListener('click', () => {
+        const u = c.dataset.url;
+        if (inputEl) inputEl.value = u;
+        performExtractOrSearch(u);
+      });
+    });
+  }
+
+  function renderParsedItem(data) {
+    const isSeries = data.type === 'series' || (data.episodeGroups && data.episodeGroups.length > 0);
+    const completeSeasons = data.completeSeasons || [];
+    const episodeGroups = data.episodeGroups || [];
+    const movieDownloads = data.movieDownloads || [];
+
+    // Gather all direct download links for batch copy
+    const allLinks = [];
+    completeSeasons.forEach(s => {
+      (s.links || []).forEach(l => {
+        allLinks.push(`${data.title} - ${s.title || s.season} [${l.name}]: ${l.url}`);
+      });
+    });
+    episodeGroups.forEach(g => {
+      (g.episodes || []).forEach(ep => {
+        (ep.links || []).forEach(l => {
+          allLinks.push(`${data.title} ${ep.epCode} - ${g.quality} [${l.name}]: ${l.url}`);
+        });
+      });
+    });
+    movieDownloads.forEach(m => {
+      (m.links || []).forEach(l => {
+        allLinks.push(`${data.title} - ${m.title || 'Movie'} [${l.name}]: ${l.url}`);
+      });
+    });
+
+    const batchText = allLinks.join('\n');
+
+    activeResultArea.innerHTML = `
+      <div class="extracted-header-card">
+        <div class="extracted-poster">
+          ${data.poster ? `<img src="${data.poster}" alt="${escapeHTML(data.title)}">` : '<div style="aspect-ratio:2/3;display:grid;place-items:center"><i class="fa-solid fa-film fa-2x"></i></div>'}
+        </div>
+        <div class="extracted-info">
+          <div class="extracted-title-row">
+            <h2>${escapeHTML(data.fullTitle || data.title)}</h2>
+            <span class="extracted-type-pill">${isSeries ? 'TV Series' : 'Movie'}</span>
+            ${data.year ? `<span style="font-size:0.95rem;color:var(--text-dim);font-weight:700">(${data.year})</span>` : ''}
+          </div>
+          <p class="extracted-desc">${escapeHTML(data.description || 'Verified 4K UHD, HDR & 1080p release from 4K-HDHub.')}</p>
+          
+          <div class="extracted-action-bar">
+            <button class="btn btn-primary" id="btn-batch-copy" style="padding:9px 18px;font-size:0.88rem">
+              <i class="fa-solid fa-copy"></i> Copy All Download Links (${allLinks.length})
+            </button>
+            <a href="${data.url}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost" style="padding:9px 16px;font-size:0.88rem">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open 4kHdHub Page
+            </a>
+            <button class="btn btn-outline" id="btn-stream-now" style="padding:9px 16px;font-size:0.88rem">
+              <i class="fa-solid fa-play" style="color:var(--accent)"></i> Stream In App
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPLETE SEASONS BATCHES (ZIP) -->
+      ${completeSeasons.length > 0 ? `
+        <div style="margin-bottom:32px;">
+          <h3 class="dl-section-title">
+            <i class="fa-solid fa-file-zipper" style="color:#ea580c"></i> Complete Season Download Batches (ZIP Archives)
+          </h3>
+          <div class="dl-pack-grid">
+            ${completeSeasons.map((pack, pIdx) => `
+              <div class="dl-pack-card">
+                <div class="dl-pack-header">
+                  <span class="ep-code-badge">${escapeHTML(pack.season || 'S01')}</span>
+                  <div class="dl-pack-title">${escapeHTML(pack.fileTitle || pack.title)}</div>
+                </div>
+                <div class="dl-pack-meta">
+                  ${(pack.badges || []).map(b => {
+                    let cls = 'dl-pack-pill';
+                    if (b.includes('GB') || b.includes('MB')) cls += ' badge-quality-size';
+                    else if (b.includes('2160p') || b.includes('4K')) cls += ' badge-quality-4k';
+                    else if (b.includes('1080p')) cls += ' badge-quality-1080p';
+                    else if (b.includes('HDR')) cls += ' badge-quality-hdr';
+                    else if (b.includes('Hindi') || b.includes('English') || b.includes('Spanish') || b.includes('Multi')) cls += ' badge-quality-audio';
+                    return `<span class="${cls}">${escapeHTML(b)}</span>`;
+                  }).join('')}
+                </div>
+                <div class="dl-pack-buttons">
+                  ${(pack.links || []).map(link => `
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="dl-btn ${link.name.toLowerCase().includes('cloud') ? 'dl-btn-hubcloud' : 'dl-btn-hubdrive'}">
+                      <i class="fa-solid ${link.name.toLowerCase().includes('cloud') ? 'fa-cloud-arrow-down' : 'fa-hard-drive'}"></i> ${escapeHTML(link.name)}
+                    </a>
+                  `).join('')}
+                  <button class="dl-btn dl-btn-copy" data-copy-link="${(pack.links[0] || {}).url || ''}" title="Copy direct link">
+                    <i class="fa-solid fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- INDIVIDUAL EPISODES BY QUALITY -->
+      ${episodeGroups.length > 0 ? `
+        <div style="margin-bottom:32px;">
+          <h3 class="dl-section-title">
+            <i class="fa-solid fa-list-check" style="color:var(--accent)"></i> Individual Episode Downloads (By Quality & Codec)
+          </h3>
+          <div class="ep-quality-groups-container">
+            ${episodeGroups.map((group, gIdx) => `
+              <div class="ep-quality-group">
+                <div class="ep-quality-header" data-group-index="${gIdx}">
+                  <div class="ep-quality-title-wrap">
+                    <span class="ep-code-badge">${escapeHTML(group.season || 'S01')}</span>
+                    <h3>${escapeHTML(group.quality || 'HD Episodes')}</h3>
+                    <div style="display:flex;gap:4px;flex-wrap:wrap">
+                      ${(group.badges || []).map(b => `<span class="hub-result-pill">${escapeHTML(b)}</span>`).join('')}
+                    </div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <span style="font-size:0.82rem;color:var(--text-dim);font-weight:600">${group.episodes.length} Episodes</span>
+                    <i class="fa-solid fa-chevron-down ep-group-chevron" style="color:var(--text-dim);transition:transform 0.2s;${gIdx === 0 ? 'transform:rotate(180deg)' : ''}"></i>
+                  </div>
+                </div>
+                <div class="ep-list-drawer" id="ep-drawer-${gIdx}" style="${gIdx === 0 ? '' : 'display:none'}">
+                  ${group.episodes.map(ep => `
+                    <div class="ep-dl-row">
+                      <div class="ep-dl-left">
+                        <span class="ep-code-badge">${escapeHTML(ep.epCode || 'EP')}</span>
+                        <span class="ep-filename" title="${escapeHTML(ep.fileTitle)}">${escapeHTML(ep.fileTitle || ep.epCode)}</span>
+                      </div>
+                      <div class="ep-dl-actions">
+                        ${(ep.links || []).map(link => `
+                          <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="dl-btn ${link.name.toLowerCase().includes('cloud') ? 'dl-btn-hubcloud' : 'dl-btn-hubdrive'}" style="padding:6px 12px;font-size:0.8rem">
+                            <i class="fa-solid ${link.name.toLowerCase().includes('cloud') ? 'fa-cloud-arrow-down' : 'fa-hard-drive'}"></i> ${escapeHTML(link.name.replace('Download ', ''))}
+                          </a>
+                        `).join('')}
+                        <button class="dl-btn dl-btn-copy" data-copy-link="${(ep.links[0] || {}).url || ''}" title="Copy link" style="padding:6px 10px;font-size:0.8rem">
+                          <i class="fa-solid fa-copy"></i>
+                        </button>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- MOVIE PACKAGES IF MOVIE -->
+      ${!isSeries && movieDownloads.length > 0 ? `
+        <div style="margin-bottom:32px;">
+          <h3 class="dl-section-title">
+            <i class="fa-solid fa-compact-disc" style="color:var(--accent)"></i> Available Qualities & Direct Mirrors
+          </h3>
+          <div class="dl-pack-grid">
+            ${movieDownloads.map(m => `
+              <div class="dl-pack-card">
+                <div class="dl-pack-header">
+                  <div class="dl-pack-title">${escapeHTML(m.fileTitle || m.title)}</div>
+                </div>
+                <div class="dl-pack-meta">
+                  ${(m.badges || []).map(b => `<span class="dl-pack-pill">${escapeHTML(b)}</span>`).join('')}
+                </div>
+                <div class="dl-pack-buttons">
+                  ${(m.links || []).map(link => `
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="dl-btn ${link.name.toLowerCase().includes('cloud') ? 'dl-btn-hubcloud' : 'dl-btn-hubdrive'}">
+                      <i class="fa-solid ${link.name.toLowerCase().includes('cloud') ? 'fa-cloud-arrow-down' : 'fa-hard-drive'}"></i> ${escapeHTML(link.name)}
+                    </a>
+                  `).join('')}
+                  <button class="dl-btn dl-btn-copy" data-copy-link="${(m.links[0] || {}).url || ''}" title="Copy link">
+                    <i class="fa-solid fa-copy"></i>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    `;
+
+    // Wire batch copy
+    const batchCopyBtn = document.getElementById('btn-batch-copy');
+    if (batchCopyBtn) {
+      batchCopyBtn.onclick = () => {
+        copyToClipboard(batchText, `Copied ${allLinks.length} download links to clipboard!`);
+      };
+    }
+
+    // Wire single link copy buttons
+    activeResultArea.querySelectorAll('button[data-copy-link]').forEach(b => {
+      b.onclick = (e) => {
+        e.stopPropagation();
+        const link = b.dataset.copyLink;
+        if (link) copyToClipboard(link, 'Download link copied to clipboard!');
+      };
+    });
+
+    // Wire accordion toggles
+    activeResultArea.querySelectorAll('.ep-quality-header').forEach(header => {
+      header.onclick = () => {
+        const idx = header.dataset.groupIndex;
+        const drawer = document.getElementById(`ep-drawer-${idx}`);
+        const chevron = header.querySelector('.ep-group-chevron');
+        if (drawer) {
+          const isHidden = drawer.style.display === 'none';
+          drawer.style.display = isHidden ? 'flex' : 'none';
+          if (chevron) chevron.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+      };
+    });
+
+    // Wire Stream Now button
+    const streamBtn = document.getElementById('btn-stream-now');
+    if (streamBtn) {
+      streamBtn.onclick = async () => {
+        try {
+          const sRes = await TMDB.searchMulti(data.title);
+          if (sRes && sRes.results && sRes.results.length) {
+            const hit = sRes.results.find(x => x.media_type === (isSeries ? 'tv' : 'movie')) || sRes.results[0];
+            navigateToWatch(hit.id, isSeries ? 'tv' : 'movie', 1, 1);
+          } else {
+            toast('Opening in browser player...');
+          }
+        } catch (e) {
+          location.hash = `#/browse?q=${encodeURIComponent(data.title)}`;
+        }
+      };
+    }
+  }
+
+  // Event Listeners for search & buttons
+  if (extractBtn) {
+    extractBtn.onclick = () => performExtractOrSearch(inputEl.value);
+  }
+  if (inputEl) {
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') performExtractOrSearch(inputEl.value);
+    });
+  }
+
+  if (pasteBtn) {
+    pasteBtn.onclick = async () => {
+      try {
+        if (navigator.clipboard && navigator.clipboard.readText) {
+          const text = await navigator.clipboard.readText();
+          if (text) {
+            inputEl.value = text.trim();
+            performExtractOrSearch(text.trim());
+          }
+        } else {
+          inputEl.focus();
+        }
+      } catch (e) {
+        inputEl.focus();
+      }
+    };
+  }
+
+  // Wire quick sample chips
+  document.querySelectorAll('.hub-chip-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const u = btn.dataset.url;
+      const q = btn.dataset.query;
+      const val = u || q;
+      if (inputEl) inputEl.value = val;
+      performExtractOrSearch(val);
+    });
+  });
+
+  // Initial load if query or URL was present in URL hash
+  if (initialUrl || initialQuery) {
+    performExtractOrSearch(initialUrl || initialQuery);
+  } else {
+    // Default load latest releases
+    loadLatestReleases('');
+  }
 }
 
 /* ============================================================
@@ -4406,7 +5454,6 @@ function renderSearchHistory() {
    Global init
    ============================================================ */
 function initGlobal() {
-  initServerSelectModal();
   initFirstTimeNotice();
   initKeyboardShortcutsModal();
   buildSettingsDrawer();
@@ -4432,9 +5479,13 @@ function initGlobal() {
     if (q.length >= 2) {
       timer = setTimeout(() => {
         SearchHistory.add(q);
-        location.hash = `#/browse?q=${encodeURIComponent(q)}`;
         const dropdown = document.getElementById('search-history-dropdown');
         if (dropdown) dropdown.classList.remove('open');
+        if (q.startsWith('http://') || q.startsWith('https://') || q.includes('4khdhub') || q.includes('-series-') || q.includes('-movie-')) {
+          location.hash = `#/downloads?url=${encodeURIComponent(q)}`;
+        } else {
+          location.hash = `#/browse?q=${encodeURIComponent(q)}`;
+        }
       }, 600);
     }
   });
@@ -4442,9 +5493,13 @@ function initGlobal() {
     if (e.key === 'Enter' && input.value.trim()) {
       const q = input.value.trim();
       SearchHistory.add(q);
-      location.hash = `#/browse?q=${encodeURIComponent(q)}`;
       const dropdown = document.getElementById('search-history-dropdown');
       if (dropdown) dropdown.classList.remove('open');
+      if (q.startsWith('http://') || q.startsWith('https://') || q.includes('4khdhub') || q.includes('-series-') || q.includes('-movie-')) {
+        location.hash = `#/downloads?url=${encodeURIComponent(q)}`;
+      } else {
+        location.hash = `#/browse?q=${encodeURIComponent(q)}`;
+      }
     }
   });
 

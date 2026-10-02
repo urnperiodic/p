@@ -15,14 +15,31 @@ const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
 // Helper function to normalize 4kHdHub URLs
 function normalizeHubUrl(inputUrl) {
   if (!inputUrl) return '';
-  let url = inputUrl.trim();
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    url = 'https://4khdhub.one/' + url.replace(/^\//, '');
+  let str = inputUrl.trim();
+
+  // If input contains a full 4kHdHub URL, extract it directly
+  const urlMatch = str.match(/https?:\/\/[^\s"'<>]+/i);
+  if (urlMatch) {
+    let u = urlMatch[0];
+    if (!u.endsWith('/') && !u.includes('?') && !u.includes('#')) {
+      u += '/';
+    }
+    return u;
   }
-  if (!url.endsWith('/') && !url.includes('?') && !url.includes('#')) {
-    url += '/';
+
+  // If it's a slug like i-would-rather-die-series-8257
+  const slugMatch = str.match(/([a-z0-9-]+-(?:series|movie)-\d+)/i);
+  if (slugMatch) {
+    return 'https://4khdhub.one/' + slugMatch[1] + '/';
   }
-  return url;
+
+  if (!str.startsWith('http://') && !str.startsWith('https://')) {
+    str = 'https://4khdhub.one/' + str.replace(/^\//, '');
+  }
+  if (!str.endsWith('/') && !str.includes('?') && !str.includes('#')) {
+    str += '/';
+  }
+  return str;
 }
 
 // 1. API: Parse 4kHdHub detail page (movies or series)
@@ -210,120 +227,210 @@ app.get('/api/4khdhub/parse', async (req, res) => {
   }
 });
 
+const searchCache = new Map();
+const SEARCH_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Clean search query to prevent encoding issues & handle pasted URLs
+function cleanSearchQuery(input) {
+  if (!input) return '';
+  let str = input.trim();
+  // If user pasted a URL or slug, extract title keywords
+  if (str.includes('4khdhub') || str.includes('http') || str.includes('-series-') || str.includes('-movie-')) {
+    const slugMatch = str.match(/([a-z0-9-]+)-(?:series|movie)-\d+/i);
+    if (slugMatch) {
+      return slugMatch[1].replace(/-/g, ' ');
+    }
+    str = str.replace(/https?:\/\/[^\/]+\/?/i, '').replace(/[-_]/g, ' ');
+  }
+  // Strip out unwanted punctuation that breaks search: colons, quotes, etc.
+  return str.replace(/[:"']/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function parseHubSearchResults(html) {
+  const results = [];
+  const regex = /<a\s+[^>]*href=[\"']([^\"']+)[\"'][^>]*>([\s\S]*?)<\/a>/gi;
+  let m;
+  const seenHrefs = new Set();
+
+  while ((m = regex.exec(html)) !== null) {
+    const href = m[1];
+    const innerHtml = m[2];
+
+    if (
+      (href.startsWith('/') || href.includes('4khdhub.one')) &&
+      !href.includes('category') &&
+      !href.includes('tag') &&
+      !href.includes('page') &&
+      !href.includes('about') &&
+      !href.includes('contact') &&
+      !href.includes('privacy') &&
+      !href.includes('dmca') &&
+      href !== '/' &&
+      href !== 'https://4khdhub.one/'
+    ) {
+      const fullUrl = href.startsWith('http') ? href : 'https://4khdhub.one' + href;
+      if (!seenHrefs.has(fullUrl)) {
+        seenHrefs.add(fullUrl);
+
+        const imgMatch = innerHtml.match(/<img[^>]*src=[\"']([^\"']+)[\"']/i) || 
+                         innerHtml.match(/data-src=[\"']([^\"']+)[\"']/i) ||
+                         innerHtml.match(/srcset=[\"']([^\"'\s,]+)/i);
+        const poster = imgMatch ? imgMatch[1] : '';
+
+        const textContent = innerHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!textContent || textContent.length < 3) continue;
+
+        const yearMatch = textContent.match(/\b(19\d\d|20\d\d)\b/);
+        const year = yearMatch ? yearMatch[1] : '';
+
+        const seasonMatch = textContent.match(/S\d+(\.\d+)?(-S\d+(\.\d+)?)?/i);
+        const seasonInfo = seasonMatch ? seasonMatch[0] : '';
+
+        const badges = [];
+        if (/2160p|4K|UHD/i.test(textContent)) badges.push('4K 2160p');
+        if (/HDR/i.test(textContent)) badges.push('HDR');
+        if (/1080p/i.test(textContent)) badges.push('1080p');
+        if (/720p/i.test(textContent)) badges.push('720p');
+        if (/Hindi/i.test(textContent)) badges.push('Hindi');
+        if (/English/i.test(textContent)) badges.push('English');
+        if (/Series/i.test(textContent) || href.includes('-series-')) badges.push('Series');
+        else badges.push('Movie');
+
+        let cleanTitle = textContent;
+        const titleLineMatch = innerHtml.match(/<h[2-4][^>]*>([\s\S]*?)<\/h[2-4]>/i) || 
+                               innerHtml.match(/class=\"[^\"]*title[^\"]*\"[^>]*>([\s\S]*?)<\/[^>]+>/i);
+        if (titleLineMatch) {
+          cleanTitle = titleLineMatch[1].replace(/<[^>]+>/g, '').trim();
+        } else {
+          const parts = textContent.split(/\b(19\d\d|20\d\d)\b/);
+          if (parts.length > 1) {
+            cleanTitle = parts[0].trim() || parts[1].trim();
+          }
+        }
+
+        results.push({
+          url: fullUrl,
+          slug: href.replace(/^\//, '').replace(/\/$/, ''),
+          rawTitle: textContent,
+          title: cleanTitle || textContent,
+          year,
+          seasonInfo,
+          poster,
+          badges,
+          isSeries: href.includes('-series-') || /series/i.test(textContent)
+        });
+      }
+    }
+  }
+  return results;
+}
+
+// Resilient multi-attempt search against 4kHdHub
+async function fetchHubSearch(query) {
+  const cleanQ = query.trim();
+  const searchUrls = [
+    `https://4khdhub.one/?s=${encodeURIComponent(cleanQ)}`,
+    `https://4khdhub.one/?s=${encodeURIComponent(cleanQ.replace(/[^\w\s]/g, ' ').trim().replace(/\s+/g, '+'))}`
+  ];
+
+  for (const u of searchUrls) {
+    try {
+      const res = await fetch(u, {
+        headers: {
+          'User-Agent': USER_AGENT,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://4khdhub.one/'
+        },
+        signal: AbortSignal.timeout(9000)
+      });
+      if (res.ok) {
+        const html = await res.text();
+        const results = parseHubSearchResults(html);
+        if (results.length > 0) return results;
+      }
+    } catch (e) {
+      console.warn('Search attempt failed for URL:', u, e.message);
+    }
+  }
+
+  // If query had multiple words and 0 results found, try first 2-3 significant words
+  const words = cleanQ.split(/\s+/).filter(w => w.length > 2 && !/^(the|and|for|with|from|this|allow|downloads)$/i.test(w));
+  if (words.length > 1) {
+    const simplified = words.slice(0, 3).join(' ');
+    try {
+      const res = await fetch(`https://4khdhub.one/?s=${encodeURIComponent(simplified)}`, {
+        headers: {
+          'User-Agent': USER_AGENT,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Referer': 'https://4khdhub.one/'
+        },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (res.ok) {
+        const html = await res.text();
+        const results = parseHubSearchResults(html);
+        if (results.length > 0) return results;
+      }
+    } catch (e) {
+      console.warn('Fallback simplified search failed:', e.message);
+    }
+  }
+
+  return [];
+}
+
 // 2. API: Search 4kHdHub
 app.get('/api/4khdhub/search', async (req, res) => {
   try {
-    const q = req.query.q;
-    if (!q || !q.trim()) {
-      return res.status(400).json({ error: 'Missing query parameter q' });
+    const rawQ = req.query.q || '';
+    const cleanQ = cleanSearchQuery(rawQ);
+
+    if (!cleanQ) {
+      return res.json({
+        success: true,
+        query: rawQ,
+        count: 0,
+        results: []
+      });
     }
 
-    const searchUrl = `https://4khdhub.one/?s=${encodeURIComponent(q.trim())}`;
-    const fetchRes = await fetch(searchUrl, {
-      headers: {
-        'User-Agent': USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-      }
+    const cacheKey = cleanQ.toLowerCase();
+    const cached = searchCache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < SEARCH_CACHE_TTL) {
+      return res.json({
+        success: true,
+        query: cleanQ,
+        count: cached.results.length,
+        results: cached.results,
+        cached: true
+      });
+    }
+
+    const results = await fetchHubSearch(cleanQ);
+
+    searchCache.set(cacheKey, {
+      results,
+      timestamp: Date.now()
     });
-
-    if (!fetchRes.ok) {
-      return res.status(fetchRes.status).json({ error: `4kHdHub search failed with status ${fetchRes.status}` });
-    }
-
-    const html = await fetchRes.text();
-
-    const results = [];
-    // Parse anchor tags linking to movie/series pages
-    const regex = /<a\s+[^>]*href=[\"']([^\"']+)[\"'][^>]*>([\s\S]*?)<\/a>/gi;
-    let m;
-    const seenHrefs = new Set();
-
-    while ((m = regex.exec(html)) !== null) {
-      const href = m[1];
-      const innerHtml = m[2];
-
-      if (
-        (href.startsWith('/') || href.includes('4khdhub.one')) &&
-        !href.includes('category') &&
-        !href.includes('tag') &&
-        !href.includes('page') &&
-        !href.includes('about') &&
-        !href.includes('contact') &&
-        !href.includes('privacy') &&
-        !href.includes('dmca') &&
-        href !== '/' &&
-        href !== 'https://4khdhub.one/'
-      ) {
-        const fullUrl = href.startsWith('http') ? href : 'https://4khdhub.one' + href;
-        if (!seenHrefs.has(fullUrl)) {
-          seenHrefs.add(fullUrl);
-
-          // Extract poster image inside anchor or surrounding
-          const imgMatch = innerHtml.match(/<img[^>]*src=[\"']([^\"']+)[\"']/i) || 
-                           innerHtml.match(/data-src=[\"']([^\"']+)[\"']/i) ||
-                           innerHtml.match(/srcset=[\"']([^\"'\s,]+)/i);
-          const poster = imgMatch ? imgMatch[1] : '';
-
-          // Extract title text
-          const textContent = innerHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-          
-          // Detect Year
-          const yearMatch = textContent.match(/\b(19\d\d|20\d\d)\b/);
-          const year = yearMatch ? yearMatch[1] : '';
-
-          // Detect Season
-          const seasonMatch = textContent.match(/S\d+(\.\d+)?(-S\d+(\.\d+)?)?/i);
-          const seasonInfo = seasonMatch ? seasonMatch[0] : '';
-
-          // Badges
-          const badges = [];
-          if (/2160p|4K|UHD/i.test(textContent)) badges.push('4K 2160p');
-          if (/HDR/i.test(textContent)) badges.push('HDR');
-          if (/1080p/i.test(textContent)) badges.push('1080p');
-          if (/720p/i.test(textContent)) badges.push('720p');
-          if (/Hindi/i.test(textContent)) badges.push('Hindi');
-          if (/English/i.test(textContent)) badges.push('English');
-          if (/Series/i.test(textContent) || href.includes('-series-')) badges.push('Series');
-          else badges.push('Movie');
-
-          // Clean Title
-          let cleanTitle = textContent;
-          const titleLineMatch = innerHtml.match(/<h[2-4][^>]*>([\s\S]*?)<\/h[2-4]>/i) || 
-                                 innerHtml.match(/class=\"[^\"]*title[^\"]*\"[^>]*>([\s\S]*?)<\/[^>]+>/i);
-          if (titleLineMatch) {
-            cleanTitle = titleLineMatch[1].replace(/<[^>]+>/g, '').trim();
-          } else {
-            // Pick words that look like title
-            const parts = textContent.split(/\b(19\d\d|20\d\d)\b/);
-            if (parts.length > 1) {
-              cleanTitle = parts[0].trim() || parts[1].trim();
-            }
-          }
-
-          results.push({
-            url: fullUrl,
-            slug: href.replace(/^\//, '').replace(/\/$/, ''),
-            rawTitle: textContent,
-            title: cleanTitle || textContent,
-            year,
-            seasonInfo,
-            poster,
-            badges,
-            isSeries: href.includes('-series-') || /series/i.test(textContent)
-          });
-        }
-      }
-    }
 
     res.json({
       success: true,
-      query: q,
+      query: cleanQ,
       count: results.length,
       results
     });
   } catch (err) {
     console.error('Error searching 4kHdHub:', err);
-    res.status(500).json({ error: 'Failed to search 4kHdHub: ' + err.message });
+    // Never fail with 500! Gracefully return empty results so frontend handles it cleanly
+    res.json({
+      success: true,
+      query: req.query.q || '',
+      count: 0,
+      results: [],
+      error: err.message
+    });
   }
 });
 

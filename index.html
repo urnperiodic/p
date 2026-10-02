@@ -4957,50 +4957,70 @@ async function renderDownloads(params) {
       </div>
     `;
 
-    // Is it a direct URL or slug?
-    const isUrl = raw.startsWith('http://') || raw.startsWith('https://') || raw.includes('-series-') || raw.includes('-movie-') || raw.includes('/');
+    // Only treat as direct item URL if it looks like a media page URL or slug
+    const isDirectItemUrl = (/^https?:\/\//i.test(raw) && !raw.includes('/?s=') && !raw.includes('/search/')) ||
+                           /4khdhub\.[a-z0-9.]+\/[a-z0-9-]+-(?:series|movie)-\d+/i.test(raw) ||
+                           /^[a-z0-9-]+-(?:series|movie)-\d+\/?$/i.test(raw);
 
-    if (isUrl) {
+    if (isDirectItemUrl) {
       try {
         const data = await HubAPI.parse(raw);
-        renderParsedItem(data);
-      } catch (err) {
-        // Fall back to searching raw string
-        try {
-          const sData = await HubAPI.search(raw.replace(/https?:\/\/[^\/]+\//, '').replace(/[-_]/g, ' '));
-          renderSearchResults(sData, raw);
-        } catch (sErr) {
-          activeResultArea.innerHTML = `
-            <div style="background:var(--bg-elev);border:1px solid rgba(229,9,20,0.3);border-radius:16px;padding:30px 20px;text-align:center;">
-              <i class="fa-solid fa-triangle-exclamation fa-2x" style="color:var(--accent);margin-bottom:12px"></i>
-              <h3 style="font-size:1.15rem;font-weight:700">Failed to Extract Links</h3>
-              <p style="color:var(--text-dim);margin-top:6px;font-size:0.9rem">${escapeHTML(err.message)}</p>
-              <button class="btn btn-primary" onclick="location.hash='#/downloads?url=https://4khdhub.one/i-would-rather-die-series-8257/'" style="margin-top:16px"><i class="fa-solid fa-rotate-left"></i> Try User Example: I Would Rather Die (2026)</button>
-            </div>
-          `;
-        }
-      }
-    } else {
-      // It is a search query
-      try {
-        const sData = await HubAPI.search(raw);
-        if (sData.results && sData.results.length === 1) {
-          // If only 1 result, auto-parse it directly!
-          const single = sData.results[0];
-          const data = await HubAPI.parse(single.url);
+        if ((data.completeSeasons && data.completeSeasons.length) || 
+            (data.episodeGroups && data.episodeGroups.length) || 
+            (data.movieDownloads && data.movieDownloads.length)) {
           renderParsedItem(data);
-        } else {
-          renderSearchResults(sData, raw);
+          return;
         }
       } catch (err) {
-        activeResultArea.innerHTML = `
-          <div style="background:var(--bg-elev);border:1px solid rgba(229,9,20,0.3);border-radius:16px;padding:30px 20px;text-align:center;">
-            <i class="fa-solid fa-triangle-exclamation fa-2x" style="color:var(--accent);margin-bottom:12px"></i>
-            <h3 style="font-size:1.15rem;font-weight:700">Search Failed</h3>
-            <p style="color:var(--text-dim);margin-top:6px;font-size:0.9rem">${escapeHTML(err.message)}</p>
-          </div>
-        `;
+        console.warn('Direct parse failed, falling back to search query:', err);
       }
+    }
+
+    // Otherwise, perform title search
+    try {
+      // Clean query: strip http://, domain, and -series-8257 if present
+      let cleanQuery = raw;
+      const slugMatch = raw.match(/([a-z0-9-]+)-(?:series|movie)-\d+/i);
+      if (slugMatch) {
+        cleanQuery = slugMatch[1].replace(/-/g, ' ');
+      } else {
+        cleanQuery = raw.replace(/https?:\/\/[^\/]+\/?/i, '').replace(/[-_]/g, ' ').trim();
+      }
+      if (!cleanQuery) cleanQuery = raw;
+
+      const sData = await HubAPI.search(cleanQuery);
+      const list = sData.results || [];
+
+      if (list.length === 1) {
+        const single = list[0];
+        try {
+          const parsed = await HubAPI.parse(single.url);
+          if ((parsed.completeSeasons && parsed.completeSeasons.length) || 
+              (parsed.episodeGroups && parsed.episodeGroups.length) || 
+              (parsed.movieDownloads && parsed.movieDownloads.length)) {
+            renderParsedItem(parsed);
+            return;
+          }
+        } catch (pErr) {
+          console.warn('Single result auto-parse failed, showing search card:', pErr);
+        }
+      }
+
+      renderSearchResults(sData, cleanQuery);
+    } catch (err) {
+      activeResultArea.innerHTML = `
+        <div style="background:var(--bg-elev);border:1px solid var(--border);border-radius:16px;padding:36px 20px;text-align:center;">
+          <i class="fa-solid fa-circle-exclamation fa-2x" style="color:var(--accent);margin-bottom:12px"></i>
+          <h3 style="font-size:1.15rem;font-weight:700">No matching 4K-HDHub results found</h3>
+          <p style="color:var(--text-dim);margin:8px auto 16px;font-size:0.9rem;max-width:500px">
+            Try searching a simpler title or paste a verified 4K-HDHub URL directly.
+          </p>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button class="btn btn-primary" onclick="location.hash='#/downloads?url=https://4khdhub.one/i-would-rather-die-series-8257/'"><i class="fa-solid fa-fire"></i> Try Example: I Would Rather Die (2026)</button>
+            <button class="btn btn-outline" onclick="location.hash='#/downloads?q=Deadpool'"><i class="fa-solid fa-magnifying-glass"></i> Search Deadpool</button>
+          </div>
+        </div>
+      `;
     }
   }
 

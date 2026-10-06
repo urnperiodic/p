@@ -719,11 +719,11 @@
      ============================================================ */
   .watch-top {
     position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 60px;
-    display: flex; align-items: center; gap: 10px; padding: 0 16px;
+    display: flex; align-items: center; gap: 8px; padding: 0 14px; box-sizing: border-box;
     background: rgba(10, 10, 12, 0.95); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: opacity 0.4s ease, transform 0.4s ease;
-    overflow: hidden;
+    overflow: visible;
   }
   .watch-top > * {
     pointer-events: auto;
@@ -734,21 +734,36 @@
     padding: 7px 14px; border-radius: 9999px; transition: all 0.2s ease; flex-shrink: 0;
   }
   .back-link:hover { color: #fff; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); }
-  .watch-title { font-size: 0.95rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; max-width: 360px; }
+  .watch-title { font-size: 0.95rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; max-width: 280px; }
   .watch-title .wt-main { font-weight: 800; font-size: 0.98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .watch-title .wt-tag { color: var(--accent); font-weight: 700; font-size: 0.78rem; background: rgba(229,9,20,0.18); border: 1px solid rgba(229,9,20,0.35); padding: 3px 10px; border-radius: 9999px; flex-shrink: 0; }
 
   /* Top Watch Nav Header Action Buttons */
-  .watch-top-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: auto; }
+  .watch-top-actions {
+    display: flex; align-items: center; gap: 5px; flex-shrink: 0; margin-left: auto;
+    min-width: 0; box-sizing: border-box;
+  }
   .top-hdr-btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    height: 38px; min-width: 38px; padding: 0 12px; border-radius: 9999px; font-size: 0.88rem; font-weight: 600;
+    height: 38px; min-width: 38px; padding: 0 10px; border-radius: 9999px; font-size: 0.88rem; font-weight: 600;
     background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
     color: var(--text); cursor: pointer; transition: all 0.2s ease; white-space: nowrap; flex-shrink: 0;
+    box-sizing: border-box;
   }
   .top-hdr-btn:hover { background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); color: #fff; }
   .top-hdr-btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   .top-hdr-btn.primary:hover { background: #ff2a36; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(229,9,20,0.3); }
+  
+  /* Icon buttons in watch top should have uniform circular footprint */
+  #btn-prev-ep, #btn-next-ep, #hdr-btn-pip, #hdr-btn-fullscreen, #settings-btn-watch {
+    width: 38px !important; height: 38px !important; min-width: 38px !important; padding: 0 !important; border-radius: 50% !important;
+  }
+  #settings-btn-watch {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: var(--text);
+  }
+  #settings-btn-watch:hover {
+    background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.3); color: #fff;
+  }
 
   .player-stage { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.6); }
   .player-stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
@@ -854,20 +869,23 @@
   .episodes-dropdown-wrap { position: relative; display: inline-flex; }
   .episodes-dropdown-menu {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 8px);
     right: 0;
-    z-index: 2000;
-    width: 380px;
-    max-width: calc(100vw - 24px);
-    background: #11121c;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 16px;
-    overflow: hidden;
+    z-index: 3000;
+    width: 320px;
+    max-width: calc(100vw - 20px);
+    background: rgba(18, 19, 28, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 14px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 1px rgba(255, 255, 255, 0.2);
     display: none;
     flex-direction: column;
-    max-height: 520px;
-    backdrop-filter: blur(16px);
+    max-height: min(480px, calc(100vh - 75px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    scrollbar-width: thin;
   }
   .episodes-dropdown-wrap.open .episodes-dropdown-menu {
     display: flex;
@@ -983,38 +1001,57 @@
     transform: scale(0.92);
   }
 
+  @keyframes pulseLive {
+    0% { transform: scale(0.92); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(0.92); opacity: 0.8; }
+  }
+  .nav-live-tv-link {
+    color: var(--text-dim); font-weight: 600; font-size: 0.95rem; transition: color 0.2s;
+  }
+  .nav-live-tv-link:hover, .nav-live-tv-link.active {
+    color: #fff !important;
+  }
+  .live-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: #e50914; box-shadow: 0 0 8px #e50914;
+    animation: pulseLive 1.8s ease-in-out infinite;
+  }
+
   /* Responsive desktop & tablet rules to prevent header & nav clipping */
-  @media (max-width: 1250px) {
-    #hdr-btn-download span { display: none !important; }
-    #hdr-btn-download { padding: 0 10px !important; }
+  @media (max-width: 1350px) {
+    #hdr-btn-download .hdr-dl-text { display: none !important; }
+    #hdr-btn-download { width: 38px !important; min-width: 38px !important; padding: 0 !important; border-radius: 50% !important; }
     #hdr-server-name { max-width: 80px !important; }
     .watch-title { max-width: 250px !important; }
   }
 
-  @media (max-width: 1100px) and (min-width: 769px) {
-    .site-header { padding: 12px 2vw; gap: 12px; }
-    .main-nav { gap: 12px; margin-left: 0; }
-    .main-nav a { font-size: 0.88rem; }
-    .nav-4k-text { font-size: 0.88rem; }
-    .search-box { width: 180px; }
-    .search-box:focus-within { width: 220px; }
-    .back-link .back-text { display: none; }
-    .back-link { padding: 7px 10px; }
-    .watch-title .wt-tag { display: none; }
-    .watch-title { max-width: 170px; }
+  @media (max-width: 1150px) and (min-width: 769px) {
+    .site-header { padding: 12px 2vw; gap: 10px; }
+    .main-nav { gap: 10px; margin-left: 0; }
+    .main-nav a { font-size: 0.86rem; }
+    .nav-4k-text { font-size: 0.86rem; }
+    .search-box { width: 170px; }
+    .search-box:focus-within { width: 210px; }
+    .back-link .back-text { display: none !important; }
+    .back-link { width: 38px !important; height: 38px !important; min-width: 38px !important; padding: 0 !important; border-radius: 50% !important; justify-content: center !important; }
+    .watch-title .wt-tag { display: none !important; }
+    .watch-title { max-width: 180px !important; }
+    #hdr-server-name { max-width: 70px !important; }
   }
 
   @media (max-width: 950px) and (min-width: 769px) {
     .brand-streaming-text { display: none; }
     .main-nav { gap: 8px; }
-    .main-nav a { font-size: 0.84rem; }
+    .main-nav a { font-size: 0.82rem; }
     .nav-4k-text { display: none; }
-    .search-box { width: 140px; }
-    .search-box:focus-within { width: 180px; }
-    #hdr-server-name { max-width: 60px !important; }
+    .search-box { width: 130px; }
+    .search-box:focus-within { width: 170px; }
+    .watch-title { max-width: 120px !important; }
+    #hdr-server-name { max-width: 55px !important; }
   }
 
-  @media (max-width: 768px), (max-height: 550px) and (max-width: 1024px), (orientation: landscape) and (max-height: 600px) {
+  @media (max-width: 768px) {
     .main-nav { display: none; }
     .mobile-bottom-nav { display: flex; }
     body { padding-bottom: 70px; }
@@ -1071,7 +1108,7 @@
       align-items: center !important;
       justify-content: space-between !important;
       box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-      overflow: hidden !important;
+      overflow: visible !important;
     }
 
     .watch-top[hidden], [hidden] {
@@ -1794,6 +1831,9 @@
       <a href="#/browse?type=movie">Movies</a>
       <a href="#/browse?type=tv">TV Shows</a>
       <a href="#/anime">Anime</a>
+      <a href="#/live-tv" class="nav-live-tv-link" style="display:inline-flex;align-items:center;gap:6px">
+        <span class="live-dot"></span> Live TV
+      </a>
       <a href="#/watchlist">Watchlist</a>
       <a href="#/downloads" style="display:inline-flex;align-items:center;gap:5px;color:var(--text);font-weight:700"><i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent)"></i> <span class="nav-4k-text">4K Downloads</span></a>
     </nav>
@@ -1822,6 +1862,10 @@
     <a href="#/anime" class="mobile-nav-item" data-route="anime">
       <i class="fa-solid fa-dragon"></i>
       <span>Anime</span>
+    </a>
+    <a href="#/live-tv" class="mobile-nav-item" data-route="live-tv">
+      <i class="fa-solid fa-satellite-dish" style="color:var(--accent)"></i>
+      <span>Live TV</span>
     </a>
     <a href="#/downloads" class="mobile-nav-item" data-route="downloads">
       <i class="fa-solid fa-cloud-arrow-down" style="color:var(--accent)"></i>
@@ -2024,16 +2068,17 @@ const TMDB = (() => {
    Press 1..N while watching to switch the active server.
    ============================================================ */
 const PROVIDERS = [
-  /* ---------------- RECOMMENDED SERVERS (Top 6) ---------------- */
-  { id:'111movies', name:'111Movies', recommended: true, badge:'Default · Ad-Free & Fast', build({type,tmdb,season,episode}) {
-      return type==='movie' ? `https://111movies.com/movie/${tmdb}` : `https://111movies.com/tv/${tmdb}/${season}/${episode}`;
-  }},
-  { id:'vidking', name:'VidKing', recommended: true, badge:'Fast', build({type,tmdb,season,episode,opt}) {
-      let base = type==='movie' ? `https://www.vidking.net/embed/movie/${tmdb}` : `https://www.vidking.net/embed/tv/${tmdb}/${season}/${episode}`;
+  /* ---------------- RECOMMENDED SERVERS ---------------- */
+  { id:'vidy', name:'Vidy', recommended: true, badge:'Default · Featured · Vidy.st', build({type,tmdb,season,episode,opt,progress}) {
+      let base = type==='movie' ? `https://vidy.st/movie/${tmdb}` : `https://vidy.st/tv/${tmdb}/${season||1}/${episode||1}`;
       const p = new URLSearchParams();
-      if (opt && opt.color) p.set('color', opt.color);
-      p.set('autoPlay', opt && opt.autoplay === false ? 'false' : 'true');
-      if (type==='tv') { p.set('nextEpisode','true'); p.set('episodeSelector','true'); }
+      if (opt && opt.color) p.set('color', opt.color.replace('#',''));
+      if (progress && progress > 0) p.set('progress', Math.floor(progress));
+      if (type==='tv') {
+        p.set('nextEpisode','true');
+        p.set('episodeSelector','true');
+        p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
+      }
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
   { id:'vidlinkpro', name:'VidLink Pro', recommended: true, badge:'Ad-Free', build({type,tmdb,season,episode,opt}) {
@@ -2059,31 +2104,37 @@ const PROVIDERS = [
       if (type==='tv') p.set('nextButton','true');
       const qs = p.toString(); return qs ? `${base}?${qs}` : base;
   }},
-  { id:'vidy', name:'Vidy', recommended: true, badge:'Featured · Vidy.st', build({type,tmdb,season,episode,opt,progress}) {
-      let base = type==='movie' ? `https://vidy.st/movie/${tmdb}` : `https://vidy.st/tv/${tmdb}/${season||1}/${episode||1}`;
-      const p = new URLSearchParams();
-      if (opt && opt.color) p.set('color', opt.color.replace('#',''));
-      if (progress && progress > 0) p.set('progress', Math.floor(progress));
-      if (type==='tv') {
-        p.set('nextEpisode','true');
-        p.set('episodeSelector','true');
-        p.set('autoplayNextEpisode', opt && opt.autoplay === false ? 'false' : 'true');
-      }
-      const qs = p.toString(); return qs ? `${base}?${qs}` : base;
+  { id:'autoembed', name:'AutoEmbed', recommended: true, badge:'Multi-Language', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://player.autoembed.cc/embed/movie/${tmdb}` : `https://player.autoembed.cc/embed/tv/${tmdb}/${season}/${episode}`;
+  }},
+  { id:'superembed', name:'SuperEmbed', recommended: true, badge:'Multi-Server Balancing', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://multiembed.mov/?video_id=${tmdb}&tmdb=1` : `https://multiembed.mov/?video_id=${tmdb}&tmdb=1&s=${season}&e=${episode}`;
+  }},
+  { id:'embedsu', name:'Embed.su', recommended: true, badge:'Great Uptime', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://embed.su/embed/movie/${tmdb}` : `https://embed.su/embed/tv/${tmdb}/${season}/${episode}`;
   }},
 
-  /* ---------------- BACKUP SERVERS (Ordered) ---------------- */
+  /* ---------------- BACKUP & WEB EMBED SERVERS ---------------- */
+  { id:'vidcore', name:'VidCore', recommended: false, badge:'Fast & Clean', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://vidcore.org/embed/movie/${tmdb}` : `https://vidcore.org/embed/tv/${tmdb}/${season}/${episode}`;
+  }},
+  { id:'yapgrid', name:'YapGrid', recommended: false, badge:'Ad-Free Player', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://yapgrid.com/embed/movie/${tmdb}` : `https://yapgrid.com/embed/tv/${tmdb}/${season}/${episode}`;
+  }},
+  { id:'embedmaster', name:'EmbedMaster', recommended: false, badge:'Multi-Source HD', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://embedmaster.link/movie/${tmdb}` : `https://embedmaster.link/tv/${tmdb}/${season}/${episode}`;
+  }},
+  { id:'vidsrcicu', name:'VidSrc.icu', recommended: false, badge:'High Uptime', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://vidsrc.icu/embed/movie/${tmdb}` : `https://vidsrc.icu/embed/tv/${tmdb}/${season}/${episode}`;
+  }},
+  { id:'nexstream', name:'NexStream', recommended: false, badge:'Adaptive Bitrate', build({type,tmdb,season,episode}) {
+      return type==='movie' ? `https://nexstream.net/embed/movie/${tmdb}` : `https://nexstream.net/embed/tv/${tmdb}/${season}/${episode}`;
+  }},
   { id:'vidsrcto', name:'VidSrc.to', recommended: false, badge:'Alt Endpoint · Subs', build({type,tmdb,season,episode}) {
       return type==='movie' ? `https://vidsrc.to/embed/movie/${tmdb}` : `https://vidsrc.to/embed/tv/${tmdb}/${season}/${episode}`;
   }},
   { id:'vidbinge', name:'VidBinge', recommended: false, badge:'4K Sources', build({type,tmdb,season,episode}) {
       return type==='movie' ? `https://vidbinge.dev/embed/movie/${tmdb}` : `https://vidbinge.dev/embed/tv/${tmdb}/${season}/${episode}`;
-  }},
-  { id:'embedsu', name:'Embed.su', recommended: false, badge:'Great Uptime', build({type,tmdb,season,episode}) {
-      return type==='movie' ? `https://embed.su/embed/movie/${tmdb}` : `https://embed.su/embed/tv/${tmdb}/${season}/${episode}`;
-  }},
-  { id:'superembed', name:'SuperEmbed', recommended: false, badge:'Multi-Server Balancing', build({type,tmdb,season,episode}) {
-      return type==='movie' ? `https://multiembed.mov/?video_id=${tmdb}&tmdb=1` : `https://multiembed.mov/?video_id=${tmdb}&tmdb=1&s=${season}&e=${episode}`;
   }},
   { id:'smashystream', name:'SmashyStream', recommended: false, badge:'Multi-Source', build({type,tmdb,season,episode}) {
       return type==='movie' ? `https://embed.smashystream.com/playere.php?tmdb=${tmdb}` : `https://embed.smashystream.com/playere.php?tmdb=${tmdb}&season=${season}&episode=${episode}`;
@@ -2096,9 +2147,6 @@ const PROVIDERS = [
   }},
   { id:'moviesapi', name:'MoviesAPI', recommended: false, badge:'Backup · HD', build({type,tmdb,season,episode}) {
       return type==='movie' ? `https://moviesapi.club/movie/${tmdb}` : `https://moviesapi.club/tv/${tmdb}-${season}-${episode}`;
-  }},
-  { id:'autoembed', name:'AutoEmbed', recommended: false, badge:'Multi-Language', build({type,tmdb,season,episode}) {
-      return type==='movie' ? `https://player.autoembed.cc/embed/movie/${tmdb}` : `https://player.autoembed.cc/embed/tv/${tmdb}/${season}/${episode}`;
   }},
   { id:'vidsrcme', name:'VidSrc.me', recommended: false, badge:'Classic · Wide DB', build({type,tmdb,season,episode}) {
       return type==='movie' ? `https://vidsrc.me/embed/movie?tmdb=${tmdb}` : `https://vidsrc.me/embed/tv?tmdb=${tmdb}&season=${season}&episode=${episode}`;
@@ -2222,8 +2270,16 @@ async function resolveAnimeIds(title, seasonNum, isMovie = false) {
    ============================================================ */
 const Settings = (() => {
   const KEY = 'Urnperiodic_settings';
-  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidking', animeProvider:'vidy-anime', animeLang:'sub' };
-  function get() { try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') }; } catch { return { ...DEFAULTS }; } }
+  const DEFAULTS = { color:'DC2626', autoplay:true, muted:false, defaultProvider:'vidy', animeProvider:'vidy-anime', animeLang:'sub' };
+  function get() {
+    try {
+      const s = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(KEY) || '{}') };
+      if (s.defaultProvider === 'vidking' || s.defaultProvider === '111movies' || !getProvider(s.defaultProvider)) s.defaultProvider = 'vidy';
+      return s;
+    } catch {
+      return { ...DEFAULTS };
+    }
+  }
   function save(s) { localStorage.setItem(KEY, JSON.stringify({ ...get(), ...s })); applyTheme(); }
   function applyTheme() {
     const s = get();
@@ -2956,6 +3012,7 @@ function parseHash() {
   if (path === '/anime-watch') return { route: 'anime-watch', params };
   if (path === '/downloads' || path === '/hub') return { route: 'downloads', params };
   if (path === '/watchlist') return { route: 'watchlist', params };
+  if (path === '/live-tv' || path === '/livetv' || path === '/tv-live') return { route: 'live-tv', params };
   return { route: 'home', params: {} };
 }
 
@@ -3027,7 +3084,83 @@ async function buildTop10AnimeRow(container) {
     wireCards(section);
   } catch (e) {
     console.error('Failed to load top 10 anime:', e);
+    const liveSec = document.getElementById('live-tv-section');
+    if (liveSec) liveSec.scrollIntoView({ behavior: 'smooth' });
   }
+}
+
+/* ============================================================
+   Live TV Channels Section (zlive Embed API)
+   ============================================================ */
+function buildLiveTVSection(container) {
+  const ZLIVE_CHANNELS = [
+    { id: 'auto-abc', name: 'ABC', badge: 'Live News & Shows' },
+    { id: 'auto-cbs', name: 'CBS', badge: 'Primetime' },
+    { id: 'auto-nbc', name: 'NBC', badge: 'Network Live' },
+    { id: 'auto-fox', name: 'FOX', badge: 'Entertainment' },
+    { id: 'auto-espn', name: 'ESPN', badge: 'Sports' },
+    { id: 'auto-cnn', name: 'CNN', badge: 'Breaking News' },
+    { id: 'auto-hbo', name: 'HBO', badge: 'Premium Movies' }
+  ];
+
+  const section = document.createElement('section');
+  section.className = 'row live-tv-section';
+  section.id = 'live-tv-section';
+  let activeChan = ZLIVE_CHANNELS[0];
+
+  section.innerHTML = `
+    <div class="row-head" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <h2><i class="fa-solid fa-satellite-dish" style="color:var(--accent)"></i> Live TV Channels <span style="font-size:0.75rem;padding:3px 9px;border-radius:6px;background:rgba(229,9,20,0.2);color:var(--accent);font-weight:700;margin-left:6px;vertical-align:middle">zlive 24/7 Stream</span></h2>
+      <div style="display:flex;align-items:center;gap:12px">
+        <a href="#/live-tv" class="row-view-all" style="font-size:0.85rem;color:var(--accent);text-decoration:none;font-weight:700;display:flex;align-items:center;gap:5px">
+          View All Channels <i class="fa-solid fa-chevron-right" style="font-size:0.75rem"></i>
+        </a>
+      </div>
+    </div>
+    <div style="padding:0 4vw;margin-bottom:10px;display:flex;align-items:center;gap:8px;overflow-x:auto;scrollbar-width:none" class="channel-pill-list">
+      ${ZLIVE_CHANNELS.map((ch, idx) => `
+        <button class="live-chan-btn ${idx === 0 ? 'active' : ''}" data-channel="${ch.id}" style="
+          display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;
+          font-size:0.82rem;font-weight:700;cursor:pointer;border:1px solid ${idx===0 ? 'var(--accent)' : 'rgba(255,255,255,0.14)'};
+          background:${idx===0 ? 'var(--accent)' : 'rgba(255,255,255,0.06)'};color:#fff;transition:all 0.2s;white-space:nowrap
+        ">
+          <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${idx===0 ? '#fff' : '#22c55e'}"></span>
+          ${ch.name}
+        </button>
+      `).join('')}
+    </div>
+    <div style="padding:0 4vw;margin-top:14px">
+      <div style="position:relative;width:100%;padding-top:56.25%;background:#000;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.12);box-shadow:0 12px 36px rgba(0,0,0,0.7)">
+        <iframe
+          id="zlive-embed-iframe"
+          src="https://zlive.st/embed/${activeChan.id}"
+          frameborder="0"
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowfullscreen
+          style="position:absolute;inset:0;width:100%;height:100%;border:0;"
+        ></iframe>
+      </div>
+    </div>
+  `;
+
+  container.appendChild(section);
+
+  section.querySelectorAll('.live-chan-btn').forEach(btn => {
+    btn.onclick = () => {
+      const chId = btn.dataset.channel;
+      section.querySelectorAll('.live-chan-btn').forEach(b => {
+        const isCur = b.dataset.channel === chId;
+        b.classList.toggle('active', isCur);
+        b.style.background = isCur ? 'var(--accent)' : 'rgba(255,255,255,0.06)';
+        b.style.borderColor = isCur ? 'var(--accent)' : 'rgba(255,255,255,0.14)';
+        const dot = b.querySelector('span');
+        if (dot) dot.style.background = isCur ? '#fff' : '#22c55e';
+      });
+      const iframe = section.querySelector('#zlive-embed-iframe');
+      if (iframe) iframe.src = `https://zlive.st/embed/${chId}`;
+      toast('Tuned to Live ' + btn.textContent.trim());
+    };
+  });
 }
 
 async function renderHome() {
@@ -3058,6 +3191,7 @@ async function renderHome() {
   buildContinueWatching(rows);
   buildWatchlistRow(rows);
   buildTop10AnimeRow(rows);
+  buildLiveTVSection(rows);
 
   Promise.all([
     buildHero(),
@@ -4009,11 +4143,27 @@ async function renderWatch(params) {
     });
   }
 
+  function alignDropdownMenu(wrapEl, menuEl) {
+    if (!wrapEl || !menuEl) return;
+    const rect = wrapEl.getBoundingClientRect();
+    const menuWidth = menuEl.offsetWidth || 300;
+    if (rect.right - menuWidth < 10) {
+      menuEl.style.right = 'auto';
+      menuEl.style.left = '0';
+    } else {
+      menuEl.style.left = 'auto';
+      menuEl.style.right = '0';
+    }
+  }
+
   if (serverBtn && serverWrap) {
     serverBtn.onclick = (e) => {
       e.stopPropagation();
       if (epWrap) epWrap.classList.remove('open');
       serverWrap.classList.toggle('open');
+      if (serverWrap.classList.contains('open')) {
+        alignDropdownMenu(serverWrap, serverMenu);
+      }
     };
   }
 
@@ -4023,7 +4173,14 @@ async function renderWatch(params) {
     if (epWrap) {
       epWrap.style.display = 'inline-flex';
       epWrap.classList.remove('open');
-      if (epBtn) epBtn.onclick = (e) => { e.stopPropagation(); epWrap.classList.toggle('open'); };
+      if (epBtn) epBtn.onclick = (e) => {
+        e.stopPropagation();
+        if (serverWrap) serverWrap.classList.remove('open');
+        epWrap.classList.toggle('open');
+        if (epWrap.classList.contains('open')) {
+          alignDropdownMenu(epWrap, document.getElementById('hdr-episodes-menu'));
+        }
+      };
     }
     if (prevBtnHdr) prevBtnHdr.style.display = 'inline-flex';
     if (nextBtnHdr) nextBtnHdr.style.display = 'inline-flex';
@@ -4459,7 +4616,7 @@ async function renderAnimeWatch(params) {
       if (isMovie || hist.episode == epNum) progress = hist.currentTime;
     }
 
-    // First check if current provider is a standard main provider (e.g. 111movies, vidking, vidlinkpro, videasy, etc.)
+    // First check if current provider is a standard main provider (e.g. vidy, vidlinkpro, videasy, etc.)
     const stdProv = PROVIDERS.find(p => p.id === currentAnimeProvider);
     if (stdProv) {
       return stdProv.build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
@@ -4490,7 +4647,7 @@ async function renderAnimeWatch(params) {
 
     if (anilistId) return getAnimeProvider('vidy-anime').build({ anilistId, epNum, opt, progress });
     if (malId) return getAnimeProvider('megaplay-mal').build({ malId, epNum, lang });
-    return getProvider('111movies').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
+    return getProvider('vidy').build({ type: isMovie ? 'movie' : 'tv', tmdb: targetTmdb, season, episode: epNum, opt, progress });
   }
 
   async function switchEpisode(epNum) {
@@ -4707,6 +4864,7 @@ function updateMobileNav(route, params = {}) {
     else if (r === 'movies' && route === 'browse' && params.type === 'movie') isActive = true;
     else if (r === 'tv' && route === 'browse' && params.type === 'tv') isActive = true;
     else if (r === 'anime' && route === 'anime') isActive = true;
+    else if (r === 'live-tv' && route === 'live-tv') isActive = true;
     else if (r === 'downloads' && route === 'downloads') isActive = true;
     else if (r === 'watchlist' && route === 'watchlist') isActive = true;
     el.classList.toggle('active', isActive);
@@ -4728,6 +4886,7 @@ async function render() {
   if (route === 'details') return renderDetails(params);
   if (route === 'browse') return renderBrowse(params);
   if (route === 'anime') return renderAnime(params);
+  if (route === 'live-tv') return renderLiveTV(params);
   if (route === 'downloads') return renderDownloads(params);
   if (route === 'watchlist') return renderWatchlist();
   return renderHome();
@@ -4787,6 +4946,296 @@ function fallbackCopy(text, successMsg) {
     prompt('Copy download link:', text);
   }
   document.body.removeChild(ta);
+}
+
+/* ============================================================
+   LIVE TV BROADCASTS PAGE (zlive Embed API)
+   ============================================================ */
+const ALL_ZLIVE_CHANNELS = [
+  { id: 'auto-abc', name: 'ABC', cat: 'news', catName: 'News', icon: 'fa-solid fa-tower-broadcast', desc: 'ABC News, Good Morning America, Primetime Shows & Special Live Coverage', region: 'USA' },
+  { id: 'auto-cbs', name: 'CBS', cat: 'news', catName: 'News', icon: 'fa-solid fa-eye', desc: 'CBS Evening News, 60 Minutes, NFL Live Broadcasts & Primetime Dramas', region: 'USA' },
+  { id: 'auto-nbc', name: 'NBC', cat: 'news', catName: 'News', icon: 'fa-solid fa-feather-pointed', desc: 'NBC Today Show, Nightly News, Sunday Night Football & Hit Comedies', region: 'USA' },
+  { id: 'auto-fox', name: 'FOX', cat: 'entertainment', catName: 'Entertainment', icon: 'fa-solid fa-shield', desc: 'FOX Primetime, Animation Domination, Sports & Live Specials', region: 'USA' },
+  { id: 'auto-espn', name: 'ESPN', cat: 'sports', catName: 'Sports', icon: 'fa-solid fa-basketball', desc: 'Live NBA, NFL, SportsCenter, College Football & Global Sports Highlights', region: 'USA' },
+  { id: 'auto-cnn', name: 'CNN', cat: 'news', catName: 'News', icon: 'fa-solid fa-newspaper', desc: '24/7 Global Breaking News, Political Analysis & Live World Reports', region: 'USA' },
+  { id: 'auto-hbo', name: 'HBO', cat: 'movies', catName: 'Movies', icon: 'fa-solid fa-film', desc: 'Blockbuster Hollywood Movies, HBO Original Series & Documentaries', region: 'USA' },
+  { id: 'auto-usa', name: 'USA Network', cat: 'entertainment', catName: 'Entertainment', icon: 'fa-solid fa-tv', desc: 'WWE Raw, Hit Drama Series, Action Movies & Major Sports Events', region: 'USA' },
+  { id: 'auto-tnt', name: 'TNT', cat: 'sports', catName: 'Sports', icon: 'fa-solid fa-fire', desc: 'NBA on TNT, NHL Live Coverage, Blockbuster Movies & Dramas', region: 'USA' },
+  { id: 'auto-tbs', name: 'TBS', cat: 'entertainment', catName: 'Entertainment', icon: 'fa-solid fa-face-laugh-squint', desc: 'Hit Comedy Series, MLB Postseason Baseball & Late Night Specials', region: 'USA' },
+  { id: 'auto-cartoon-network', name: 'Cartoon Network', cat: 'family', catName: 'Family', icon: 'fa-solid fa-shapes', desc: 'Cartoon Network & Adult Swim Classic & Modern Animated Favorites', region: 'USA' },
+  { id: 'auto-discovery', name: 'Discovery', cat: 'documentary', catName: 'Documentary', icon: 'fa-solid fa-earth-americas', desc: 'Science, Wildlife, Space Exploration & Real-World Adventures', region: 'USA' }
+];
+
+async function renderLiveTV(params = {}) {
+  setChrome('live-tv');
+  siteHeader.classList.add('scrolled');
+  document.querySelectorAll('#main-nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#/live-tv'));
+
+  let currentId = params.ch || 'auto-abc';
+  let curCh = ALL_ZLIVE_CHANNELS.find(c => c.id === currentId) || ALL_ZLIVE_CHANNELS[0];
+  let activeCat = 'all';
+  let searchQuery = '';
+
+  app.innerHTML = `
+    <main class="grid-page" style="max-width:1380px;margin:0 auto;padding:100px 4vw 60px">
+      <!-- Header Banner -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:9999px;background:rgba(229,9,20,0.18);border:1px solid rgba(229,9,20,0.4);color:var(--accent);font-size:0.75rem;font-weight:800;letter-spacing:0.5px">
+              <span class="live-dot" style="width:7px;height:7px"></span> LIVE 24/7
+            </span>
+            <span style="font-size:0.8rem;color:var(--text-dim);font-weight:600">zlive Embed API</span>
+          </div>
+          <h1 style="font-size:clamp(1.8rem, 4vw, 2.6rem);font-weight:800;letter-spacing:-0.8px;margin:0">Live TV Channels</h1>
+          <p class="sub" style="margin-top:6px;max-width:680px;color:var(--text-dim);font-size:0.95rem">
+            Watch free 24/7 live television broadcast streams directly on Urnperiodic. Switch between live news, sports, entertainment, movies, and networks in HD.
+          </p>
+        </div>
+
+        <!-- Quick actions -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-outline" id="live-refresh-btn" style="padding:9px 16px;font-size:0.88rem;border-radius:10px" title="Refresh Live Stream">
+            <i class="fa-solid fa-rotate-right" style="color:var(--accent)"></i> Reload Stream
+          </button>
+          <button class="btn btn-primary" id="live-share-btn" style="padding:9px 18px;font-size:0.88rem;border-radius:10px" title="Copy Direct Stream Embed Link">
+            <i class="fa-solid fa-link"></i> Direct Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Stage Live Player Container (16:9 Responsive) -->
+      <div id="live-player-container" style="margin-bottom:28px">
+        <div style="position:relative;width:100%;padding-top:56.25%;background:#050508;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.15);box-shadow:0 20px 60px rgba(0,0,0,0.85)">
+          <iframe
+            id="live-stage-iframe"
+            src="https://zlive.st/embed/${curCh.id}"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+            style="position:absolute;inset:0;width:100%;height:100%;border:0;"
+          ></iframe>
+        </div>
+
+        <!-- Live Player Bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;background:var(--bg-elev);border:1px solid var(--border);border-top:none;border-radius:0 0 16px 16px;padding:14px 20px;margin-top:-1px">
+          <div style="display:flex;align-items:center;gap:14px;min-width:0">
+            <div style="width:42px;height:42px;border-radius:10px;background:rgba(229,9,20,0.15);border:1px solid rgba(229,9,20,0.3);color:var(--accent);display:grid;place-items:center;font-size:1.2rem;flex-shrink:0" id="cur-chan-icon">
+              <i class="${curCh.icon}"></i>
+            </div>
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span id="cur-chan-name" style="font-size:1.15rem;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${curCh.name}</span>
+                <span id="cur-chan-badge" style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,0.1);color:#fff">${curCh.catName}</span>
+              </div>
+              <div id="cur-chan-desc" style="font-size:0.82rem;color:var(--text-dim);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:500px">${curCh.desc}</div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="icon-btn" id="live-prev-chan-btn" title="Previous Channel" style="width:38px;height:38px"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="icon-btn" id="live-next-chan-btn" title="Next Channel" style="width:38px;height:38px"><i class="fa-solid fa-chevron-right"></i></button>
+            <button class="btn btn-outline" id="live-fs-btn" style="padding:8px 14px;font-size:0.85rem;border-radius:8px">
+              <i class="fa-solid fa-expand"></i> Fullscreen
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel Explorer Bar: Filter & Search -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px">
+        <!-- Categories -->
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap" id="live-cat-list">
+          <button class="btn btn-primary live-cat-btn" data-cat="all" style="padding:7px 16px;border-radius:9999px;font-size:0.82rem">All Channels (${ALL_ZLIVE_CHANNELS.length})</button>
+          <button class="btn btn-ghost live-cat-btn" data-cat="news" style="padding:7px 16px;border-radius:9999px;font-size:0.82rem">News</button>
+          <button class="btn btn-ghost live-cat-btn" data-cat="sports" style="padding:7px 16px;border-radius:9999px;font-size:0.82rem">Sports</button>
+          <button class="btn btn-ghost live-cat-btn" data-cat="entertainment" style="padding:7px 16px;border-radius:9999px;font-size:0.82rem">Entertainment</button>
+          <button class="btn btn-ghost live-cat-btn" data-cat="movies" style="padding:7px 16px;border-radius:9999px;font-size:0.82rem">Movies</button>
+          <button class="btn btn-ghost live-cat-btn" data-cat="family" style="padding:7px 16px;border-radius:9999px;font-size:0.82rem">Family</button>
+        </div>
+
+        <!-- Channel Search input -->
+        <div style="display:flex;align-items:center;gap:8px;background:var(--bg-elev);border:1px solid var(--border);border-radius:9999px;padding:6px 14px;width:240px">
+          <i class="fa-solid fa-magnifying-glass" style="color:var(--text-dim);font-size:0.85rem"></i>
+          <input type="text" id="live-channel-search" placeholder="Search channels…" style="background:none;border:none;outline:none;color:#fff;font-size:0.85rem;width:100%">
+        </div>
+      </div>
+
+      <!-- Channel Grid -->
+      <div id="live-channel-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(min(100%, 280px), 1fr));gap:14px">
+      </div>
+    </main>
+  `;
+
+  const iframeEl = document.getElementById('live-stage-iframe');
+  const nameEl = document.getElementById('cur-chan-name');
+  const badgeEl = document.getElementById('cur-chan-badge');
+  const descEl = document.getElementById('cur-chan-desc');
+  const iconEl = document.getElementById('cur-chan-icon');
+  const gridEl = document.getElementById('live-channel-grid');
+  const searchInput = document.getElementById('live-channel-search');
+
+  function tuneChannel(ch) {
+    curCh = ch;
+    if (iframeEl) iframeEl.src = `https://zlive.st/embed/${ch.id}`;
+    if (nameEl) nameEl.textContent = ch.name;
+    if (badgeEl) badgeEl.textContent = ch.catName;
+    if (descEl) descEl.textContent = ch.desc;
+    if (iconEl) iconEl.innerHTML = `<i class="${ch.icon}"></i>`;
+    window.history.replaceState(null, '', `#/live-tv?ch=${ch.id}`);
+    renderGrid();
+    toast(`Tuned to ${ch.name}`);
+  }
+
+  function renderGrid() {
+    if (!gridEl) return;
+    const q = searchQuery.toLowerCase().trim();
+    const filtered = ALL_ZLIVE_CHANNELS.filter(c => {
+      const matchCat = activeCat === 'all' || c.cat === activeCat;
+      const matchQ = !q || c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q);
+      return matchCat && matchQ;
+    });
+
+    if (!filtered.length) {
+      gridEl.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:var(--text-dim)">
+          <i class="fa-solid fa-satellite-dish" style="font-size:2.2rem;margin-bottom:10px;opacity:0.4"></i>
+          <p>No channels found matching "${escapeHTML(searchQuery)}"</p>
+        </div>
+      `;
+      return;
+    }
+
+    gridEl.innerHTML = filtered.map(c => {
+      const isCur = c.id === curCh.id;
+      return `
+        <div class="live-card-item" data-id="${c.id}" style="
+          background:${isCur ? 'linear-gradient(135deg, rgba(229,9,20,0.18) 0%, rgba(26,26,36,0.95) 100%)' : 'var(--bg-elev)'};
+          border:1px solid ${isCur ? 'var(--accent)' : 'var(--border)'};
+          border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px;cursor:pointer;
+          transition:all 0.22s ease;box-shadow:${isCur ? '0 8px 24px rgba(229,9,20,0.25)' : 'none'}
+        ">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="width:36px;height:36px;border-radius:8px;background:${isCur ? 'var(--accent)' : 'rgba(255,255,255,0.06)'};color:${isCur ? '#fff' : 'var(--accent)'};display:grid;place-items:center;font-size:1.05rem">
+                <i class="${c.icon}"></i>
+              </div>
+              <div>
+                <h3 style="font-size:1.02rem;font-weight:700;margin:0;color:#fff">${c.name}</h3>
+                <span style="font-size:0.72rem;color:var(--text-dim);font-weight:600">${c.catName}</span>
+              </div>
+            </div>
+            ${isCur ? `
+              <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:9999px;background:var(--accent);color:#fff;font-size:0.68rem;font-weight:800">
+                <span style="width:5px;height:5px;border-radius:50%;background:#fff"></span> STREAMING
+              </span>
+            ` : `
+              <span style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:9999px;background:rgba(34,197,94,0.15);color:#22c55e;font-size:0.68rem;font-weight:700">
+                <span style="width:5px;height:5px;border-radius:50%;background:#22c55e"></span> LIVE
+              </span>
+            `}
+          </div>
+          <p style="font-size:0.8rem;color:var(--text-dim);line-height:1.4;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">
+            ${c.desc}
+          </p>
+          <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06)">
+            <span style="font-size:0.74rem;color:var(--text-dim)"><i class="fa-solid fa-location-dot"></i> ${c.region}</span>
+            <span style="font-size:0.8rem;font-weight:700;color:${isCur ? 'var(--accent)' : '#fff'};display:inline-flex;align-items:center;gap:6px">
+              ${isCur ? 'Now Playing <i class="fa-solid fa-volume-high"></i>' : 'Tune Channel <i class="fa-solid fa-play" style="font-size:0.72rem"></i>'}
+            </span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    gridEl.querySelectorAll('.live-card-item').forEach(card => {
+      card.onclick = () => {
+        const cId = card.dataset.id;
+        const target = ALL_ZLIVE_CHANNELS.find(x => x.id === cId);
+        if (target) {
+          tuneChannel(target);
+          const cont = document.getElementById('live-player-container');
+          if (cont && window.innerWidth <= 768) {
+            cont.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }
+      };
+    });
+  }
+
+  // Category filter clicks
+  document.querySelectorAll('.live-cat-btn').forEach(btn => {
+    btn.onclick = () => {
+      activeCat = btn.dataset.cat;
+      document.querySelectorAll('.live-cat-btn').forEach(b => {
+        const isCur = b.dataset.cat === activeCat;
+        b.className = `btn ${isCur ? 'btn-primary' : 'btn-ghost'} live-cat-btn`;
+      });
+      renderGrid();
+    };
+  });
+
+  // Search input filter
+  if (searchInput) {
+    searchInput.oninput = (e) => {
+      searchQuery = e.target.value;
+      renderGrid();
+    };
+  }
+
+  // Reload button
+  const refreshBtn = document.getElementById('live-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.onclick = () => {
+      if (iframeEl) {
+        const s = iframeEl.src;
+        iframeEl.src = '';
+        setTimeout(() => { iframeEl.src = s; toast('Reloaded live stream'); }, 150);
+      }
+    };
+  }
+
+  // Share / Direct Link button
+  const shareBtn = document.getElementById('live-share-btn');
+  if (shareBtn) {
+    shareBtn.onclick = () => {
+      const link = `https://zlive.st/embed/${curCh.id}`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(link).then(() => toast('Direct link copied: ' + link)).catch(() => fallbackCopy(link, 'Direct link copied'));
+      } else {
+        fallbackCopy(link, 'Direct link copied');
+      }
+    };
+  }
+
+  // Fullscreen button
+  const fsBtn = document.getElementById('live-fs-btn');
+  if (fsBtn && iframeEl) {
+    fsBtn.onclick = () => {
+      if (iframeEl.requestFullscreen) iframeEl.requestFullscreen();
+      else if (iframeEl.webkitRequestFullscreen) iframeEl.webkitRequestFullscreen();
+    };
+  }
+
+  // Next / Prev channel buttons
+  const prevBtn = document.getElementById('live-prev-chan-btn');
+  const nextBtn = document.getElementById('live-next-chan-btn');
+  if (prevBtn) {
+    prevBtn.onclick = () => {
+      const curIdx = ALL_ZLIVE_CHANNELS.findIndex(c => c.id === curCh.id);
+      const prevIdx = (curIdx - 1 + ALL_ZLIVE_CHANNELS.length) % ALL_ZLIVE_CHANNELS.length;
+      tuneChannel(ALL_ZLIVE_CHANNELS[prevIdx]);
+    };
+  }
+  if (nextBtn) {
+    nextBtn.onclick = () => {
+      const curIdx = ALL_ZLIVE_CHANNELS.findIndex(c => c.id === curCh.id);
+      const nextIdx = (curIdx + 1) % ALL_ZLIVE_CHANNELS.length;
+      tuneChannel(ALL_ZLIVE_CHANNELS[nextIdx]);
+    };
+  }
+
+  renderGrid();
 }
 
 /* ============================================================
@@ -5488,6 +5937,10 @@ function initGlobal() {
     const epWrap = document.getElementById('hdr-episodes-wrap');
     if (epWrap && epWrap.classList.contains('open') && !epWrap.contains(e.target)) {
       epWrap.classList.remove('open');
+    }
+    const serverWrap = document.getElementById('hdr-server-wrap');
+    if (serverWrap && serverWrap.classList.contains('open') && !serverWrap.contains(e.target)) {
+      serverWrap.classList.remove('open');
     }
   });
 

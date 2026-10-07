@@ -1,0 +1,8 @@
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360
+https://test-streams.mux.dev/x36xhzz/url_0/193039199_mp4_h264_aac_ld_7.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=1400000,RESOLUTION=848x480
+https://test-streams.mux.dev/x36xhzz/url_2/193039199_mp4_h264_aac_med_7.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=2800000,RESOLUTION=1280x720
+https://test-streams.mux.dev/x36xhzz/url_6/193039199_mp4_h264_aac_hd_7.m3u8

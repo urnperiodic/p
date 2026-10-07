@@ -1,0 +1,26 @@
+[
+  {
+    "id": "public-sample-stream",
+    "name": "Public Sample Stream (Local)",
+    "url": "/public/sample.m3u8",
+    "cat": "public",
+    "icon": "fa-solid fa-play",
+    "desc": "Local sample M3U8 live stream hosted in /public"
+  },
+  {
+    "id": "akamai-hls-live",
+    "name": "Akamai HLS 24/7 Test Stream",
+    "url": "https://cph-p2p-msl.akamaized.net/hls/live/playlist.m3u8",
+    "cat": "public",
+    "icon": "fa-solid fa-satellite-dish",
+    "desc": "High Definition 1080p Public HLS Live Test Stream"
+  },
+  {
+    "id": "mux-hls-demo",
+    "name": "Mux Public Multi-Bitrate HLS",
+    "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+    "cat": "public",
+    "icon": "fa-solid fa-tv",
+    "desc": "Multi-bitrate adaptive HLS test broadcast"
+  }
+]

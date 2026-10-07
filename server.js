@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,7 +9,8 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
@@ -524,7 +526,345 @@ app.get('/api/4khdhub/latest', async (req, res) => {
   }
 });
 
-// Serve frontend assets
+// Ensure /public directory exists
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)) {
+  try {
+    fs.mkdirSync(publicDir, { recursive: true });
+  } catch (e) {
+    console.error('Failed to create public dir:', e);
+  }
+}
+
+// 7. API: Scan /public folder for M3U8 files, channels.json, or M3U playlists
+app.get(['/api/public/channels', '/api/public-channels'], (req, res) => {
+  try {
+    if (!fs.existsSync(publicDir)) {
+      return res.json({ success: true, count: 0, channels: [] });
+    }
+
+    const channels = [];
+    const seenUrls = new Set();
+
+    // 1. Check public/channels.json
+    const channelsJsonPath = path.join(publicDir, 'channels.json');
+    if (fs.existsSync(channelsJsonPath)) {
+      try {
+        const raw = fs.readFileSync(channelsJsonPath, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach((c, idx) => {
+            if (c && (c.url || c.file)) {
+              let url = c.url || c.file;
+              if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+                url = `/public/${url}`;
+              }
+              const slug = c.slug || c.id || `public-${idx}-${path.basename(url, path.extname(url)).toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+              channels.push({
+                id: slug,
+                slug,
+                name: c.name || `Public Channel ${idx + 1}`,
+                url,
+                cat: c.cat || 'public',
+                catName: c.catName || 'Local & Public',
+                icon: c.icon || 'fa-solid fa-play',
+                desc: c.desc || `Channel from /public/channels.json (${url})`,
+                isPublic: true,
+                isM3u8: true
+              });
+              seenUrls.add(url);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Failed parsing channels.json:', e);
+      }
+    }
+
+    // 2. Scan for any .m3u8 files in public/ (including subdirectories)
+    function scanDir(dir, relPath = '') {
+      if (!fs.existsSync(dir)) return;
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        const rel = relPath ? `${relPath}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+          scanDir(fullPath, rel);
+        } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.m3u8')) {
+          const streamUrl = `/public/${rel}`;
+          if (!seenUrls.has(streamUrl)) {
+            seenUrls.add(streamUrl);
+            const baseName = path.basename(entry.name, path.extname(entry.name));
+            const formattedName = baseName
+              .replace(/[-_.]+/g, ' ')
+              .replace(/\b\w/g, l => l.toUpperCase());
+            const slug = `public-${rel.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+            channels.push({
+              id: slug,
+              slug,
+              name: formattedName + ' (Local M3U8)',
+              url: streamUrl,
+              cat: 'public',
+              catName: 'Local & Public',
+              icon: 'fa-solid fa-satellite-dish',
+              desc: `Local stream file in public/${rel}`,
+              isPublic: true,
+              isM3u8: true
+            });
+          }
+        }
+      }
+    }
+    scanDir(publicDir);
+
+    // 3. Scan for any .m3u playlists in public/
+    try {
+      const entries = fs.readdirSync(publicDir);
+      for (const file of entries) {
+        if (file.toLowerCase().endsWith('.m3u') && !file.toLowerCase().endsWith('.m3u8')) {
+          const content = fs.readFileSync(path.join(publicDir, file), 'utf8');
+          const lines = content.split('\n');
+          let currentName = '';
+          let currentLogo = '';
+          let currentGroup = '';
+          for (let line of lines) {
+            line = line.trim();
+            if (line.startsWith('#EXTINF:')) {
+              const nameMatch = line.match(/,(.+)$/);
+              currentName = nameMatch ? nameMatch[1].trim() : 'M3U Channel';
+              const logoMatch = line.match(/tvg-logo="([^"]+)"/i);
+              currentLogo = logoMatch ? logoMatch[1] : '';
+              const groupMatch = line.match(/group-title="([^"]+)"/i);
+              currentGroup = groupMatch ? groupMatch[1] : 'Public Playlist';
+            } else if (line && !line.startsWith('#')) {
+              let url = line;
+              if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = url.startsWith('/') ? url : `/public/${url}`;
+              }
+              if (!seenUrls.has(url)) {
+                seenUrls.add(url);
+                const slug = `m3u-${channels.length}-${currentName.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                channels.push({
+                  id: slug,
+                  slug,
+                  name: currentName,
+                  url,
+                  logo: currentLogo,
+                  cat: 'public',
+                  catName: currentGroup || 'Local & Public',
+                  icon: 'fa-solid fa-tv',
+                  desc: `Stream from ${file}`,
+                  isPublic: true,
+                  isM3u8: true
+                });
+              }
+              currentName = '';
+              currentLogo = '';
+              currentGroup = '';
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Error reading M3U playlists:', e);
+    }
+
+    res.json({ success: true, count: channels.length, channels });
+  } catch (err) {
+    console.error('Error scanning public channels:', err);
+    res.status(500).json({ error: err.message, channels: [] });
+  }
+});
+
+// 7b. API: List all files in /public folder
+app.get('/api/public/files', (req, res) => {
+  try {
+    if (!fs.existsSync(publicDir)) {
+      return res.json({ success: true, files: [] });
+    }
+    const files = [];
+    function walk(dir, relPath = '') {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const full = path.join(dir, entry.name);
+        const rel = relPath ? `${relPath}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+          walk(full, rel);
+        } else if (entry.isFile()) {
+          const stats = fs.statSync(full);
+          const ext = path.extname(entry.name).toLowerCase();
+          files.push({
+            name: entry.name,
+            relPath: rel,
+            url: `/public/${rel}`,
+            size: stats.size,
+            mtime: stats.mtime,
+            isM3u8: ext === '.m3u8',
+            isM3u: ext === '.m3u',
+            isJson: ext === '.json'
+          });
+        }
+      }
+    }
+    walk(publicDir);
+    res.json({ success: true, files });
+  } catch (err) {
+    res.status(500).json({ error: err.message, files: [] });
+  }
+});
+
+// 7c. API: Save / upload a file into /public folder
+app.post('/api/public/save', (req, res) => {
+  try {
+    const { filename, content } = req.body;
+    if (!filename || content === undefined) {
+      return res.status(400).json({ error: 'Missing filename or content parameter' });
+    }
+    const safeName = path.basename(filename.replace(/\\/g, '/')).trim();
+    if (!safeName || safeName === '.' || safeName === '..') {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+    const dest = path.join(publicDir, safeName);
+    fs.writeFileSync(dest, typeof content === 'string' ? content : JSON.stringify(content, null, 2), 'utf8');
+    res.json({
+      success: true,
+      message: `File saved to /public/${safeName}`,
+      url: `/public/${safeName}`,
+      filename: safeName
+    });
+  } catch (err) {
+    console.error('Error saving file in /public:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 7d. API: Add a channel reference directly into public/channels.json
+app.post('/api/public/add-channel', (req, res) => {
+  try {
+    const { name, url, cat, icon, desc } = req.body;
+    if (!url) {
+      return res.status(400).json({ error: 'Missing url parameter' });
+    }
+    const channelsJsonPath = path.join(publicDir, 'channels.json');
+    let channels = [];
+    if (fs.existsSync(channelsJsonPath)) {
+      try {
+        const raw = fs.readFileSync(channelsJsonPath, 'utf8');
+        channels = JSON.parse(raw);
+        if (!Array.isArray(channels)) channels = [];
+      } catch (e) {
+        channels = [];
+      }
+    }
+
+    let resolvedUrl = url.trim();
+    if (!resolvedUrl.startsWith('http://') && !resolvedUrl.startsWith('https://') && !resolvedUrl.startsWith('/')) {
+      resolvedUrl = `/public/${resolvedUrl}`;
+    }
+
+    const slug = 'pub-' + Date.now();
+    const newCh = {
+      id: slug,
+      name: name || path.basename(resolvedUrl, path.extname(resolvedUrl)) || 'Public Channel',
+      url: resolvedUrl,
+      cat: cat || 'public',
+      icon: icon || 'fa-solid fa-satellite-dish',
+      desc: desc || `Live stream from ${resolvedUrl}`
+    };
+
+    channels.push(newCh);
+    fs.writeFileSync(channelsJsonPath, JSON.stringify(channels, null, 2), 'utf8');
+    res.json({ success: true, channel: newCh, total: channels.length });
+  } catch (err) {
+    console.error('Error saving channel to public/channels.json:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 8. API: Stream CORS Proxy for external M3U8 streams when needed
+app.get('/api/stream/proxy', async (req, res) => {
+  try {
+    const targetUrl = req.query.url;
+    if (!targetUrl) return res.status(400).send('Missing url param');
+    
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(targetUrl);
+    } catch (e) {
+      return res.status(400).send('Invalid url: ' + e.message);
+    }
+
+    const streamRes = await fetch(targetUrl, {
+      headers: {
+        'User-Agent': USER_AGENT,
+        'Referer': parsedUrl.origin
+      }
+    });
+
+    if (!streamRes.ok) {
+      return res.status(streamRes.status).send(`Failed to fetch stream: ${streamRes.statusText}`);
+    }
+
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', '*');
+    const contentType = streamRes.headers.get('content-type') || 'application/vnd.apple.mpegurl';
+    res.setHeader('Content-Type', contentType);
+
+    // If it's an M3U8 text playlist, rewrite relative segment paths
+    if (contentType.includes('mpegurl') || contentType.includes('text') || targetUrl.includes('.m3u8')) {
+      const body = await streamRes.text();
+      const baseUrl = targetUrl.substring(0, targetUrl.lastIndexOf('/') + 1);
+      const lines = body.split('\n').map(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('#')) {
+          if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+            const absolute = new URL(trimmed, baseUrl).href;
+            return `/api/stream/proxy?url=${encodeURIComponent(absolute)}`;
+          } else {
+            return `/api/stream/proxy?url=${encodeURIComponent(trimmed)}`;
+          }
+        }
+        return line;
+      });
+      return res.send(lines.join('\n'));
+    }
+
+    // Binary chunks (e.g. .ts video packets)
+    const buffer = Buffer.from(await streamRes.arrayBuffer());
+    res.send(buffer);
+  } catch (err) {
+    console.error('Stream proxy error:', err);
+    res.status(500).send('Proxy error: ' + err.message);
+  }
+});
+
+// Serve /public folder with CORS & explicit M3U8 / TS MIME types
+app.use('/public', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+  res.header('Access-Control-Allow-Headers', '*');
+  if (req.path.endsWith('.m3u8')) {
+    res.type('application/vnd.apple.mpegurl');
+  } else if (req.path.endsWith('.ts')) {
+    res.type('video/mp2t');
+  } else if (req.path.endsWith('.m3u')) {
+    res.type('application/x-mpegurl');
+  }
+  next();
+}, express.static(publicDir));
+
+// Also serve public files at root fallback
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  if (req.path.endsWith('.m3u8')) {
+    res.type('application/vnd.apple.mpegurl');
+  } else if (req.path.endsWith('.ts')) {
+    res.type('video/mp2t');
+  }
+  next();
+}, express.static(publicDir));
+
+// Serve general frontend assets
 app.use(express.static(__dirname));
 
 app.get('*', (req, res) => {

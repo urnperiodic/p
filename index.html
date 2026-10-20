@@ -693,6 +693,33 @@
     transform: translateZ(0);
   }
   .site-header.scrolled { background: rgba(10,10,15,0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+
+  /* ---------- School Notice Banner ---------- */
+  .school-notice-banner {
+    background: rgba(229, 9, 20, 0.16);
+    border: 1px solid rgba(229, 9, 20, 0.45);
+    color: var(--text);
+    padding: 12px 20px;
+    border-radius: 12px;
+    margin: 86px 4vw 16px 4vw;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    position: relative;
+    z-index: 20;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  @media (max-width: 768px) {
+    .school-notice-banner {
+      margin: 68px 14px 14px 14px;
+      padding: 10px 14px;
+      flex-wrap: wrap;
+    }
+  }
   
   /* ---------- Clean Header Logo ---------- */
   .logo {
@@ -2681,7 +2708,7 @@
 
   <!-- ===================== LIVE TV TOP BAR ===================== -->
   <header class="watch-top live-top" id="live-top" hidden>
-    <button class="back-link" id="live-back"><i class="fa-solid fa-arrow-left"></i> <span class="back-text">Back</span></button>
+    <button class="back-link" id="live-back" title="Go Home"><i class="fa-solid fa-house" style="color:var(--accent)"></i> <span class="back-text">Home</span></button>
     <div class="watch-title" id="live-title-box">
       <span class="live-dot" style="width:8px;height:8px;background:var(--accent);border-radius:50%;display:inline-block;animation:pulseLive 1.5s ease-in-out infinite"></span>
       <span class="wt-tag" style="background:rgba(229,9,20,0.22);color:var(--accent);font-weight:800;border:1px solid rgba(229,9,20,0.4)">LIVE</span>
@@ -4092,7 +4119,7 @@ function wireCards(scope) {
    ============================================================ */
 function parseHash() {
   let h = location.hash.replace(/^#/, '');
-  if (!h || h === '/') return { route: 'home', params: {} };
+  if (!h || h === '/') return { route: 'live-tv', params: {} };
   const [path, query] = h.split('?');
   const params = {};
   new URLSearchParams(query || '').forEach((v, k) => params[k] = v);
@@ -4104,6 +4131,7 @@ function parseHash() {
   if (path === '/downloads' || path === '/hub') return { route: 'downloads', params };
   if (path === '/watchlist') return { route: 'watchlist', params };
   if (path === '/live-tv' || path === '/livetv' || path === '/tv-live') return { route: 'live-tv', params };
+  if (path === '/home') return { route: 'home', params };
   return { route: 'home', params: {} };
 }
 
@@ -4206,6 +4234,19 @@ async function renderHome() {
   siteHeader.classList.remove('scrolled');
   document.querySelectorAll('#main-nav a').forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#/'));
   app.innerHTML = `
+    <div class="school-notice-banner" id="home-school-notice">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:240px">
+        <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent);font-size:1.3rem;flex-shrink:0"></i>
+        <div style="font-size:0.92rem;line-height:1.4">
+          <strong style="color:var(--accent)">Notice:</strong> Movies and TV shows don't work at school for now.
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0">
+        <a href="#/live-tv" class="btn btn-primary" style="padding:6px 14px;font-size:0.85rem;border-radius:9999px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">
+          <i class="fa-solid fa-satellite-dish"></i> Use Live TV Instead
+        </a>
+      </div>
+    </div>
     <section class="hero" id="hero">
       <div class="hero-bg"></div>
       <div class="hero-content">
@@ -4257,6 +4298,7 @@ async function renderHome() {
 }
 
 const STREAMING_PROVIDERS = [
+  { id: '493', name: 'Nicoleadean', icon: 'N', bg: '#ff6600', color: '#fff' },
   { id: '8', name: 'Netflix', icon: 'N', bg: '#e50914', color: '#fff' },
   { id: '119', name: 'Prime Video', icon: 'P', bg: '#00a8e1', color: '#fff' },
   { id: '1899', name: 'Max', icon: 'M', bg: '#252636', color: '#fff' },
@@ -4493,6 +4535,19 @@ async function renderBrowse(params) {
 
   app.innerHTML = `
     <main class="grid-page">
+      <div class="school-notice-banner" style="margin:0 0 20px 0">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:240px">
+          <i class="fa-solid fa-triangle-exclamation" style="color:var(--accent);font-size:1.3rem;flex-shrink:0"></i>
+          <div style="font-size:0.92rem;line-height:1.4">
+            <strong style="color:var(--accent)">Notice:</strong> Movies and TV shows don't work at school for now.
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0">
+          <a href="#/live-tv" class="btn btn-primary" style="padding:6px 14px;font-size:0.85rem;border-radius:9999px;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;gap:6px">
+            <i class="fa-solid fa-satellite-dish"></i> Use Live TV Instead
+          </a>
+        </div>
+      </div>
       <h1 id="page-title">Browse</h1>
       <p class="sub" id="page-sub"></p>
       <nav class="filter-bar" id="filter-bar"></nav>
@@ -4502,8 +4557,8 @@ async function renderBrowse(params) {
   initHeaderScroll();
 
   const MODE = {
-    q: params.q || '', type: params.type || '', trending: params.trending === '1',
-    genre: params.genre || '', page: 1, loading: false, done: false, fetcher: null, title: 'Browse'
+    q: params.q || '', type: params.type || 'tv', trending: params.trending === '1',
+    genre: params.genre || '', page: 1, loading: false, done: false, fetcher: null, title: params.type === 'movie' ? 'Movies' : 'TV Shows'
   };
   document.querySelectorAll('#main-nav a').forEach(a => {
     const href = a.getAttribute('href');
@@ -6445,7 +6500,7 @@ async function renderLiveTV(params = {}) {
   const reloadBtn = document.getElementById('live-btn-reload');
   const fsBtn = document.getElementById('live-btn-fullscreen');
 
-  if (backBtn) backBtn.onclick = () => { location.hash = '#/'; };
+  if (backBtn) backBtn.onclick = () => { location.hash = '#/home'; };
   if (addM3u8Btn) addM3u8Btn.onclick = () => { if (window.openAddM3u8Modal) window.openAddM3u8Modal(); };
 
   // Mount the Live Player Stage and Channel Guide Drawer into #app
